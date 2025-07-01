@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Invictus Kiosk</string>
+
+    <string name="directory">DIRECTORY</string>
+    <string name="service_key_all_caps">SERVICE KEY</string>
+    <string name="check_in">TOUR CHECK-IN</string>
+    <string name="leasing_office">LEASING OFFICE</string>
+    <string name="local_coupons">LOCAL COUPONS</string>
+    <string name="vacancies">VACANCIES</string>
+    <string name="pin">PIN</string>
+    <string name="qr_code">QR CODE</string>
+    <string name="pin_title_text">Input the PIN code to enter</string>
+    <string name="qr_code_title_text">Scan the QR code to enter</string>
+    <string name="prospect_key">Prospect Key</string>
+    <string name="service_key">Service Key</string>
+    <string name="welcome_prospect">Welcome Prospect</string>
+    <string name="scan_qr_code">"Scan QR Code"</string>
+    <string name="title_text">"Invictus Apartments - Garden Entry"</string>
+    <string name="service_key_message_text">"I have a 4-digit guest key instead."</string>
+
+
+
+</resources>
