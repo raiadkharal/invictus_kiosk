@@ -30,7 +30,8 @@ import net.invictusmanagement.invictuskiosk.R
 fun QRCodePanel(
     modifier: Modifier = Modifier,
     imageWidth: Dp = 300.dp,
-    imageHeight: Dp = 300.dp
+    imageHeight: Dp = 300.dp,
+    onScanClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -55,7 +56,7 @@ fun QRCodePanel(
             textStyle = MaterialTheme.typography.bodyMedium.copy(
                 color = colorResource(R.color.btn_text)
             ),
-            onClick = {}
+            onClick = onScanClick
         )
     }
 }

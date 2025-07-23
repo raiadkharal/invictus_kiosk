@@ -37,20 +37,18 @@ fun CustomIconButton(
     text: String,
     onClick:()->Unit = {}
 ) {
+
+    val gradient = Brush.linearGradient(
+        0.0f to colorResource(R.color.background),
+        10.0f to colorResource(R.color.btn_gradient_end).copy(alpha = 0.4f),
+        start = Offset(0f, Float.POSITIVE_INFINITY),
+        end = Offset(Float.POSITIVE_INFINITY, 0f)
+    )
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        colorResource(id = R.color.btn_gradient_start),
-                        colorResource(id = R.color.btn_gradient_end).copy(alpha = 0.5f)
-
-                    ),
-                    start = Offset(0f, Float.POSITIVE_INFINITY), // Bottom-left corner
-                    end = Offset(Float.POSITIVE_INFINITY, 0f) // Top-right corner
-                )
-            )
+            .background(gradient)
             .border(1.dp, colorResource(R.color.btn_text), RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
             .padding(16.dp),

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="directory">DIRECTORIO</string>
+    <string name="service_key_all_caps">CLAVE DE SERVICO</string>
+    <string name="check_in">VISIT AUTOGUIADA</string>
+    <string name="leasing_office">"OFICINA DE ARRENDAMIENTO "</string>
+    <string name="local_coupons">CUPONES LOCALES</string>
+    <string name="vacancies">VACANTES</string>
+    <string name="pin">ALFILER</string>
+    <string name="qr_code">CÓDIGO QR</string>
+    <string name="video_call">"VIDEOLLAMADA "</string>
+    <string name="contact_now">"CONTACTAR AHORA "</string>
+    <string name="end_call">FINALIZAR LLAMADA</string>
+    <string name="send">ENVIAR</string>
+    <string name="pin_title_text">Ingrese el código PIN para ingresar</string>
+    <string name="qr_code_title_text">" Escanee el código QR para ingresar"</string>
+    <string name="video_call_message">Párese a una distancia de un brazo de distancia para disfrutar de una experiencia de calidad.</string>
+    <string name="prospect_key">Clave de prospecto</string>
+    <string name="service_key">Clave de servicio</string>
+    <string name="leasing_agent">Agente de arrendamiento</string>
+    <string name="connecting">Conectando…</string>
+    <string name="coupons">Cupones</string>
+    <string name="category">Categoría</string>
+    <string name="welcome_prospect">Bienvenido prospecto</string>
+    <string name="scan_qr_code">"Escanear código QR "</string>
+    <string name="service_key_message_text">En su lugar, tengo una clave de invitado de 4 dígitos.</string>
+    <string name="unlocked">Desbloqueada</string>
+    <string name="unlocked_message">Gracias por usar Invictus</string>
+    <string name="unit_details">Detalles de la unidad</string>
+    <string name="name">Nombre</string>
+    <string name="email">" Correo electrónico"</string>
+    <string name="phone">Teléfono</string>
+    <string name="contact_request">Solicitud de contacto</string>
+</resources>

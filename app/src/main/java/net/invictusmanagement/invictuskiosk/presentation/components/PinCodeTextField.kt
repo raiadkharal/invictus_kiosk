@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,6 +41,7 @@ fun PinCodeTextField(
     modifier: Modifier = Modifier,
     length: Int = 4,
     value: String = "",
+    isError: Boolean = false,
     onValueChanged: (String) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -67,7 +69,7 @@ fun PinCodeTextField(
 
     Row(
         modifier = Modifier.fillMaxWidth()
-            .border(width = 2.dp, color = colorResource(R.color.btn_text),shape = MaterialTheme.shapes.large),
+            .border(width = 2.dp, color = if(isError) Color.Red else colorResource(R.color.btn_text),shape = MaterialTheme.shapes.large),
         horizontalArrangement = Arrangement.Center
     ) {
         repeat(length) {
@@ -81,6 +83,7 @@ fun PinCodeTextField(
                         focusRequester.requestFocus()
                         keyboard?.show()
                     },
+                isError =isError,
                 value = value.getOrNull(it)?.toString() ?: "",
                 isCursorVisible = value.length == it
             )
@@ -91,8 +94,9 @@ fun PinCodeTextField(
 
 @Composable
 fun OtpCell(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     value: String,
+    isError: Boolean=false,
     isCursorVisible: Boolean = false
 ) {
     val scope = rememberCoroutineScope()
@@ -112,7 +116,7 @@ fun OtpCell(
     ) {
         Text(
             text = if (isCursorVisible) cursorSymbol else value,
-            style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
+            style = MaterialTheme.typography.headlineSmall.copy(color = if (isError) Color.Red else colorResource(R.color.btn_text)),
             modifier = Modifier.align(Alignment.Center)
         )
         if(value.isEmpty()){

@@ -1,0 +1,46 @@
+package net.invictusmanagement.invictuskiosk.data.remote.dto.home
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Location(
+    val activationDate: String?,
+    val address1: String?,
+    val allowAmenitiesBooking: Boolean?,
+    val allowBulletinBoard: Boolean?,
+    val allowBusinessInvitation: Boolean?,
+    val allowCommunityNotification: Boolean?,
+    val allowGeneralChat: Boolean?,
+    val allowInsuranceRequest: Boolean?,
+    val allowMaintenanceRequest: Boolean?,
+    val allowSurvey: Boolean?,
+    val brivoSiteId: Int?,
+    val brivoSmartHomeCompanyId: Int?,
+    val brivoSmartHomePropertyId: Int?,
+    val city: String?,
+    val createdUtc: String?,
+    val deleted: Boolean?,
+    val email: String?,
+    val enableAVAIntegration: Boolean?,
+    val enableBrivoIntegration: Boolean?,
+    val enableBrivoSmartHomeIntegration: Boolean?,
+    val enableEENIntegration: Boolean?,
+    val enableOpenPathIntegration: Boolean?,
+    val enablePDKIntegration: Boolean?,
+    val enableSeamIntegration: Boolean?,
+    val fullAddress: String?,
+    val id: Int?,
+    val isActive: Boolean?,
+    val isDemoLocation: Boolean?,
+    val latitude: Double?,
+    val locationCode: String?,
+    val longitude: Double?,
+    val name: String?,
+    val notes: String?,
+    val openPathSiteId: Int?,
+    val phone: String?,
+    val state: String?,
+    val type: Int?,
+    val website: String?,
+    val zip: String?
+)

@@ -1,32 +1,30 @@
 package net.invictusmanagement.invictuskiosk.presentation.home.components
 
-import android.net.Uri
-import android.util.Log
-import android.widget.VideoView
+import android.content.Context
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.*
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import net.invictusmanagement.invictuskiosk.util.VideoCache
+import java.io.File
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -36,20 +34,29 @@ fun UrlVideoPlayer(
 ) {
     val context = LocalContext.current
 
-    // 1) Build a DefaultHttpDataSource that will handle HTTPS (and redirects)
-    val httpDataSourceFactory = remember {
-        DefaultHttpDataSource.Factory().apply {
-            // allow redirects if the server sends you elsewhere
-            setAllowCrossProtocolRedirects(true)
+    // Cache initialization
+    val cache = remember { VideoCache.getInstance(context) }
+
+    // DataSource.Factory with Cache
+    val dataSourceFactory = remember(url) {
+        if (url.startsWith("http")) {
+            val upstreamFactory = DefaultHttpDataSource.Factory()
+            CacheDataSource.Factory()
+                .setCache(cache)
+                .setUpstreamDataSourceFactory(upstreamFactory)
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+        } else {
+            // default datasource factory for video from res/raw
+            DefaultDataSource.Factory(context)
         }
     }
 
-    // 2) Create a ProgressiveMediaSource.Factory from it
+
     val mediaSourceFactory = remember {
-        ProgressiveMediaSource.Factory(httpDataSourceFactory)
+        ProgressiveMediaSource.Factory(dataSourceFactory)
     }
 
-    // 3) Build & remember your ExoPlayer with that mediaSourceFactory
+    // ExoPlayer instance with cache-enabled media source
     val player = remember {
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
@@ -61,9 +68,10 @@ fun UrlVideoPlayer(
             }
     }
 
-    // 4) Clean up when the Composable leaves composition
     DisposableEffect(player) {
-        onDispose { player.release() }
+        onDispose {
+            player.release()
+        }
     }
 
     Box(modifier = modifier.clip(RoundedCornerShape(20.dp))) {
@@ -75,9 +83,7 @@ fun UrlVideoPlayer(
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 }
             },
-            // DEBUG: give it a fixed height so we know it’s laid out
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

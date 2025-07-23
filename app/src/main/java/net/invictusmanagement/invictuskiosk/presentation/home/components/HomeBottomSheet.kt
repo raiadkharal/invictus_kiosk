@@ -2,6 +2,7 @@ package net.invictusmanagement.invictuskiosk.presentation.home.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,34 +19,49 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
+import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
 
 @Composable
 fun HomeBottomSheet(
     modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
     onPinCodeClick: () -> Unit = {},
-    onQrCodeClick: () -> Unit = {}
+    onQrCodeClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
+    onCallBtnClick: (Resident) -> Unit = {}
 ) {
 
-    val residents = listOf(
-        "James Bell", "Janii Russell", "Jade Warren", "Jenny Wilson",
-        "John Fox", "Johnny Steward", "Johnny Webb", "James Bell", "Janii Russell", "Jade Warren", "Jenny Wilson",
-        "John Fox", "Johnny Steward", "Johnny Webb", "James Bell", "Janii Russell", "Jade Warren", "Jenny Wilson"
-    )
+    val residentsState by viewModel.residentState.collectAsState()
 
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllResidents()
+    }
     Row(
         modifier = modifier
             .fillMaxSize()
@@ -57,12 +73,44 @@ fun HomeBottomSheet(
             modifier = Modifier.weight(7f)
                 .fillMaxSize()
         )      {
-            // Residents List
-            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                items(residents) { resident ->
-                    ResidentListItem(residentName = resident)
+            if(residentsState.isLoading){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp),
+                    contentAlignment = Alignment.Center
+                ){
+                    CircularProgressIndicator()
+                }
+            }else{
+                if(residentsState.residents.isNullOrEmpty()){
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 16.dp),
+                        contentAlignment = Alignment.Center,
+                    ){
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.no_residents_found),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
+                        )
+                    }
+                }else{
+                    // Residents List
+                    LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        items(residentsState.residents!!) { resident ->
+                            ResidentListItem(
+                                residentName = resident.displayName,
+                                showCallButton = true,
+                                onCallClick = {onCallBtnClick(resident)}
+                            )
+                        }
+                    }
                 }
             }
+
         }
 
         Spacer(Modifier.width(16.dp))
@@ -90,7 +138,7 @@ fun HomeBottomSheet(
                         .clip(RoundedCornerShape(16.dp))
                         .background(color = colorResource(R.color.btn_text))
                         .padding(vertical = 20.dp),
-                    onClick = { /* Handle back button click */ }
+                    onClick = onBackClick
                 ) {
                     Icon(
                         modifier = Modifier.width(50.dp).height(50.dp),
@@ -105,7 +153,7 @@ fun HomeBottomSheet(
                         .clip(RoundedCornerShape(16.dp))
                         .background(color = colorResource(R.color.btn_pin_code))
                         .padding(vertical = 20.dp),
-                    onClick = { /* Handle back button click */ }
+                    onClick = onHomeClick
                 ) {
                     Icon(
                         modifier = Modifier.width(50.dp).height(50.dp),
@@ -148,5 +196,5 @@ fun HomeBottomSheet(
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun BottomSheetHomePreview() {
-    HomeBottomSheet()
+    HomeBottomSheet(viewModel = hiltViewModel())
 }

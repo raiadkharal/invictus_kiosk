@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.residents.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +26,8 @@ import net.invictusmanagement.invictuskiosk.R
 @Composable
 fun ResidentListItem(
     residentName: String,
-    onClick: () -> Unit = {}
+    showCallButton: Boolean = false,
+    onCallClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -40,6 +41,7 @@ fun ResidentListItem(
             style = MaterialTheme.typography.headlineLarge.copy(color = colorResource(R.color.btn_text))
         )
 
+        if (showCallButton) {
             Row(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -48,10 +50,20 @@ fun ResidentListItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text("Call", style = MaterialTheme.typography.bodyLarge.copy(color = colorResource(R.color.btn_text)))
+                Text(
+                    "Call",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = colorResource(R.color.btn_text))
+                )
                 Spacer(Modifier.width(8.dp))
-                Icon(Icons.Filled.Phone, contentDescription = "Call", tint = colorResource(R.color.btn_text))
+                Icon(
+                    modifier = Modifier.clickable { onCallClick() },
+                    imageVector = Icons.Filled.Phone,
+                    contentDescription = "Call",
+                    tint = colorResource(R.color.btn_text)
+                )
             }
+        }
+
     }
 }
 

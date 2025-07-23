@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -23,16 +25,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
+import net.invictusmanagement.invictuskiosk.presentation.navigation.SelfGuidedTourScreen
 
 @Composable
-fun SelfGuidedTour(
+fun SelfGuidedTourScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    mainViewModel: MainViewModel = hiltViewModel()
 ) {
+
+    val locationName by mainViewModel.locationName.collectAsState()
+    val kioskName by mainViewModel.kioskName.collectAsState()
+
+    val buttons:List<List<String>> = listOf(
+        listOf("1", "2", "3"),
+        listOf("4", "5", "6"),
+        listOf("7", "8", "9"),
+        listOf("0","X","clear"))
 
     Column (
         modifier = modifier
@@ -40,30 +56,10 @@ fun SelfGuidedTour(
             .background(colorResource(R.color.background)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        Row (
-            modifier = Modifier.fillMaxWidth()
-                .background(colorResource(R.color.background_dark))
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Image(
-                modifier=Modifier
-                    .width(40.dp)
-                    .height(40.dp)
-                    .clickable(onClick = {
-                        navController.popBackStack()
-                    }),
-                painter = painterResource(R.drawable.angle_left),
-                contentDescription = "Back arrow icon"
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                stringResource(R.string.title_text),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold,color = colorResource(R.color.btn_text))
-            )
-        }
-
+        CustomToolbar(
+            title = "$locationName - $kioskName",
+            navController = navController
+        )
         Column (
             modifier = Modifier
                 .padding(16.dp),
@@ -76,12 +72,6 @@ fun SelfGuidedTour(
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text)))
 
             Spacer(Modifier.height(8.dp))
-
-            val buttons:List<List<String>> = listOf(
-                listOf("1", "2", "3"),
-                listOf("4", "5", "6"),
-                listOf("7", "8", "9"),
-                listOf("0","X","clear"))
 
             PinInputPanel(
                 modifier = Modifier
@@ -101,7 +91,7 @@ fun SelfGuidedTour(
 
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
-private fun ServiceScreenPreview() {
+private fun SelfGuidedTourScreenPreview() {
     val navController = rememberNavController()
-    SelfGuidedTour(navController = navController)
+    SelfGuidedTourScreen(navController = navController)
 }
