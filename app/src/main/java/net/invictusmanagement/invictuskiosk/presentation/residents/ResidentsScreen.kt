@@ -1,6 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.residents
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -34,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,23 +40,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
+import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
-import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
+import net.invictusmanagement.invictuskiosk.util.UiEvent
 
 @Composable
 fun ResidentsScreen(
@@ -72,66 +74,63 @@ fun ResidentsScreen(
     viewModel: ResidentsViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
-
-    val context = LocalContext.current
-
     var searchQuery by remember { mutableStateOf("") }
-    val residentState by viewModel.residentsState.collectAsState()
-    val currentAccessPoint by viewModel.accessPoint.collectAsState()
-    val activationCode by viewModel.activationCode.collectAsState()
+    val residentState by viewModel.residentsState.collectAsStateWithLifecycle()
+    val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     val keyValidationState = viewModel.keyValidationState.value
     var residentList by remember { mutableStateOf(residentState.residents ?: emptyList()) }
-    var isPinSelected by remember { mutableStateOf(true) }
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
     var isError by remember { mutableStateOf(false) }
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
+    var selectedResident by remember { mutableStateOf<Resident?>(null) }
 
     val filteredResidents =
         residentList.filter { it.displayName.contains(searchQuery, ignoreCase = true) }
 
-    // Get result from qrcode screen using SavedStateHandle
-    val scanResult = navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<String?>("scan_result", null)
-        ?.collectAsState()
-
-    // Process qr code result when available
-    LaunchedEffect(scanResult?.value) {
-        scanResult?.value?.let { result ->
-            // validate digital key from qrcode
-            viewModel.validateDigitalKey(
-                DigitalKeyDto(
-                    accessPointId = currentAccessPoint?.id ?: 0,
-                    key = result,
-                )
-            )
-
-            // Clear result to avoid reprocessing
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("scan_result")
-        }
-    }
 
     LaunchedEffect(Unit) {
+        viewModel.loadInitialData()
+
         if (isUnitNumberSelected) {
             viewModel.getResidentByUnitNumber(unitNumber)
         } else if (isLeasingOffice) {
             viewModel.getAllLeasingAgents(byName)
-        }else{
+        } else {
             viewModel.getResidentsByName(filter, byName)
         }
     }
-    LaunchedEffect (keyValidationState){
-        if (keyValidationState.digitalKey?.isValid ==  true){
+
+    LaunchedEffect(keyValidationState) {
+        if (keyValidationState.digitalKey?.isValid == true) {
             isError = false
             delay(2000)
-            navController.navigate(UnlockedScreen)
-        }else if(keyValidationState.digitalKey?.isValid == false){
+            navController.navigate(
+                UnlockedScreenRoute(
+                    unitId = keyValidationState.digitalKey.unitId,
+                    mapId = keyValidationState.digitalKey.mapId,
+                    toPackageCenter = keyValidationState.digitalKey.toPackageCenter
+                )
+            ){
+                popUpTo(HomeScreen)
+            }
+        } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
             delay(3000)
             isError = false
         }
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
     }
-    LaunchedEffect (residentState){
+    LaunchedEffect(residentState) {
         residentList = residentState.residents ?: emptyList()
     }
 
@@ -172,25 +171,25 @@ fun ResidentsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (residentList.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ){
-                            if (residentState.isLoading) {
-                                CircularProgressIndicator()
-                            }else{
-                                Text(
-                                    stringResource(R.string.no_residents_found),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorResource(R.color.btn_text)
-                                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (residentState.isLoading) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                stringResource(R.string.no_residents_found),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorResource(R.color.btn_text)
                                 )
-                            }
+                            )
                         }
+                    }
                 } else {
                     // Residents List
                     LazyColumn(
@@ -201,13 +200,16 @@ fun ResidentsScreen(
                         items(filteredResidents) { resident ->
                             ResidentListItem(
                                 residentName = resident.displayName,
-                                showCallButton = true,
+                                isSelected = resident.id == selectedResident?.id,
+                                onItemClick = {
+                                    selectedResident = resident
+                                },
                                 onCallClick = {
                                     navController.navigate(
                                         VideoCallScreenRoute(
                                             residentId = resident.id,
                                             residentDisplayName = resident.displayName,
-                                            residentActivationCode = resident.activationCode?:"",
+                                            residentActivationCode = resident.activationCode ?: "",
                                         )
                                     )
                                 }
@@ -234,42 +236,28 @@ fun ResidentsScreen(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        isGradient = isPinSelected,
-                        text = stringResource(R.string.pin),
-                        onClick = { isPinSelected = true })
-                    Spacer(Modifier.width(16.dp))
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.qr_code),
-                        isGradient = !isPinSelected,
-                        onClick = { isPinSelected = false })
-                }
-
-                Spacer(Modifier.height(16.dp))
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if(isError){
+                    text = if (isError) {
                         stringResource(R.string.invalid_key)
-                    }else {
-                        if (isPinSelected) stringResource(R.string.pin_title_text) else stringResource(
+                    } else {
+                        if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
                             R.string.qr_code_title_text
                         )
                     },
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(color = if(isError) Color.Red else colorResource(R.color.btn_text))
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        color = if (isError) Color.Red else colorResource(
+                            R.color.btn_text
+                        )
+                    )
                 )
 
                 AnimatedVisibility(
                     modifier = Modifier.weight(1f),
                     enter = slideInVertically() + fadeIn(),
                     exit = slideOutVertically() + fadeOut(),
-                    visible = isPinSelected
+                    visible = selectedResident != null
                 ) {
                     PinInputPanel(
                         modifier = Modifier
@@ -280,7 +268,7 @@ fun ResidentsScreen(
                                 DigitalKeyDto(
                                     accessPointId = currentAccessPoint?.id ?: 0,
                                     key = pinCode,
-                                    activationCode = activationCode ?: ""
+                                    activationCode = selectedResident?.activationCode ?: ""
                                 )
                             )
                         }
@@ -291,11 +279,13 @@ fun ResidentsScreen(
                     modifier = Modifier.weight(1f),
                     enter = slideInVertically() + fadeIn(),
                     exit = slideOutVertically() + fadeOut(),
-                    visible = !isPinSelected
+                    visible = selectedResident == null
                 ) {
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
+                        imageWidth = 350.dp,
+                        imageHeight = 350.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }
@@ -309,6 +299,13 @@ fun ResidentsScreen(
 private fun ResidentsScreenPreview() {
     InvictusKioskTheme {
         val navController = rememberNavController()
-        ResidentsScreen(navController = navController, isUnitNumberSelected = false, unitNumber = "", filter = "", byName = "", isLeasingOffice = false)
+        ResidentsScreen(
+            navController = navController,
+            isUnitNumberSelected = false,
+            unitNumber = "",
+            filter = "",
+            byName = "",
+            isLeasingOffice = false
+        )
     }
 }

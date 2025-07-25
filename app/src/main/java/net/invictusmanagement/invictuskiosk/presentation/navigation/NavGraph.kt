@@ -89,9 +89,13 @@ fun NavGraph(
                 selectedCouponId = args.selectedCouponId
             )
         }
-        composable<LeasingOfficeScreen> {
+        composable<LeasingOfficeScreenRoute> {
+            val args = it.toRoute<LeasingOfficeScreenRoute>()
             LeasingOfficeScreen(
                 modifier = Modifier.padding(innerPadding),
+                residentId = args.residentId,
+                residentDisplayName = args.residentDisplayName,
+                residentActivationCode = args.residentActivationCode,
                 navController = navController
             )
         }
@@ -105,10 +109,17 @@ fun NavGraph(
             VacancyScreen(modifier = Modifier.padding(innerPadding), navController = navController)
         }
         composable<QRScannerScreen> {
-            QRScannerScreen(navController = navController)
+            QRScannerScreen(modifier = Modifier.padding(innerPadding),navController = navController)
         }
-        composable<UnlockedScreen> {
-            UnlockScreen(modifier = Modifier.padding(innerPadding), navController = navController)
+        composable<UnlockedScreenRoute> {
+            val args = it.toRoute<UnlockedScreenRoute>()
+            UnlockScreen(
+                modifier = Modifier.padding(innerPadding),
+                unitId = args.unitId,
+                mapId = args.mapId,
+                toPackageCenter = args.toPackageCenter,
+                navController = navController
+            )
         }
         composable<VideoCallScreenRoute> {
             val args = it.toRoute<VideoCallScreenRoute>()

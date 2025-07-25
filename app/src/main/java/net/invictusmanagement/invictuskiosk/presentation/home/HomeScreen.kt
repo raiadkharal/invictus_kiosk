@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.home
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -41,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
@@ -51,9 +51,8 @@ import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
+import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
-import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
-import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.home.components.CustomBottomSheet
 import net.invictusmanagement.invictuskiosk.presentation.home.components.HomeBottomSheet
@@ -64,7 +63,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScr
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.SelfGuidedTourScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ServiceKeyScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VacancyScreen
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
@@ -87,50 +86,35 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
-    val keyValidationState by viewModel.digitalKeyValidationState.collectAsState()
+    val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     var currentLocale by remember { mutableStateOf(LocaleHelper.getCurrentLocale(context)) }
-    var isPinSelected by remember { mutableStateOf(false) }
     var showHomeBottomSheet by remember { mutableStateOf(false) }
     var showPinCodeBottomSheet by remember { mutableStateOf(false) }
-    val currentAccessPoint by viewModel.accessPoint.collectAsState()
-    val activationCode by viewModel.activationCode.collectAsState()
+    val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
+    val screenSaverUrl by viewModel.videoUrl.collectAsStateWithLifecycle()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+    val leasingOfficeDetails by viewModel.leasingOfficeDetails.collectAsStateWithLifecycle()
+    val introButtons by viewModel.introButtons.collectAsStateWithLifecycle()
+    var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
-    val screenSaverUrl by viewModel.videoUrl.collectAsState()
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
-    val leasingOfficeDetails by viewModel.leasingOfficeDetails.collectAsState()
-    val introButtons by viewModel.introButtons.collectAsState()
-
-    // Get result from qrcode screen using SavedStateHandle
-    val scanResult = navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<String?>("scan_result", null)
-        ?.collectAsState()
-
-    // Process qr code result when available
-    LaunchedEffect(scanResult?.value) {
-        scanResult?.value?.let { result ->
-            // validate digital key from qrcode
-            viewModel.validateDigitalKey(
-                DigitalKeyDto(
-                    accessPointId = currentAccessPoint?.id ?: 0,
-                    key = result
-                )
-            )
-
-            // Clear result to avoid reprocessing
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("scan_result")
-        }
-    }
 
     LaunchedEffect(Unit) {
-        viewModel.loadAccessPoints()
+        viewModel.loadInitialData()
     }
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
             isError = false
             delay(2000)
-            navController.navigate(UnlockedScreen)
+            navController.navigate(
+                UnlockedScreenRoute(
+                    unitId = keyValidationState.digitalKey?.unitId ?: 0,
+                    mapId = keyValidationState.digitalKey?.mapId ?: 0,
+                    toPackageCenter = keyValidationState.digitalKey?.toPackageCenter ?: false
+                )
+            ) {
+                popUpTo(HomeScreen)
+            }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
             delay(3000)
@@ -146,6 +130,12 @@ fun HomeScreen(
                     ) { popUpTo(HomeScreen) }
                 }
             }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetState()
         }
     }
 
@@ -170,7 +160,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .weight(6f)
-                    .fillMaxSize()
+                    .fillMaxHeight()
             ) {
                 UrlVideoPlayer(
                     modifier = Modifier
@@ -183,7 +173,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     if (introButtons.contains(IntroButtons.RESIDENTS.value))
                         CustomIconButton(
@@ -193,8 +183,6 @@ fun HomeScreen(
                             onClick = {
                                 navController.navigate(DirectoryScreen)
                             })
-
-                    Spacer(Modifier.width(20.dp))
 
                     if (introButtons.contains(IntroButtons.KEYS.value))
                         CustomIconButton(
@@ -208,9 +196,9 @@ fun HomeScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    if (introButtons.contains(IntroButtons.SELF_TOUR.value))
+                    if (introButtons.contains(IntroButtons.SELF_TOUR.value)) {
                         CustomIconButton(
                             modifier = Modifier
                                 .weight(1f)
@@ -218,10 +206,9 @@ fun HomeScreen(
                             icon = R.drawable.ic_check_in,
                             text = stringResource(R.string.check_in),
                             onClick = { navController.navigate(SelfGuidedTourScreen) })
+                    }
 
-                    Spacer(Modifier.width(20.dp))
-
-                    if (introButtons.contains(IntroButtons.LEASING_OFFICE.value))
+                    if (introButtons.contains(IntroButtons.LEASING_OFFICE.value)) {
                         CustomIconButton(
                             modifier = Modifier
                                 .weight(1f)
@@ -253,10 +240,9 @@ fun HomeScreen(
                                     )
                                 }
                             })
+                    }
 
-                    Spacer(Modifier.width(20.dp))
-
-                    if (introButtons.contains(IntroButtons.PROMOTIONS.value))
+                    if (introButtons.contains(IntroButtons.PROMOTIONS.value)) {
                         CustomIconButton(
                             modifier = Modifier
                                 .weight(1f)
@@ -264,10 +250,9 @@ fun HomeScreen(
                             icon = R.drawable.ic_coupons,
                             text = stringResource(R.string.local_coupons),
                             onClick = { navController.navigate(CouponsScreen) })
+                    }
 
-                    Spacer(Modifier.width(20.dp))
-
-                    if (introButtons.contains(IntroButtons.VACANCIES.value))
+                    if (introButtons.contains(IntroButtons.VACANCIES.value)) {
                         CustomIconButton(
                             modifier = Modifier
                                 .weight(1f)
@@ -275,6 +260,7 @@ fun HomeScreen(
                             icon = R.drawable.ic_vacancies,
                             text = stringResource(R.string.vacancies),
                             onClick = { navController.navigate(VacancyScreen) })
+                    }
                 }
             }
 
@@ -293,73 +279,22 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        isGradient = isPinSelected,
-                        text = stringResource(R.string.pin),
-                        onClick = { isPinSelected = true })
-                    Spacer(Modifier.width(16.dp))
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.qr_code),
-                        isGradient = !isPinSelected,
-                        onClick = { isPinSelected = false })
-                }
-
-                Spacer(Modifier.height(16.dp))
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (isError) {
-                        stringResource(R.string.invalid_key)
-                    } else {
-                        if (isPinSelected) stringResource(R.string.pin_title_text) else stringResource(
-                            R.string.qr_code_title_text
-                        )
-                    },
+                    text = stringResource(R.string.qr_code_title_text),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        color = if (isError) Color.Red else colorResource(
-                            R.color.btn_text
-                        )
-                    )
+                    style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
                 )
 
                 AnimatedVisibility(
                     modifier = Modifier.weight(1f),
                     enter = slideInVertically() + fadeIn(),
                     exit = slideOutVertically() + fadeOut(),
-                    visible = isPinSelected
-                ) {
-                    PinInputPanel(
-                        modifier = Modifier.fillMaxSize(),
-                        isError = isError,
-                        onCompleted = { pinCode ->
-                            viewModel.validateDigitalKey(
-                                DigitalKeyDto(
-                                    accessPointId = currentAccessPoint?.id ?: 0,
-                                    key = pinCode,
-                                    activationCode = activationCode ?: ""
-                                )
-                            )
-                        }
-                    )
-                }
-
-                AnimatedVisibility(
-                    modifier = Modifier.weight(1f),
-                    enter = slideInVertically() + fadeIn(),
-                    exit = slideOutVertically() + fadeOut(),
-                    visible = !isPinSelected
+                    visible = true
                 ) {
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
-                        imageWidth = 250.dp,
-                        imageHeight = 250.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }
@@ -409,7 +344,8 @@ fun HomeScreen(
     ) {
         // Place the bottom sheet content here
         HomeBottomSheet(
-            onPinCodeClick = {
+            onResidentClick = { resident ->
+                selectedResident = resident
                 showHomeBottomSheet = false
                 showPinCodeBottomSheet = true
             },
@@ -440,17 +376,29 @@ fun HomeScreen(
         onDismiss = { showPinCodeBottomSheet = false }
     ) {
         // Place the bottom sheet content here
-        PinCodeBottomSheet(
-            navController = navController,
-            onHomeClick = {
-                showPinCodeBottomSheet = false
-                showHomeBottomSheet = false
-            },
-            onBackClick = {
-                showPinCodeBottomSheet = false
-                showHomeBottomSheet = true
-            }
-        )
+        selectedResident?.let {
+            PinCodeBottomSheet(
+                selectedResident = it,
+                isError = isError,
+                onHomeClick = {
+                    showPinCodeBottomSheet = false
+                    showHomeBottomSheet = false
+                },
+                onBackClick = {
+                    showPinCodeBottomSheet = false
+                    showHomeBottomSheet = true
+                },
+                onCallBtnClick = { resident ->
+                    navController.navigate(
+                        VideoCallScreenRoute(
+                            residentId = resident.id,
+                            residentDisplayName = resident.displayName,
+                            residentActivationCode = resident.activationCode ?: ""
+                        )
+                    )
+                }
+            )
+        }
     }
 }
 

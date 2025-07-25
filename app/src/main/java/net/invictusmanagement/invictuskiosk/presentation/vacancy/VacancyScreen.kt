@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
@@ -57,13 +58,13 @@ fun VacancyScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
-    val vacanciesState by viewModel.unitList.collectAsState()
-    val contactRequestState by viewModel.contactRequestState.collectAsState()
+    val vacanciesState by viewModel.unitList.collectAsStateWithLifecycle()
+    val contactRequestState by viewModel.contactRequestState.collectAsStateWithLifecycle()
     var showVacancyInfoDialog by remember { mutableStateOf(false) }
     var showContactDialog by remember { mutableStateOf(false) }
     var contactRequestSuccess by remember { mutableStateOf(false) }
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
     var selectedRow by remember {
         mutableStateOf<net.invictusmanagement.invictuskiosk.domain.model.Unit?>(

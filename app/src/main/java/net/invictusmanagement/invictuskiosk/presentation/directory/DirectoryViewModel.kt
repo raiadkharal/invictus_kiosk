@@ -27,9 +27,6 @@ class DirectoryViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
-    private val _eventFlow = MutableSharedFlow<UiEvent>()
-    val eventFlow = _eventFlow
-
     private val _accessPoint = MutableStateFlow<AccessPoint?>(null)
     val accessPoint: StateFlow<AccessPoint?> = _accessPoint
 
@@ -45,15 +42,16 @@ class DirectoryViewModel @Inject constructor(
     private val _keyValidationState = MutableStateFlow(DigitalKeyState())
     val keyValidationState: StateFlow<DigitalKeyState> = _keyValidationState
 
-    init {
+    fun loadInitialData(){
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
             }
         }
-    }
 
-    fun getUnitList() {
+        getUnitList()
+    }
+    private fun getUnitList() {
         repository.getUnitList().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -79,11 +77,6 @@ class DirectoryViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _eventFlow.emit(
-                        UiEvent.ShowError(
-                            result.message ?: "An unexpected error occurred"
-                        )
-                    )
                     _keyValidationState.value =
                         DigitalKeyState(error = result.message ?: "An unexpected error occurred")
                 }

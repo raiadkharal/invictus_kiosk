@@ -30,29 +30,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
-import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterDropdownButton
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterListItem
+import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.FilterOption
 
@@ -67,57 +66,41 @@ fun DirectoryScreen(
     val alphabets = listOf("Leasing Office / agents") + ('A'..'Z').map { it.toString() }
 
 
-    val unitList by viewModel.unitList.collectAsState()
-    val currentAccessPoint by viewModel.accessPoint.collectAsState()
-    val activationCode by viewModel.activationCode.collectAsState()
-    val keyValidationState by viewModel.keyValidationState.collectAsState()
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
+    val unitList by viewModel.unitList.collectAsStateWithLifecycle()
+    val keyValidationState by viewModel.keyValidationState.collectAsStateWithLifecycle()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+    val isUnitFilterEnabled by mainViewModel.isUnitFilterEnabled.collectAsStateWithLifecycle()
 
 
     var searchQuery by remember { mutableStateOf("") }
     var list by remember { mutableStateOf(emptyList<String>()) }
     var selectedFilterOption by remember { mutableStateOf(FilterOption.FIRST_NAME) }
-    var isPinSelected by remember { mutableStateOf(true) }
     var isUnitNumberSelected by remember { mutableStateOf(false) }
     var isFirstNameSelected by remember { mutableStateOf(false) }
-    var isError by remember { mutableStateOf(false) }
     val filteredList = list.filter { it.contains(searchQuery, ignoreCase = true) }
 
-    // Get result from qrcode screen using SavedStateHandle
-    val scanResult = navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<String?>("scan_result", null)
-        ?.collectAsState()
-
-    // Process qr code result when available
-    LaunchedEffect(scanResult?.value) {
-        scanResult?.value?.let { result ->
-            // validate digital key from qrcode
-            viewModel.validateDigitalKey(
-                DigitalKeyDto(
-                    accessPointId = currentAccessPoint?.id ?: 0,
-                    key = result,
-                )
-            )
-
-            // Clear result to avoid reprocessing
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("scan_result")
+    LaunchedEffect(Unit) {
+        viewModel.loadInitialData()
+    }
+    LaunchedEffect(unitList) {
+        if (isUnitFilterEnabled) {
+            isUnitNumberSelected = true
+            selectedFilterOption = FilterOption.UNIT_NUMBER
+            list = unitList?.map { it.unitNbr } ?: emptyList()
         }
     }
-
-    LaunchedEffect (Unit){
-        viewModel.getUnitList()
-    }
-    LaunchedEffect (keyValidationState){
-        if (keyValidationState.digitalKey?.isValid ==  true){
-            isError = false
-            delay(2000)
-            navController.navigate(UnlockedScreen)
-        }else if(keyValidationState.digitalKey?.isValid == false){
-            isError = true
-            delay(3000)
-            isError = false
+    LaunchedEffect(keyValidationState) {
+        if (keyValidationState.digitalKey?.isValid == true) {
+            navController.navigate(
+                UnlockedScreenRoute(
+                    unitId = keyValidationState.digitalKey?.unitId ?: 0,
+                    mapId = keyValidationState.digitalKey?.mapId ?: 0,
+                    toPackageCenter = keyValidationState.digitalKey?.toPackageCenter ?: false
+                )
+            ){
+                popUpTo(HomeScreen)
+            }
         }
     }
     LaunchedEffect(selectedFilterOption) {
@@ -228,68 +211,24 @@ fun DirectoryScreen(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        isGradient = isPinSelected,
-                        text = stringResource(R.string.pin),
-                        onClick = { isPinSelected = true })
-                    Spacer(Modifier.width(16.dp))
-                    CustomTextButton(
-                        modifier = Modifier.weight(1f),
-                        text = stringResource(R.string.qr_code),
-                        isGradient = !isPinSelected,
-                        onClick = { isPinSelected = false })
-                }
-
-                Spacer(Modifier.height(16.dp))
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if(isError){
-                        stringResource(R.string.invalid_key)
-                    }else {
-                        if (isPinSelected) stringResource(R.string.pin_title_text) else stringResource(
-                            R.string.qr_code_title_text
-                        )
-                    },
+                    text = stringResource(R.string.qr_code_title_text),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(color = if(isError) Color.Red else colorResource(R.color.btn_text))
+                    style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
                 )
 
                 AnimatedVisibility(
                     modifier = Modifier.weight(1f),
                     enter = slideInVertically() + fadeIn(),
                     exit = slideOutVertically() + fadeOut(),
-                    visible = isPinSelected
-                ) {
-                    PinInputPanel(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        isError = isError,
-                        onCompleted = { pinCode ->
-                            viewModel.validateDigitalKey(
-                                DigitalKeyDto(
-                                    accessPointId = currentAccessPoint?.id ?: 0,
-                                    key = pinCode,
-                                    activationCode = activationCode ?: ""
-                                )
-                            )
-                        }
-                    )
-                }
-
-                AnimatedVisibility(
-                    modifier = Modifier.weight(1f),
-                    enter = slideInVertically() + fadeIn(),
-                    exit = slideOutVertically() + fadeOut(),
-                    visible = !isPinSelected
+                    visible = true
                 ) {
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
+                        imageWidth = 350.dp,
+                        imageHeight = 350.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }

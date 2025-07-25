@@ -34,7 +34,6 @@ class ServiceKeyViewModel @Inject constructor(
         }
     }
 
-
     fun validateServiceKey(serviceKeyDto: ServiceKeyDto){
         repository.validateServiceKey(serviceKeyDto).onEach { result->
             when(result){

@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.video_call
 
 import android.Manifest
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -38,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.twilio.video.VideoView
 import net.invictusmanagement.invictuskiosk.R
@@ -45,7 +45,7 @@ import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.LeasingOfficeScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.LeasingOfficeScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
@@ -72,10 +72,10 @@ fun VideoCallScreen(
     val token = videoCallViewModel.token
     val remainingSeconds = videoCallViewModel.remainingSeconds
 
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
-    val currentAccessPoint by mainViewModel.accessPoint.collectAsState()
-    val kioskActivationCode by mainViewModel.activationCode.collectAsState()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+    val currentAccessPoint by mainViewModel.accessPoint.collectAsStateWithLifecycle()
+    val kioskActivationCode by mainViewModel.activationCode.collectAsStateWithLifecycle()
 
     // Permission Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -86,8 +86,6 @@ fun VideoCallScreen(
 
         if (audioGranted && cameraGranted) {
             hasAllPermissions = true
-        } else {
-            Toast.makeText(context, "All permissions required", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -109,8 +107,14 @@ fun VideoCallScreen(
                         videoCallViewModel.videoTrack?.addSink(localVideoView)
                     },
                     onDisconnected = {
-                        navController.navigate(LeasingOfficeScreen) {
-                            popUpTo(HomeScreen)
+                        navController.navigate(
+                            LeasingOfficeScreenRoute(
+                                residentId = residentId,
+                                residentDisplayName = residentDisplayName,
+                                residentActivationCode = residentActivationCode
+                            )
+                        ) {
+                           popUpTo(HomeScreen)
                         }
                     },
                     onMissedCall = {
@@ -137,9 +141,11 @@ fun VideoCallScreen(
             )
         )
     }
-    LaunchedEffect(kioskActivationCode) {
+
+    LaunchedEffect(hasAllPermissions) {
         videoCallViewModel.getVideoCallToken(kioskActivationCode)
     }
+
     // Attach remote video when available
     LaunchedEffect(remoteVideoTrack) {
         remoteVideoTrack?.addSink(remoteVideoView)
@@ -158,6 +164,7 @@ fun VideoCallScreen(
     ) {
         CustomToolbar(
             title = "$locationName - $kioskName",
+            showBackArrow = false,
             navController = navController
         )
         Column(
@@ -187,7 +194,7 @@ fun VideoCallScreen(
                     .copy(
                         color = when (connectionState) {
                             ConnectionState.CONNECTING -> colorResource(R.color.btn_text)
-                            ConnectionState.CONNECTED -> colorResource(R.color.green)
+                            ConnectionState.CONNECTED -> colorResource(R.color.btn_text)
                             ConnectionState.DISCONNECTED -> colorResource(R.color.red)
                             ConnectionState.FAILED -> colorResource(R.color.red)
                         }
@@ -202,7 +209,7 @@ fun VideoCallScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                // Local video small preview
+                // Local video preview
                 AndroidView(
                     factory = { localVideoView },
                     modifier = Modifier
@@ -258,18 +265,23 @@ fun VideoCallScreen(
 
     }
 
-    if(showVoiceMailDialog){
+    if (showVoiceMailDialog) {
         VoiceMailConfirmationDialog(
             navController = navController,
             onYesClick = {
                 showVoiceMailDialog = false
-                navController.navigate(VoiceMailRecordingScreenRoute(residentId,residentDisplayName)) {
+                navController.navigate(
+                    VoiceMailRecordingScreenRoute(
+                        residentId,
+                        residentDisplayName
+                    )
+                ) {
                     popUpTo(HomeScreen)
                 }
             },
             onNoClick = {
                 showVoiceMailDialog = false
-                navController.navigate(HomeScreen){
+                navController.navigate(HomeScreen) {
                     popUpTo(HomeScreen)
                 }
             }

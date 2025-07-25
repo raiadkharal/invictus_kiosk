@@ -352,7 +352,7 @@ class VideoCallViewModel @Inject constructor(
         cameraManager.cameraIdList.forEach { id ->
             val characteristics = cameraManager.getCameraCharacteristics(id)
             val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if (cameraDirection == CameraCharacteristics.LENS_FACING_BACK) {
+            if (cameraDirection == CameraCharacteristics.LENS_FACING_FRONT) {
                 return id
             }
         }

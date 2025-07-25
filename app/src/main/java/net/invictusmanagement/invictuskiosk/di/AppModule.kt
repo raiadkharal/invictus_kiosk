@@ -15,6 +15,7 @@ import net.invictusmanagement.invictuskiosk.data.repository.HomeRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.LoginRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ResidentsRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ServiceKeyRepositoryImpl
+import net.invictusmanagement.invictuskiosk.data.repository.UnitMapRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.VacancyRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.VideoCallRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.VoicemailRepositoryImpl
@@ -24,6 +25,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
@@ -113,6 +115,12 @@ object AppModule {
     @Singleton
     fun provideVoiceMailRepository(api: ApiInterface): VoicemailRepository {
         return VoicemailRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnitMapRepository(api: ApiInterface): UnitMapRepository {
+        return UnitMapRepositoryImpl(api)
     }
 
 }

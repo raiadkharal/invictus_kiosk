@@ -41,7 +41,7 @@
     <string name="contact_request">Contact Request</string>
     <string name="invalid_service_key" translatable="false">Invalid Service Key</string>
     <string name="filter" translatable="false">Filter</string>
-    <string name="invalid_key" translatable="false">Invalid Key</string>
+    <string name="invalid_key" translatable="false">Invalid Guest Key</string>
     <string name="no_residents_found" translatable="false">No Residents Found</string>
     <string name="no_vacancies" translatable="false">No vacancies found</string>
     <string name="contact_request_success_message" translatable="false">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
@@ -51,7 +51,7 @@
     <string name="video_voice_mail_message" translatable="false">Would you like to leave a video voicemail?</string>
     <string name="yes" translatable="false">Yes</string>
     <string name="no" translatable="false">No</string>
-    <string name="finish_recording">Finish Recording</string>
+    <string name="finish_recording" translatable="false">Finish Recording</string>
 
 
 </resources>

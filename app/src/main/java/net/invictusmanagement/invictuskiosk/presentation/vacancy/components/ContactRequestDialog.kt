@@ -169,15 +169,20 @@ fun ContactRequestDialog(
                             unfocusedBorderColor = colorResource(R.color.btn_text) // Inactive state border
                         )
                     )
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 4.dp, start = 24.dp)
-                            .fillMaxWidth(),
-                        text = stringResource(R.string.placeholder_email),
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                    )
-
+                    if(selectedTab == 0) {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 4.dp, start = 24.dp)
+                                .fillMaxWidth(),
+                            text = stringResource(R.string.placeholder_email),
+                            textAlign = TextAlign.Start,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                )
+                            )
+                        )
+                    }
                     if(requestState.isLoading){
                         Spacer(Modifier.height(16.dp))
                         CircularProgressIndicator(color = colorResource(R.color.btn_text))

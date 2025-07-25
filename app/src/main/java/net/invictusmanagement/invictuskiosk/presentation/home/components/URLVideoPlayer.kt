@@ -37,6 +37,7 @@ fun UrlVideoPlayer(
     // Cache initialization
     val cache = remember { VideoCache.getInstance(context) }
 
+    if(url.isEmpty()) return
     // DataSource.Factory with Cache
     val dataSourceFactory = remember(url) {
         if (url.startsWith("http")) {

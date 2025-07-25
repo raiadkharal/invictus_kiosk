@@ -76,7 +76,6 @@ dependencies {
 
     // Coroutine Lifecycle Scopes
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx.v231)
 
 //    // Dagger - Hilt
     implementation(libs.hilt.android)
@@ -113,9 +112,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     // Accompanist Permissions
-    implementation ("com.google.accompanist:accompanist-permissions:0.34.0")
+    implementation (libs.accompanist.permissions)
 
     //twilio
-    implementation ("com.twilio:video-android:7.5.1")
+    implementation (libs.video.android)
 
 }

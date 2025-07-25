@@ -1,10 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,13 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
@@ -39,7 +35,8 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 
 @Composable
 fun ServiceKeyScreen(
@@ -50,11 +47,11 @@ fun ServiceKeyScreen(
 ) {
     val context = LocalContext.current
 
-    val state by viewModel.serviceKeyState.collectAsState()
-    val currentAccessPoint by viewModel.accessPoint.collectAsState()
+    val state by viewModel.serviceKeyState.collectAsStateWithLifecycle()
+    val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     var isError by remember { mutableStateOf(false) }
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
     val otpButtons: List<List<String>> = listOf(
         listOf("1", "2", "3"),
@@ -67,7 +64,14 @@ fun ServiceKeyScreen(
         if (state.digitalKey?.isValid == true) {
             isError = false
             delay(3000)
-            navController.navigate(UnlockedScreen)
+            navController.navigate(
+                UnlockedScreenRoute(
+                    unitId = 0,
+                    mapId = 0
+                )
+            ){
+                popUpTo(HomeScreen)
+            }
         } else if(state.digitalKey?.isValid == false){
             isError = true
             delay(2000)

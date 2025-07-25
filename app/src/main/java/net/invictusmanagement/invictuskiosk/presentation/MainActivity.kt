@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation
 
+import android.Manifest
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
@@ -11,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -19,7 +21,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -28,24 +29,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.LoginScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.NavGraph
-import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreen
 import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSaver
 import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSaverViewModel
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
@@ -56,6 +48,7 @@ import java.util.Locale
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -76,10 +69,11 @@ class MainActivity : ComponentActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
     fun MyApp() {
         val handler = remember { Handler(Looper.getMainLooper()) }
-        val inactivityTimeout = 10000_000L // 10 seconds
+        val inactivityTimeout = 30_000L // 30 seconds
         var showScreenSaver by remember { mutableStateOf(false) }
 
         // Runnable to trigger screen saver after inactivity
@@ -135,6 +129,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
     fun MainContent() {
         val viewModel = hiltViewModel<ScreenSaverViewModel>()

@@ -49,7 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.residents.components.Re
 fun HomeBottomSheet(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
-    onPinCodeClick: () -> Unit = {},
+    onResidentClick: (Resident) -> Unit = {},
     onQrCodeClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
@@ -70,7 +70,7 @@ fun HomeBottomSheet(
             .padding(bottom = 30.dp)
     ) {
         Column(
-            modifier = Modifier.weight(7f)
+            modifier = Modifier.weight(10f)
                 .fillMaxSize()
         )      {
             if(residentsState.isLoading){
@@ -103,8 +103,8 @@ fun HomeBottomSheet(
                         items(residentsState.residents!!) { resident ->
                             ResidentListItem(
                                 residentName = resident.displayName,
-                                showCallButton = true,
-                                onCallClick = {onCallBtnClick(resident)}
+                                onCallClick = {onCallBtnClick(resident)},
+                                onItemClick = {onResidentClick(resident)}
                             )
                         }
                     }
@@ -121,7 +121,7 @@ fun HomeBottomSheet(
 
         // Pin or QR Code Section
         Column(
-            modifier = Modifier.weight(3f)
+            modifier = Modifier.weight(2f)
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -172,14 +172,6 @@ fun HomeBottomSheet(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.Top
             ){
-                CustomIconButton(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    icon = R.drawable.ic_password,
-                    iconSize = 100,
-                    text = stringResource(R.string.pin),
-                    onClick = onPinCodeClick
-                )
-                Spacer(Modifier.width(16.dp))
                 CustomIconButton(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     icon = R.drawable.ic_qr_code,

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
@@ -32,7 +33,7 @@ class HomeViewModel @Inject constructor(
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
     val digitalKeyValidationState: StateFlow<DigitalKeyState> = _digitalKeyValidationState
 
-    private val _videoUrl = MutableStateFlow<String>("")
+    private val _videoUrl = MutableStateFlow("")
     val videoUrl: StateFlow<String> = _videoUrl
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
@@ -50,20 +51,20 @@ class HomeViewModel @Inject constructor(
     private val _introButtons = MutableStateFlow<List<String>>(emptyList())
     val introButtons: StateFlow<List<String>> = _introButtons
 
-    val activationCode = dataStoreManager.activationCodeFlow.stateIn(
+    val kioskActivationCode = dataStoreManager.activationCodeFlow.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5000L),
         null
     )
 
-    init {
+    fun loadInitialData(){
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
             }
         }
         viewModelScope.launch {
-           loadAccessPoints()
+            loadAccessPoints()
         }
         viewModelScope.launch {
             loadLeasingOfficeDetails()
@@ -78,7 +79,6 @@ class HomeViewModel @Inject constructor(
             loadIntroButtons()
         }
     }
-
     private suspend fun loadVideoUrl() {
         dataStoreManager.kioskDataFlow.collect {
             _videoUrl.value = it?.ssUrl ?: ""
@@ -92,6 +92,11 @@ class HomeViewModel @Inject constructor(
                     _introButtons.value = result.data?: emptyList()
                 }
                 is Resource.Error->{
+//                    _eventFlow.emit(
+//                        UiEvent.ShowError(
+//                            result.message?:Constants.CONNECTION_ERROR
+//                        )
+//                    )
                     Log.d("TAG", "getIntroButtons: ${result.message?: "An unexpected error occurred"}")
                 }
                 is Resource.Loading->{}
@@ -126,7 +131,7 @@ class HomeViewModel @Inject constructor(
                 is Resource.Error -> {
                     _eventFlow.emit(
                         UiEvent.ShowError(
-                            result.message ?: "An unexpected error occurred"
+                            Constants.DIGITAL_KEY_GENERIC_ERROR
                         )
                     )
                     _digitalKeyValidationState.value =
@@ -141,7 +146,7 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun loadAccessPoints() {
+    private fun loadAccessPoints() {
         repository.getAccessPoints().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -201,4 +206,14 @@ class HomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+
+    fun resetState() {
+        _digitalKeyValidationState.value = DigitalKeyState()
+        _residentState.value = ResidentState()
+        _accessPoint.value = null
+        _leasingOfficeDetails.value = null
+        _videoUrl.value = ""
+    }
+
 }

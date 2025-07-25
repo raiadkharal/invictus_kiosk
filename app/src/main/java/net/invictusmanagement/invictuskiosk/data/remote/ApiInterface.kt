@@ -19,6 +19,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.domain.model.UnitList
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -103,4 +104,11 @@ interface ApiInterface {
         @Part videoFile: MultipartBody.Part,
         @Part("UserId") userId: RequestBody
     ): Long
+
+    @GET("units/{unitId}/maps/{unitMapId}")
+    suspend fun getMapImage(
+        @Path("unitId") unitId: Long,
+        @Path("unitMapId") unitMapId: Long,
+        @Query("toPackageCenter") toPackageCenter: Boolean = false
+    ): ResponseBody
 }

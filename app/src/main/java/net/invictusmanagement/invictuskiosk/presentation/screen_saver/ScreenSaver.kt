@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.home.components.UrlVideoPlayer
 
@@ -21,7 +22,7 @@ fun ScreenSaver(
 
     val context = LocalContext.current
 
-    val videoUrl by viewModel.videoUrl.collectAsState()
+    val videoUrl by viewModel.videoUrl.collectAsStateWithLifecycle()
 
     // Convert raw resource to URI string
     val logoUri = remember {

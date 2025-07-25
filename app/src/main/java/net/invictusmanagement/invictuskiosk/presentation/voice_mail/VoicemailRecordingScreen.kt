@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -55,9 +56,9 @@ fun VoicemailRecordingScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val locationName by mainViewModel.locationName.collectAsState()
-    val kioskName by mainViewModel.kioskName.collectAsState()
-    val uploadState by viewModel.uploadState.collectAsState()
+    val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
+    val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+    val uploadState by viewModel.uploadState.collectAsStateWithLifecycle()
 
     val countdown by viewModel.countdown
     val isRecordingStarted by viewModel.isRecordingStarted
@@ -75,7 +76,7 @@ fun VoicemailRecordingScreen(
         } else if (uploadState.error.isNotEmpty()) {
             //on upload error navigate to error screen
             navController.navigate(ErrorScreenRoute(errorMessage = uploadState.error)) {
-                popUpTo(ErrorScreenRoute)
+                popUpTo(HomeScreen)
             }
         }
     }
@@ -132,7 +133,7 @@ fun VoicemailRecordingScreen(
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(0.5f)
+                        .fillMaxWidth(0.7f)
                         .padding(vertical = 16.dp, horizontal = 48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center

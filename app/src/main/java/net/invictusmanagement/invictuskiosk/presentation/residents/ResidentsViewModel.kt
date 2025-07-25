@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
@@ -37,7 +38,7 @@ class ResidentsViewModel @Inject constructor(
     private val _accessPoint = MutableStateFlow<AccessPoint?>(null)
     val accessPoint: StateFlow<AccessPoint?> = _accessPoint
 
-    val activationCode = dataStoreManager.activationCodeFlow.stateIn(
+    val kioskActivationCode = dataStoreManager.activationCodeFlow.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         null
@@ -46,7 +47,7 @@ class ResidentsViewModel @Inject constructor(
     private val _keyValidationState = mutableStateOf(DigitalKeyState())
     val keyValidationState: State<DigitalKeyState> = _keyValidationState
 
-    init {
+    fun loadInitialData(){
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
@@ -101,7 +102,7 @@ class ResidentsViewModel @Inject constructor(
                 is Resource.Error -> {
                     _eventFlow.emit(
                         UiEvent.ShowError(
-                            result.message ?: "An unexpected error occurred"
+                            Constants.DIGITAL_KEY_GENERIC_ERROR
                         )
                     )
                 }

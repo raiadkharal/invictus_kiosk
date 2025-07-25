@@ -12,7 +12,13 @@ object HomeScreen
 object DirectoryScreen
 
 @Serializable
-data class ResidentsScreen(val isUnitSelected: Boolean,val unitNumber: String,val filter: String, val byName: String,val isLeasingOffice: Boolean = false)
+data class ResidentsScreen(
+    val isUnitSelected: Boolean,
+    val unitNumber: String,
+    val filter: String,
+    val byName: String,
+    val isLeasingOffice: Boolean = false
+)
 
 @Serializable
 object ServiceKeyScreen
@@ -24,10 +30,11 @@ object CouponsScreen
 data class CouponsDetailScreen(val selectedCouponId: String)
 
 @Serializable
-object LeasingOfficeCallingScreen
-
-@Serializable
-object LeasingOfficeScreen
+data class LeasingOfficeScreenRoute(
+    val residentId: Int,
+    val residentDisplayName: String,
+    val residentActivationCode: String
+)
 
 @Serializable
 object SelfGuidedTourScreen
@@ -39,14 +46,18 @@ object VacancyScreen
 object QRScannerScreen
 
 @Serializable
-object UnlockedScreen
+data class UnlockedScreenRoute(val unitId: Int, val mapId: Int, val toPackageCenter: Boolean = false)
 
 @Serializable
-data class VideoCallScreenRoute(val residentId : Int,val residentDisplayName : String,val residentActivationCode : String)
+data class VideoCallScreenRoute(
+    val residentId: Int,
+    val residentDisplayName: String,
+    val residentActivationCode: String
+)
 
 @Serializable
 data class ErrorScreenRoute(val errorMessage: String)
 
 @Serializable
-data class VoiceMailRecordingScreenRoute(val residentId : Int,val residentDisplayName : String)
+data class VoiceMailRecordingScreenRoute(val residentId: Int, val residentDisplayName: String)
 
