@@ -44,6 +44,7 @@ fun PinInputPanel(
     modifier: Modifier = Modifier,
     pinLength: Int = 4,
     message: String = "",
+    onMessageClick: () -> Unit = {},
     isError: Boolean = false,
     onCompleted: (String) -> Unit = {},
     buttons: List<List<String>> = listOf(
@@ -71,7 +72,8 @@ fun PinInputPanel(
 
         if (message.isNotEmpty()) {
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .clickable(onClick = onMessageClick),
                 text = message,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(

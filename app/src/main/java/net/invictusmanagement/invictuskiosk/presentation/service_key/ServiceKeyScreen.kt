@@ -35,6 +35,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
+import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 
@@ -113,6 +114,9 @@ fun ServiceKeyScreen(
                 message = if (isError) stringResource(R.string.invalid_service_key) else stringResource(
                     R.string.service_key_message_text
                 ),
+                onMessageClick = {
+                    navController.navigate(DirectoryScreen)
+                },
                 onCompleted = { pinCode ->
                     viewModel.validateServiceKey(
                         ServiceKeyDto(

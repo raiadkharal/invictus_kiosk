@@ -54,89 +54,96 @@ fun UnlockScreen(
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
     LaunchedEffect(true) {
-        mainViewModel.fetchMapImage(
-            unitId = unitId.toLong(),
-            unitMapId = mapId.toLong(),
-            toPackageCenter = toPackageCenter
-        )
+        if (unitId != 0 && mapId != 0) {
+            mainViewModel.fetchMapImage(
+                unitId = unitId.toLong(),
+                unitMapId = mapId.toLong(),
+                toPackageCenter = toPackageCenter
+            )
+        }
     }
 
-    Box(
-        modifier = modifier.fillMaxSize()
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        if (imageState == null) {
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                painter = painterResource(R.drawable.unlock_bg_img),
-                contentScale = ContentScale.Crop,
-                contentDescription = "Background image"
-            )
+        CustomToolbar(
+            title = "$locationName - $kioskName",
+            showBackArrow = true,
+            navController = navController
+        )
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (imageState == null) {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    painter = painterResource(R.drawable.unlock_bg_img),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = "Background image"
+                )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(R.color.btn_pin_code).copy(alpha = 0.5f))
-            )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(R.color.btn_pin_code).copy(alpha = 0.5f))
+                )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.Center),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    text = stringResource(R.string.unlocked),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        color = colorResource(R.color.btn_text),
-                        fontWeight = FontWeight.W400,
-                        fontSize = 120.sp
-                    )
-                )
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    text = stringResource(R.string.unlocked_message),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        color = colorResource(R.color.btn_text),
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-        }
-        else {
-            val bitmap = remember(imageState) {
-                BitmapFactory.decodeByteArray(imageState, 0, imageState?.size ?: 0)
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(R.color.background)),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CustomToolbar(
-                    title = "$locationName - $kioskName",
-                    showBackArrow = true,
-                    navController = navController
-                )
-                bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Map Image",
+                        .fillMaxSize()
+                        .align(Alignment.Center),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black),
-                        contentScale = ContentScale.Fit
+                            .fillMaxWidth(),
+                        text = stringResource(R.string.unlocked),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            color = colorResource(R.color.btn_text),
+                            fontWeight = FontWeight.W400,
+                            fontSize = 120.sp
+                        )
+                    )
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        text = stringResource(R.string.unlocked_message),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            color = colorResource(R.color.btn_text),
+                            fontWeight = FontWeight.Bold
+                        )
                     )
                 }
+            } else {
+                val bitmap = remember(imageState) {
+                    BitmapFactory.decodeByteArray(imageState, 0, imageState?.size ?: 0)
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(R.color.background)),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    bitmap?.let {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = "Map Image",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
+
             }
 
         }
-
     }
 }
