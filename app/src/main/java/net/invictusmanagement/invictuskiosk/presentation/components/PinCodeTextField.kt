@@ -112,7 +112,7 @@ fun OtpCell(
     }
 
     Box(
-        modifier = modifier
+        modifier = modifier.clickable(enabled = false, onClick = {})
     ) {
         Text(
             text = if (isCursorVisible) cursorSymbol else value,
