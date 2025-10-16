@@ -65,7 +65,9 @@ fun PinInputPanel(
             value = otp,
             isError = isError,
             length = pinLength,
-            onValueChanged = {}
+            onValueChanged = {
+                otp = it
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

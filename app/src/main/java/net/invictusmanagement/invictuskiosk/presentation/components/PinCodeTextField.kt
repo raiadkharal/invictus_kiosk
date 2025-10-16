@@ -46,6 +46,18 @@ fun PinCodeTextField(
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
+
+    // When error occurs, wait 2 seconds and clear
+    LaunchedEffect(isError) {
+        if (isError) {
+            scope.launch {
+                delay(2000)
+                onValueChanged("") // Clears input
+            }
+        }
+    }
+
     TextField(
         value = value,
         onValueChange = {

@@ -115,7 +115,7 @@ fun ResidentsScreen(
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
-            delay(3000)
+            delay(2000)
             isError = false
         }
         viewModel.eventFlow.collect { event ->
