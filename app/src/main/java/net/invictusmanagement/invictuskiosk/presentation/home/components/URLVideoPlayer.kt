@@ -81,7 +81,7 @@ fun UrlVideoPlayer(
                 PlayerView(ctx).apply {
                     this.player = player
                     useController = false
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 }
             },
             modifier = Modifier.fillMaxSize()
