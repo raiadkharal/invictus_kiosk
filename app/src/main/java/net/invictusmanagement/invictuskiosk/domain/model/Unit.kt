@@ -3,7 +3,7 @@ package net.invictusmanagement.invictuskiosk.domain.model
 data class Unit(
     val area: Int,
     val availableDateUtc: String,
-    val bathrooms: Int,
+    val bathrooms: Float,
     val bedrooms: Int,
     val floor: Int,
     val id: Int,

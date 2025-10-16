@@ -5,7 +5,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.Unit
 data class UnitDto(
     val area: Int?,
     val availableDateUtc: String?,
-    val bathrooms: Int?,
+    val bathrooms: Float?,
     val bedrooms: Int?,
     val floor: Int?,
     val id: Int,
@@ -20,7 +20,7 @@ fun UnitDto.toUnit(): Unit {
     return Unit(
         area = area ?: 0,
         availableDateUtc = availableDateUtc ?: "",
-        bathrooms = bathrooms ?: 0,
+        bathrooms = bathrooms ?: 0.0F,
         bedrooms = bedrooms ?: 0,
         floor = floor ?: 0,
         id = id,

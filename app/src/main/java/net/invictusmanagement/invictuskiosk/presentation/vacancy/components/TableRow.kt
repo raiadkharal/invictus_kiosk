@@ -28,7 +28,7 @@ fun TableRow(
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TableCell(modifier = Modifier.weight(1f),"${vacancy.bedrooms}/${vacancy.bathrooms}")
+        TableCell(modifier = Modifier.weight(1f),"${vacancy.bedrooms}/${vacancy.bathrooms.toInt()}")
         TableCell(modifier = Modifier.weight(1f),"${vacancy.area} sqft")
         TableCell(modifier = Modifier.weight(1f),"${vacancy.floor}")
         TableCell(modifier = Modifier.weight(1f),"$${vacancy.rent}")

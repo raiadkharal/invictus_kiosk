@@ -114,7 +114,7 @@ fun ApartmentInfoDialog(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Bed / Bath: ${vacancy.bedrooms}/${vacancy.bathrooms}",
+                            text = "Bed / Bath: ${vacancy.bedrooms}/${vacancy.bathrooms.toInt()}",
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
                         )
@@ -172,7 +172,7 @@ private fun ApartmentInfoDialogPreview() {
     val unit = net.invictusmanagement.invictuskiosk.domain.model.Unit(
         area = 1450,
         availableDateUtc = "22/10/2024",
-        bathrooms = 3,
+        bathrooms = 3.0F,
         bedrooms = 2,
         floor = 1,
         id = 1,
