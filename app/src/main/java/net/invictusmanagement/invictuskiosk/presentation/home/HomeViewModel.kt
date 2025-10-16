@@ -151,8 +151,10 @@ class HomeViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     //save data in datastore
-                    _accessPoint.value = result.data?.get(0)
-                    dataStoreManager.saveAccessPoint(result.data?.get(0))
+                    if(result.data?.isNotEmpty() == true) {
+                        _accessPoint.value = result.data[0]
+                        dataStoreManager.saveAccessPoint(result.data[0])
+                    }
                 }
 
                 is Resource.Error -> {

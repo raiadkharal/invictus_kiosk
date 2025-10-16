@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.coupons
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import javax.inject.Inject
@@ -22,8 +21,8 @@ class CouponsViewModel @Inject constructor(
     private val _state = MutableStateFlow(emptyList<PromotionsCategory>())
     val state: StateFlow<List<PromotionsCategory>> = _state
 
-    private val _couponCodes = MutableStateFlow(emptyList<String>())
-    val couponCodes: StateFlow<List<String>> = _couponCodes
+    private val _businessPromotions = MutableStateFlow(emptyList<BusinessPromotionDto>())
+    val businessPromotions: StateFlow<List<BusinessPromotionDto>> = _businessPromotions
 
     fun getPromotionsCategory() {
         repository.getPromotionsCategories().onEach { result ->
@@ -43,19 +42,19 @@ class CouponsViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun getPromotionCodesById(id: String) {
-        repository.getPromotionCodesById(id).onEach { result ->
+    fun getPromotionsByCategory(id: String) {
+        repository.getPromotionsByCategory(id).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _couponCodes.value = result.data ?: emptyList()
+                    _businessPromotions.value = result.data ?: emptyList()
                 }
 
                 is Resource.Error -> {
-                    _couponCodes.value =  emptyList()
+                    _businessPromotions.value =  emptyList()
                 }
 
                 is Resource.Loading -> {
-                    _couponCodes.value =  emptyList()
+                    _businessPromotions.value =  emptyList()
                 }
             }
         }.launchIn(viewModelScope)

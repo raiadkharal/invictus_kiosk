@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +57,7 @@ fun CouponsDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     val couponsList by viewModel.state.collectAsStateWithLifecycle()
-    val couponCodes by viewModel.couponCodes.collectAsStateWithLifecycle()
+    val businessPromotions by viewModel.businessPromotions.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
@@ -71,7 +70,7 @@ fun CouponsDetailScreen(
 
     LaunchedEffect (Unit){
         viewModel.getPromotionsCategory()
-        viewModel.getPromotionCodesById(selectedCouponId)
+        viewModel.getPromotionsByCategory(selectedCouponId)
     }
     
     Column(
@@ -150,7 +149,7 @@ fun CouponsDetailScreen(
                                 isGradient = true,
                                 onClick = {
                                     selectedCoupon = coupon
-                                    viewModel.getPromotionCodesById(coupon.id)
+                                    viewModel.getPromotionsByCategory(coupon.id)
                                 }
                             )
                         }
@@ -181,15 +180,17 @@ fun CouponsDetailScreen(
                     )
 
                     LazyColumn {
-                        items(couponCodes){ couponsCode->
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                text = couponsCode,
-                                textAlign = TextAlign.Start,
-                                style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                            )
+                        items(businessPromotions){ businessPromotion->
+                            businessPromotion.name?.let {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    text = it,
+                                    textAlign = TextAlign.Start,
+                                    style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
+                                )
+                            }
 
                         }
                     }

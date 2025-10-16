@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.data.remote
 
 import net.invictusmanagement.invictuskiosk.data.remote.dto.AccessPointDto
+import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ContactRequestDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LeasingOfficeDto
@@ -14,9 +15,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.UnitListDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallTokenDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.home.MainDto
-import net.invictusmanagement.invictuskiosk.domain.model.home.Main
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
-import net.invictusmanagement.invictuskiosk.domain.model.UnitList
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -77,9 +76,9 @@ interface ApiInterface {
     suspend fun getPromotionCategories(): List<PromotionsCategoryDto>
 
     @GET("promotions/filter/{id}")
-    suspend fun getPromotionCodesById(
+    suspend fun getPromotionsByCategory(
         @Path("id") id: String
-    ): List<String>
+    ): List<BusinessPromotionDto>
 
     @POST("units")
     suspend fun sendContactRequest(@Body contactRequest: ContactRequest): ContactRequestDto
