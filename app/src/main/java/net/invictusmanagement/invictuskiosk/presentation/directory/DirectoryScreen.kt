@@ -107,11 +107,13 @@ fun DirectoryScreen(
         when (selectedFilterOption) {
             FilterOption.FIRST_NAME -> {
                 isFirstNameSelected = true
+                isUnitNumberSelected = false
                 list = alphabets
             }
 
             FilterOption.LAST_NAME -> {
                 isFirstNameSelected = false
+                isUnitNumberSelected = false
                 list = alphabets
             }
 
