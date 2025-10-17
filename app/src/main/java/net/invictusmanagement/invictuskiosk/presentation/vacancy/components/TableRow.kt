@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.Constants
 
 @Composable
 fun TableRow(
@@ -28,9 +29,9 @@ fun TableRow(
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TableCell(modifier = Modifier.weight(1f),"${vacancy.bedrooms}/${vacancy.bathrooms.toInt()}")
-        TableCell(modifier = Modifier.weight(1f),"${vacancy.area} sqft")
+        TableCell(modifier = Modifier.weight(1f),"${Constants.formatNumber(vacancy.bedrooms)}/${Constants.formatNumber(vacancy.bathrooms)}")
+        TableCell(modifier = Modifier.weight(1f),"${Constants.formatNumber(vacancy.area)} sqft")
         TableCell(modifier = Modifier.weight(1f),"${vacancy.floor}")
-        TableCell(modifier = Modifier.weight(1f),"$${vacancy.rent}")
+        TableCell(modifier = Modifier.weight(1f),"$${Constants.formatNumber(vacancy.rent)}")
     }
 }

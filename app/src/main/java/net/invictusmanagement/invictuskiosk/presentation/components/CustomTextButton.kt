@@ -29,34 +29,62 @@ fun CustomTextButton(
     padding: Int = 16,
     isDarkBackground: Boolean = false,
     isSelected: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
+    val backgroundBrush = when {
+        !enabled -> Brush.linearGradient( // ✅ Greyed-out background
+            0.0f to Color.Gray.copy(alpha = 0.5f),
+            10.0f to Color.Gray.copy(alpha = 0.3f),
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+
+        isGradient && !isSelected -> Brush.linearGradient(
+            0.0f to colorResource(R.color.background),
+            10.0f to colorResource(R.color.btn_gradient_end).copy(alpha = 0.4f),
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+
+        isSelected -> Brush.linearGradient(
+            0.0f to colorResource(id = R.color.btn_pin_code),
+            10.0f to colorResource(id = R.color.btn_pin_code),
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+
+        else -> Brush.linearGradient(
+            0.0f to colorResource(id = if (isDarkBackground) R.color.background_dark else R.color.background),
+            10.0f to colorResource(id = if (isDarkBackground) R.color.background_dark else R.color.background),
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+    }
 
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(if(isGradient && !isSelected) Brush.linearGradient(
-                0.0f to colorResource(R.color.background),
-                10.0f to colorResource(R.color.btn_gradient_end).copy(alpha = 0.4f),
-                start = Offset(0f, Float.POSITIVE_INFINITY),
-                end = Offset(Float.POSITIVE_INFINITY, 0f)
-            ) else if(isSelected) Brush.linearGradient(
-                0.0f to colorResource(id = R.color.btn_pin_code),
-                10.0f to colorResource(id = R.color.btn_pin_code),
-                start = Offset(0f, Float.POSITIVE_INFINITY),
-                end = Offset(Float.POSITIVE_INFINITY, 0f)
-            ) else Brush.linearGradient(
-                0.0f to colorResource(id = if (isDarkBackground) R.color.background_dark else R.color.background),
-                10.0f to colorResource(id = if (isDarkBackground) R.color.background_dark else R.color.background),
-                start = Offset(0f, Float.POSITIVE_INFINITY),
-                end = Offset(Float.POSITIVE_INFINITY, 0f)
-            ))
-            .border(1.dp, if(!isSelected)colorResource(R.color.btn_text) else colorResource(R.color.btn_pin_code), RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
+            .background(backgroundBrush)
+            .border(
+                1.dp,
+                if (!isSelected) colorResource(R.color.btn_text) else colorResource(R.color.btn_pin_code),
+                RoundedCornerShape(10.dp)
+            )
+            .clickable(enabled = enabled, onClick = onClick) // ✅ disabled click when false
             .padding(padding.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = text, textAlign = TextAlign.Center,style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)))
+        Text(
+            text = text,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = if (enabled)
+                    colorResource(R.color.btn_text)
+                else
+                    Color.LightGray // ✅ text also greyed out
+            )
+        )
     }
 }

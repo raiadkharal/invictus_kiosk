@@ -114,7 +114,7 @@ fun ApartmentInfoDialog(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Bed / Bath: ${vacancy.bedrooms}/${vacancy.bathrooms.toInt()}",
+                            text = "Bed / Bath: ${Constants.formatNumber(vacancy.bedrooms)}/${Constants.formatNumber(vacancy.bathrooms)}",
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
                         )
@@ -122,7 +122,7 @@ fun ApartmentInfoDialog(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Square Feet: ${vacancy.area} sqft",
+                            text = "Square Feet: ${Constants.formatNumber(vacancy.area)} sqft",
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
                         )
@@ -138,7 +138,7 @@ fun ApartmentInfoDialog(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Rent : $${vacancy.rent}/month",
+                            text = "Rent : $${Constants.formatNumber(vacancy.rent)}/month",
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
                         )
@@ -170,16 +170,16 @@ fun ApartmentInfoDialog(
 @Composable
 private fun ApartmentInfoDialogPreview() {
     val unit = net.invictusmanagement.invictuskiosk.domain.model.Unit(
-        area = 1450,
+        area = 1450F,
         availableDateUtc = "22/10/2024",
         bathrooms = 3.0F,
-        bedrooms = 2,
+        bedrooms = 2F,
         floor = 1,
         id = 1,
         imageIds = listOf(),
         isRentHide = false,
         isUnitsForSale = false,
-        rent = 1500,
+        rent = 1500F,
         unitNbr = "1"
     )
     ApartmentInfoDialog(

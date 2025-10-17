@@ -31,4 +31,13 @@ object Constants {
         }
     }
 
+    fun formatNumber(value: Float): String {
+        return if (value % 1.0 == 0.0) {
+            value.toInt().toString() // remove .0
+        } else {
+            value.toString() // keep decimal part
+        }
+    }
+
+
 }

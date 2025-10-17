@@ -196,6 +196,7 @@ fun ContactRequestDialog(
                             modifier = Modifier.fillMaxWidth(0.6f),
                             padding = 24,
                             isGradient = true,
+                            enabled = name.isNotEmpty() && contactInfo.isNotEmpty(),
                             text = stringResource(R.string.send),
                             onClick = {
                                 val contactRequest = ContactRequest(
