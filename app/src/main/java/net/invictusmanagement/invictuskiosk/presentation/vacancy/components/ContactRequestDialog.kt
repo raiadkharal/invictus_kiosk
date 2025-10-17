@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.ContactRequestState
@@ -60,6 +62,7 @@ fun ContactRequestDialog(
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Email, 1=Phone
     var name by remember { mutableStateOf("") }
     var contactInfo by remember { mutableStateOf("") }
+    var isEmailError by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -147,7 +150,14 @@ fun ContactRequestDialog(
                     // Contact field (dynamic based on selection)
                     OutlinedTextField(
                         value = contactInfo,
-                        onValueChange = { contactInfo = it },
+                        onValueChange = {
+                            contactInfo = it
+                            if (selectedTab == 0) {
+                                isEmailError = !Constants.isValidEmail(it)
+                            } else {
+                                isEmailError = false
+                            }
+                                        },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -169,7 +179,22 @@ fun ContactRequestDialog(
                             unfocusedBorderColor = colorResource(R.color.btn_text) // Inactive state border
                         )
                     )
-                    if(selectedTab == 0) {
+                    if (isEmailError && selectedTab == 0) {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .fillMaxWidth(),
+                            text = "Please enter a valid email address",
+                            textAlign = TextAlign.Start,
+                            color = Color.Red,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                )
+                            )
+                        )
+                    }
+                    if(!isEmailError && selectedTab == 0) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 24.dp)
@@ -196,7 +221,7 @@ fun ContactRequestDialog(
                             modifier = Modifier.fillMaxWidth(0.6f),
                             padding = 24,
                             isGradient = true,
-                            enabled = name.isNotEmpty() && contactInfo.isNotEmpty(),
+                            enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isEmailError,
                             text = stringResource(R.string.send),
                             onClick = {
                                 val contactRequest = ContactRequest(
