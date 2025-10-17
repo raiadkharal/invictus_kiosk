@@ -231,8 +231,8 @@ fun HomeScreen(
                                     //navigate to residents screen
                                     navController.navigate(
                                         ResidentsScreen(
-                                            isLeasingOffice = false,
-                                            isUnitSelected = true,
+                                            isLeasingOffice = true,
+                                            isUnitSelected = false,
                                             unitNumber = "*",
                                             filter = "",
                                             byName = "f"
