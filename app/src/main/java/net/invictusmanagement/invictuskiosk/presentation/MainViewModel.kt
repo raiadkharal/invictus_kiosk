@@ -1,23 +1,22 @@
 package net.invictusmanagement.invictuskiosk.presentation
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
-import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
-import net.invictusmanagement.invictuskiosk.util.UiEvent
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +42,12 @@ class MainViewModel @Inject constructor(
 
     private val _mapImage = MutableStateFlow<ByteArray?>(null)
     val mapImage: StateFlow<ByteArray?> = _mapImage
+
+    var unitImages by mutableStateOf<List<ByteArray>>(emptyList())
+        private set
+
+    var currentImageIndex by mutableIntStateOf(0)
+        private set
 
     init {
         viewModelScope.launch {
@@ -82,5 +87,54 @@ class MainViewModel @Inject constructor(
                 }
             }.launchIn(viewModelScope)
         }
+    }
+
+    fun loadImages(unitId: Long, imageIds: List<Long>) {
+        viewModelScope.launch {
+            try {
+                val byteArrays = mutableListOf<ByteArray>()
+
+                for (id in imageIds) {
+                    unitMapRepository.getUnitImage(unitId, id)
+                        .collect { result ->
+                            when (result) {
+                                is Resource.Success -> result.data?.let { byteArrays.add(it) }
+                                is Resource.Error -> {
+                                    // Handle error if needed
+                                }
+                                is Resource.Loading -> {
+                                    // Optional loading logic
+                                }
+                            }
+                        }
+                }
+
+                // When all images are collected
+                unitImages = byteArrays
+                currentImageIndex = 0
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                unitImages = emptyList()
+            }
+        }
+    }
+
+
+    fun showNextImage() {
+        if (unitImages.isNotEmpty()) {
+            currentImageIndex = (currentImageIndex + 1) % unitImages.size
+        }
+    }
+
+    fun showPreviousImage() {
+        if (unitImages.isNotEmpty()) {
+            currentImageIndex =
+                if (currentImageIndex == 0) unitImages.lastIndex else currentImageIndex - 1
+        }
+    }
+
+    fun clearImages(){
+        unitImages = emptyList()
     }
 }

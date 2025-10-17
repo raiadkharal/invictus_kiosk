@@ -7,7 +7,7 @@ data class Unit(
     val bedrooms: Float,
     val floor: Int,
     val id: Int,
-    val imageIds: List<Any>,
+    val imageIds: List<Long>,
     val isRentHide: Boolean,
     val isUnitsForSale: Boolean,
     val rent: Float,

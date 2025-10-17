@@ -155,6 +155,7 @@ fun DirectoryScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
+                        placeholder = if (isUnitNumberSelected)"Search Unit Number" else "Search Resident",
                         onValueChange = { searchQuery = it }
                     )
                     Spacer(modifier = Modifier.width(16.dp))

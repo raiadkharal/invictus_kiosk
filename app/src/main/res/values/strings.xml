@@ -43,6 +43,8 @@
     <string name="filter" translatable="false">Filter</string>
     <string name="invalid_key" translatable="false">Invalid Guest Key</string>
     <string name="no_residents_found" translatable="false">No Residents Found</string>
+    <string name="no_leasing_officers_found" translatable="false">No Leasing Officers Found</string>
+    <string name="no_units_found" translatable="false">No Units Found</string>
     <string name="no_vacancies" translatable="false">No vacancies found</string>
     <string name="contact_request_success_message" translatable="false">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
     <string name="notification" translatable="false">Notification</string>

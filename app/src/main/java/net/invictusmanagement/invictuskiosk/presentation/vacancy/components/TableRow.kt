@@ -32,6 +32,14 @@ fun TableRow(
         TableCell(modifier = Modifier.weight(1f),"${Constants.formatNumber(vacancy.bedrooms)}/${Constants.formatNumber(vacancy.bathrooms)}")
         TableCell(modifier = Modifier.weight(1f),"${Constants.formatNumber(vacancy.area)} sqft")
         TableCell(modifier = Modifier.weight(1f),"${vacancy.floor}")
-        TableCell(modifier = Modifier.weight(1f),"$${Constants.formatNumber(vacancy.rent)}")
+        TableCell(
+            modifier = Modifier.weight(1f),
+            text = if (vacancy.isRentHide) {
+                "Contact me"
+            } else {
+                "$${Constants.formatNumber(vacancy.rent)}"
+            }
+        )
+
     }
 }

@@ -47,7 +47,7 @@ class VideoCallViewModel @Inject constructor(
 
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
-    private val timeOutSeconds: Int = 10
+    private val timeOutSeconds: Int = 40
 
     var token by mutableStateOf(VideoCallToken(token = ""))
         private set

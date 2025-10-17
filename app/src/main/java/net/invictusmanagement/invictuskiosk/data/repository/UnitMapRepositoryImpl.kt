@@ -30,4 +30,21 @@ class UnitMapRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getUnitImage(
+        unitId: Long,
+        unitImageId: Long
+    ): Flow<Resource<ByteArray>> = flow {
+        emit(Resource.Loading())
+
+        try {
+            val response = api.getUnitImage(unitId, unitImageId)
+            val bytes = response.bytes() // Convert response to ByteArray
+            emit(Resource.Success(bytes))
+        } catch (e: HttpException) {
+            emit(Resource.Error(e.localizedMessage ?: "An error occurred"))
+        } catch (e: IOException) {
+            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
+        }
+    }
+
 }

@@ -47,6 +47,7 @@ interface ApiInterface {
     @GET("units/listofunits")
     suspend fun getUnitList(): List<UnitListDto>
 
+
     @GET("home/kiosk")
     suspend fun getKioskData(): MainDto
 
@@ -109,5 +110,11 @@ interface ApiInterface {
         @Path("unitId") unitId: Long,
         @Path("unitMapId") unitMapId: Long,
         @Query("toPackageCenter") toPackageCenter: Boolean = false
+    ): ResponseBody
+
+    @GET("units/{unitId}/images/{unitImageId}")
+    suspend fun getUnitImage(
+        @Path("unitId") unitId: Long,
+        @Path("unitImageId") unitMapId: Long
     ): ResponseBody
 }

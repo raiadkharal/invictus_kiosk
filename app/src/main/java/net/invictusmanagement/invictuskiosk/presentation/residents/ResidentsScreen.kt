@@ -164,6 +164,7 @@ fun ResidentsScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
+                        placeholder = if (isLeasingOffice)"Search Leasing Officer" else "Search Resident",
                         onValueChange = { searchQuery = it }
                     )
                 }
@@ -181,7 +182,7 @@ fun ResidentsScreen(
                             CircularProgressIndicator()
                         } else {
                             Text(
-                                stringResource(R.string.no_residents_found),
+                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(R.string.no_residents_found),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,

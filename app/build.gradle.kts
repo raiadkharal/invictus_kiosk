@@ -117,4 +117,7 @@ dependencies {
     //twilio
     implementation (libs.video.android)
 
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+
 }
