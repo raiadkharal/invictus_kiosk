@@ -51,7 +51,7 @@ fun PinInputPanel(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
-        listOf("0", "clear")
+        listOf("0", "X", "clear")
     )
 ) {
     var otp by remember { mutableStateOf("") }
@@ -74,7 +74,8 @@ fun PinInputPanel(
 
         if (message.isNotEmpty()) {
             Text(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .clickable(onClick = onMessageClick),
                 text = message,
                 textAlign = TextAlign.Center,
@@ -129,16 +130,21 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                         color = colorResource(R.color.btn_text)
                                     )
                                 )
-                //                            Icon(
-                //                                painter = painterResource(id = R.drawable.ic_clear),
-                //                                contentDescription = "Clear Text",
-                //                                tint = colorResource(R.color.btn_text)
-                //                            )
+                                //                            Icon(
+                                //                                painter = painterResource(id = R.drawable.ic_clear),
+                                //                                contentDescription = "Clear Text",
+                                //                                tint = colorResource(R.color.btn_text)
+                                //                            )
                             }
                         }
+
                         "X" -> {
                             IconButton(
-                                onClick = { onOtpChange("") },
+                                onClick = {
+                                    if (otp.isNotEmpty()) {
+                                        onOtpChange(otp.dropLast(1))
+                                    }
+                                },
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(72.dp)
@@ -155,6 +161,7 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                 )
                             }
                         }
+
                         else -> {
                             OTPButton(
                                 modifier = Modifier.weight(1f),
