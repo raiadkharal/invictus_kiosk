@@ -45,4 +45,16 @@ class DirectoryRepositoryImpl @Inject constructor(
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
         }
     }
+
+    override fun getAllResidents(): Flow<Resource<List<Resident>>> = flow {
+        try {
+            emit(Resource.Loading())
+            val response = api.getAllResidents().map { it.toResident() }
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
+        } catch (e: IOException) {
+            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
+        }
+    }
 }

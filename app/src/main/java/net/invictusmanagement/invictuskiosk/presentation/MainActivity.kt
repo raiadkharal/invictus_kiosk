@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MyApp() {
         val handler = remember { Handler(Looper.getMainLooper()) }
-        val inactivityTimeout = 30_000L // 30 seconds
+        val inactivityTimeout = 45_000L // 30 seconds
         var showScreenSaver by remember { mutableStateOf(false) }
 
         // Runnable to trigger screen saver after inactivity

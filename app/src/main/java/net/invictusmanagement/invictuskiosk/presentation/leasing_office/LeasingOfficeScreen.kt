@@ -167,7 +167,6 @@ fun LeasingOfficeScreen(
                     .weight(1f)
                     .width(720.dp),
                 buttons = buttons,
-                message = stringResource(R.string.service_key_message_text),
                 isError = isError,
                 onCompleted = { pinCode ->
                     viewModel.validateDigitalKey(
