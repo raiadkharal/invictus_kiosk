@@ -19,7 +19,7 @@ data class Promotion(
     val numberOfUse: Int = 0,
     val planFromUtc: String = "",
     val planToUtc: String = "",
-    val revenueTotal: Int = 0,
+    val revenueTotal: Double = 0.0,
     val selectedBusinessId: Int = 0,
     val toUtc: String = ""
 )

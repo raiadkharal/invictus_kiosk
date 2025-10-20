@@ -24,7 +24,7 @@ data class PromotionDto(
     val planToUtc: String?,
     val promotionAdvertiseDetail: Any?,
     val promotionAdvertises: List<Any?>?,
-    val revenueTotal: Int?,
+    val revenueTotal: Double?,
     val selectedBusinessId: Int?,
     val toUtc: String?
 )
@@ -46,7 +46,7 @@ fun PromotionDto.toPromotion(): Promotion {
         numberOfUse = numberOfUse ?: 0,
         planFromUtc = planFromUtc ?: "",
         planToUtc = planToUtc ?: "",
-        revenueTotal = revenueTotal ?: 0,
+        revenueTotal = revenueTotal ?: 0.0,
         selectedBusinessId = selectedBusinessId ?: 0,
         toUtc = toUtc ?: ""
     )
