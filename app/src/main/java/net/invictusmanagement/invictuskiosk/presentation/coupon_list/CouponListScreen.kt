@@ -48,6 +48,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolba
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponListScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -153,8 +154,7 @@ fun CouponListScreen(
                                 isSelected = coupon == selectedCoupon,
                                 isGradient = true,
                                 onClick = {
-                                    selectedCoupon = coupon
-                                    viewModel.getPromotionsByCategory(coupon.id)
+                                    navController.navigate(CouponsBusinessListScreen(coupon.id))
                                 }
                             )
                         }

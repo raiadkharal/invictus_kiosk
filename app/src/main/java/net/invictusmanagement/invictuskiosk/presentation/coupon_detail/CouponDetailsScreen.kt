@@ -208,7 +208,7 @@ private fun CouponDetailsScreenPreview() {
                     advertise = false,
                     approvedUtc = "2025-10-16T10:26:53.2063419",
                     numberOfUse = 0,
-                    revenueTotal = 0,
+                    revenueTotal = 0.0,
                     businessId = 38,
                     isShowOnHome = false,
                     isAnytimeCoupon = false,
