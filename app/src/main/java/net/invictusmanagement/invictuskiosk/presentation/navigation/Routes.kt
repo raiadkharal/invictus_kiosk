@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.navigation
 
 import kotlinx.serialization.Serializable
+import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 
 @Serializable
 object LoginScreen
@@ -27,7 +28,13 @@ object ServiceKeyScreen
 object CouponsScreen
 
 @Serializable
-data class CouponsDetailScreen(val selectedCouponId: String)
+data class CouponsBusinessListScreen(val selectedCouponId: String)
+
+@Serializable
+data class CouponListScreen(val selectedCouponId: String,val businessPromotionJson: String )
+
+@Serializable
+data class CouponDetailsScreen(val promotionId: Int,val businessPromotionJson: String)
 
 @Serializable
 data class LeasingOfficeScreenRoute(

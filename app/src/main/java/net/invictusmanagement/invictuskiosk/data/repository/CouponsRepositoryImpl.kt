@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
+import net.invictusmanagement.invictuskiosk.data.remote.dto.toBusinessPromotion
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toPromotionsCategory
+import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import retrofit2.HttpException
@@ -27,10 +29,10 @@ class CouponsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getPromotionsByCategory(id: String): Flow<Resource<List<BusinessPromotionDto>>> = flow {
+    override fun getPromotionsByCategory(id: String): Flow<Resource<List<BusinessPromotion>>> = flow {
         try {
             emit(Resource.Loading())
-            val response = api.getPromotionsByCategory(id)
+            val response = api.getPromotionsByCategory(id).map { it.toBusinessPromotion() }
             emit(Resource.Success(response))
         } catch (e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))

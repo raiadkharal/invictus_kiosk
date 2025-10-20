@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
+import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import javax.inject.Inject
@@ -21,8 +22,8 @@ class CouponsViewModel @Inject constructor(
     private val _state = MutableStateFlow(emptyList<PromotionsCategory>())
     val state: StateFlow<List<PromotionsCategory>> = _state
 
-    private val _businessPromotions = MutableStateFlow(emptyList<BusinessPromotionDto>())
-    val businessPromotions: StateFlow<List<BusinessPromotionDto>> = _businessPromotions
+    private val _businessPromotions = MutableStateFlow(emptyList<BusinessPromotion>())
+    val businessPromotions: StateFlow<List<BusinessPromotion>> = _businessPromotions
 
     fun getPromotionsCategory() {
         repository.getPromotionsCategories().onEach { result ->

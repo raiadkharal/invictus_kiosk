@@ -15,8 +15,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.serialization.json.Json
+import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
+import net.invictusmanagement.invictuskiosk.domain.model.Promotion
+import net.invictusmanagement.invictuskiosk.presentation.coupon_detail.CouponsDetailsScreen
+import net.invictusmanagement.invictuskiosk.presentation.coupon_list.CouponListScreen
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsScreen
-import net.invictusmanagement.invictuskiosk.presentation.coupons_detail.CouponsDetailScreen
+import net.invictusmanagement.invictuskiosk.presentation.coupons_business_list.CouponsBusinessListScreen
 import net.invictusmanagement.invictuskiosk.presentation.directory.DirectoryScreen
 import net.invictusmanagement.invictuskiosk.presentation.error.ErrorScreen
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeScreen
@@ -30,6 +35,8 @@ import net.invictusmanagement.invictuskiosk.presentation.unlock.UnlockScreen
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.VacancyScreen
 import net.invictusmanagement.invictuskiosk.presentation.video_call.VideoCallScreen
 import net.invictusmanagement.invictuskiosk.presentation.voice_mail.VoicemailRecordingScreen
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -81,12 +88,41 @@ fun NavGraph(
         composable<CouponsScreen> {
             CouponsScreen(modifier = Modifier.padding(innerPadding), navController = navController)
         }
-        composable<CouponsDetailScreen> {
-            val args = it.toRoute<CouponsDetailScreen>()
-            CouponsDetailScreen(
+        composable<CouponsBusinessListScreen> {
+            val args = it.toRoute<CouponsBusinessListScreen>()
+            CouponsBusinessListScreen(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
                 selectedCouponId = args.selectedCouponId
+            )
+        }
+        composable<CouponListScreen> {
+            val args = it.toRoute<CouponListScreen>()
+
+            val businessPromotion = Json.decodeFromString<BusinessPromotion>(
+                URLDecoder.decode(args.businessPromotionJson, StandardCharsets.UTF_8.toString())
+            )
+
+            CouponListScreen(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                businessPromotion = businessPromotion,
+                selectedCouponId = args.selectedCouponId,
+            )
+        }
+
+        composable<CouponDetailsScreen> {
+            val args = it.toRoute<CouponDetailsScreen>()
+
+            val businessPromotion = Json.decodeFromString<BusinessPromotion>(
+                URLDecoder.decode(args.businessPromotionJson, StandardCharsets.UTF_8.toString())
+            )
+
+            CouponsDetailsScreen(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                promotionId = args.promotionId,
+                businessPromotion = businessPromotion
             )
         }
         composable<LeasingOfficeScreenRoute> {
@@ -109,7 +145,10 @@ fun NavGraph(
             VacancyScreen(modifier = Modifier.padding(innerPadding), navController = navController)
         }
         composable<QRScannerScreen> {
-            QRScannerScreen(modifier = Modifier.padding(innerPadding),navController = navController)
+            QRScannerScreen(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController
+            )
         }
         composable<UnlockedScreenRoute> {
             val args = it.toRoute<UnlockedScreenRoute>()
@@ -133,7 +172,11 @@ fun NavGraph(
         }
         composable<ErrorScreenRoute> {
             val args = it.toRoute<ErrorScreenRoute>()
-            ErrorScreen(modifier = Modifier.padding(innerPadding), errorMessage = args.errorMessage, navController = navController)
+            ErrorScreen(
+                modifier = Modifier.padding(innerPadding),
+                errorMessage = args.errorMessage,
+                navController = navController
+            )
         }
 
         composable<VoiceMailRecordingScreenRoute> {

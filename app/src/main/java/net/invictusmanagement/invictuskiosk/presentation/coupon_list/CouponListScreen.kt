@@ -1,6 +1,7 @@
-package net.invictusmanagement.invictuskiosk.presentation.coupons_detail
+package net.invictusmanagement.invictuskiosk.presentation.coupon_list
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -31,25 +32,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
+import net.invictusmanagement.invictuskiosk.domain.model.Promotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
+import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponListScreen
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CouponsDetailScreen(
+fun CouponListScreen(
     modifier: Modifier = Modifier,
-    selectedCouponId: String,
+    businessPromotion: BusinessPromotion,
+    selectedCouponId: String?,
     navController: NavController,
     viewModel: CouponsViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel()
@@ -57,7 +64,6 @@ fun CouponsDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     val couponsList by viewModel.state.collectAsStateWithLifecycle()
-    val businessPromotions by viewModel.businessPromotions.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
@@ -70,7 +76,6 @@ fun CouponsDetailScreen(
 
     LaunchedEffect (Unit){
         viewModel.getPromotionsCategory()
-        viewModel.getPromotionsByCategory(selectedCouponId)
     }
     
     Column(
@@ -106,14 +111,14 @@ fun CouponsDetailScreen(
                 ) {
 
                     //search bar
-                    SearchTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        searchQuery = searchQuery,
-                        placeholder = "Search Coupons",
-                        onValueChange = { searchQuery = it }
-                    )
+//                    SearchTextField(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        searchQuery = searchQuery,
+//                        placeholder = "Search Coupons",
+//                        onValueChange = { searchQuery = it }
+//                    )
 
-                    Spacer(Modifier.height(16.dp))
+//                    Spacer(Modifier.height(16.dp))
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -174,23 +179,32 @@ fun CouponsDetailScreen(
                             .clip(RoundedCornerShape(8.dp))
                             .background(colorResource(R.color.btn_pin_code))
                             .padding(8.dp),
-                        text = selectedCoupon?.name?:"",
+                        text = businessPromotion.name,
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
                     )
 
                     LazyColumn {
-                        items(businessPromotions){ businessPromotion->
-                            businessPromotion.name?.let {
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    text = it,
-                                    textAlign = TextAlign.Start,
-                                    style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                                )
-                            }
+                        items(businessPromotion.promotions){ promotion->
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .clickable(onClick = {
+                                        val businessPromotionStr = Json.encodeToString<BusinessPromotion>(businessPromotion)
+                                        val businessPromotionJson = URLEncoder.encode(businessPromotionStr, StandardCharsets.UTF_8.toString())
+
+                                        navController.navigate(
+                                            CouponDetailsScreen(
+                                                promotionId = promotion.id,
+                                                businessPromotionJson = businessPromotionJson
+                                            )
+                                        )
+                                    }),
+                                text = promotion.name,
+                                textAlign = TextAlign.Start,
+                                style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
+                            )
 
                         }
                     }
@@ -201,15 +215,4 @@ fun CouponsDetailScreen(
 
     }
 
-}
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun CouponsDetailScreenPreview() {
-    val navController = rememberNavController()
-    CouponsDetailScreen(
-        navController = navController, viewModel = hiltViewModel(),
-        selectedCouponId = ""
-    )
 }

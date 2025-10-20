@@ -1,5 +1,7 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.domain.model.Promotion
+
 data class PromotionDto(
     val advertise: Boolean?,
     val advertiseFile: Any?,
@@ -26,3 +28,26 @@ data class PromotionDto(
     val selectedBusinessId: Int?,
     val toUtc: String?
 )
+
+fun PromotionDto.toPromotion(): Promotion {
+    return Promotion(
+        advertise = advertise ?: false,
+        approvedUtc = approvedUtc ?: "",
+        businessId = businessId ?: 0,
+        createdUtc = createdUtc ?: "",
+        deleted = deleted ?: false,
+        description = description ?: "",
+        fromUtc = fromUtc ?: "",
+        id = id ?: 0,
+        isAnytimeCoupon = isAnytimeCoupon ?: false,
+        isApproved = isApproved ?: false,
+        isShowOnHome = isShowOnHome ?: false,
+        name = name ?: "",
+        numberOfUse = numberOfUse ?: 0,
+        planFromUtc = planFromUtc ?: "",
+        planToUtc = planToUtc ?: "",
+        revenueTotal = revenueTotal ?: 0,
+        selectedBusinessId = selectedBusinessId ?: 0,
+        toUtc = toUtc ?: ""
+    )
+}
