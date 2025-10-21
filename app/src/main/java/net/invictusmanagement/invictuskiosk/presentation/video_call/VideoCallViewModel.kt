@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -91,20 +92,24 @@ class VideoCallViewModel @Inject constructor(
     }
 
     private fun initializeTracks(context: Context) {
-        cameraCapturer = Camera2Capturer(
-            context,
-            getAvailableFrontCameraId(context),
-            object : Camera2Capturer.Listener {
-                override fun onFirstFrameAvailable() {}
-                override fun onCameraSwitched(newCameraId: String) {}
-                override fun onError(error: Camera2Capturer.Exception) {
-                    Log.e("CameraCapturer", "Camera error: ${error.message}")
+        try {
+            cameraCapturer = Camera2Capturer(
+                context,
+                getAvailableFrontCameraId(context),
+                object : Camera2Capturer.Listener {
+                    override fun onFirstFrameAvailable() {}
+                    override fun onCameraSwitched(newCameraId: String) {}
+                    override fun onError(error: Camera2Capturer.Exception) {
+                        Log.e("CameraCapturer", "Camera error: ${error.message}")
+                    }
                 }
-            }
-        )
+            )
 
-        videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
-        audioTrack = LocalAudioTrack.create(context, true)
+            videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
+            audioTrack = LocalAudioTrack.create(context, true)
+        }catch (ex: Exception){
+            Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
+        }
     }
 
     fun connectToRoom(
