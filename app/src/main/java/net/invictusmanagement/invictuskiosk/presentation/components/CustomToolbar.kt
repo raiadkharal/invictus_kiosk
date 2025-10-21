@@ -50,7 +50,11 @@ fun CustomToolbar(
                 modifier = Modifier
                     .width(40.dp)
                     .height(40.dp)
-                    .clickable { navController.popBackStack() },
+                    .clickable {
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    },
                 painter = painterResource(R.drawable.angle_left),
                 contentDescription = "Back arrow icon"
             )
