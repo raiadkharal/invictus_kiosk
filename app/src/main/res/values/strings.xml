@@ -35,6 +35,7 @@
     <string name="unlocked_message">Thank you for using Invictus</string>
     <string name="unit_details">Unit Details</string>
     <string name="placeholder_email" translatable="false">eg: jsmith@invictus.com</string>
+    <string name="placeholder_phone" translatable="false">eg: 3108675309</string>
     <string name="name">Name</string>
     <string name="email">Email</string>
     <string name="phone">Phone</string>

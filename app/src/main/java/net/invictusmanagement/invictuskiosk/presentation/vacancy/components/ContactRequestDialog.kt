@@ -80,18 +80,19 @@ fun ContactRequestDialog(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(top = 16.dp, end = 16.dp),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.End
-                ){
+                ) {
                     Icon(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(colorResource(R.color.btn_text))
                             .padding(4.dp)
-                            .clickable{onDismiss()},
+                            .clickable { onDismiss() },
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                     )
@@ -102,7 +103,10 @@ fun ContactRequestDialog(
                         .fillMaxWidth(),
                     text = stringResource(R.string.contact_request),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        color = colorResource(R.color.btn_text),
+                        fontWeight = FontWeight.Bold
+                    )
                 )
 
                 Column(
@@ -111,16 +115,18 @@ fun ContactRequestDialog(
                         .weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Row (
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         CustomTextButton(
                             modifier = Modifier.weight(1f),
                             text = stringResource(R.string.email).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 0,
                             isDarkBackground = true,
-                            onClick = {selectedTab = 0}
+                            onClick = { selectedTab = 0 }
                         )
                         Spacer(Modifier.width(16.dp))
                         CustomTextButton(
@@ -128,7 +134,7 @@ fun ContactRequestDialog(
                             text = stringResource(R.string.phone).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 1,
                             isDarkBackground = true,
-                            onClick = {selectedTab = 1}
+                            onClick = { selectedTab = 1 }
                         )
                     }
 
@@ -136,10 +142,23 @@ fun ContactRequestDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        textStyle = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
+                        textStyle = MaterialTheme.typography.headlineSmall.copy(
+                            color = colorResource(
+                                R.color.btn_text
+                            )
+                        ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.name),style = MaterialTheme.typography.bodyMedium.copy(color = colorResource(R.color.btn_text))) },
+                        label = {
+                            Text(
+                                stringResource(R.string.name),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = colorResource(
+                                        R.color.btn_text
+                                    )
+                                )
+                            )
+                        },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(R.color.btn_text),  // Active state border
@@ -150,19 +169,43 @@ fun ContactRequestDialog(
                     // Contact field (dynamic based on selection)
                     OutlinedTextField(
                         value = contactInfo,
-                        onValueChange = {
-                            contactInfo = it
-                            if (selectedTab == 0) {
-                                isEmailError = !Constants.isValidEmail(it)
+                        onValueChange = {newValue ->
+                            if (selectedTab == 1) {
+                                // Extract only digits from input
+                                val digitsOnly = newValue.filter { it.isDigit() }
+
+                                // Limit to 10 digits max
+                                if (digitsOnly.length <= 10) {
+                                    contactInfo = if (digitsOnly.length == 10) {
+                                        // Format when exactly 10 digits are entered
+                                        Constants.formatPhoneNumber(digitsOnly)
+                                    } else {
+                                        digitsOnly
+                                    }
+                                }
                             } else {
-                                isEmailError = false
+                                contactInfo = newValue
                             }
-                                        },
-                        textStyle = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
+                            isEmailError = if (selectedTab == 0) !Constants.isValidEmail(newValue) else false
+                        },
+                        textStyle = MaterialTheme.typography.headlineSmall.copy(
+                            color = colorResource(
+                                R.color.btn_text
+                            )
+                        ),
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         label = {
-                            Text(if (selectedTab == 0) stringResource(R.string.email) else stringResource(R.string.phone),style = MaterialTheme.typography.bodyMedium.copy(color = colorResource(R.color.btn_text)))
+                            Text(
+                                if (selectedTab == 0) stringResource(R.string.email) else stringResource(
+                                    R.string.phone
+                                ),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = colorResource(R.color.btn_text)
+                                )
+                            )
                         },
                         placeholder = {
                             if (selectedTab == 0) {
@@ -194,12 +237,12 @@ fun ContactRequestDialog(
                             )
                         )
                     }
-                    if(!isEmailError && selectedTab == 0) {
+                    if (!isEmailError || selectedTab == 1) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 24.dp)
                                 .fillMaxWidth(),
-                            text = stringResource(R.string.placeholder_email),
+                            text = if(selectedTab == 0) stringResource(R.string.placeholder_email) else stringResource(R.string.placeholder_phone),
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 color = colorResource(
@@ -208,15 +251,17 @@ fun ContactRequestDialog(
                             )
                         )
                     }
-                    if(requestState.isLoading){
+                    if (requestState.isLoading) {
                         Spacer(Modifier.height(16.dp))
                         CircularProgressIndicator(color = colorResource(R.color.btn_text))
                     }
 
-                    Column (
-                        modifier = Modifier.weight(1f).padding(bottom = 16.dp),
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(bottom = 16.dp),
                         verticalArrangement = Arrangement.Bottom
-                    ){
+                    ) {
                         CustomTextButton(
                             modifier = Modifier.fillMaxWidth(0.6f),
                             padding = 24,
@@ -225,8 +270,9 @@ fun ContactRequestDialog(
                             text = stringResource(R.string.send),
                             onClick = {
                                 val contactRequest = ContactRequest(
-                                    email = if (selectedTab ==0) contactInfo else null,
-                                    name = name,phone = if (selectedTab == 1) contactInfo else null,
+                                    email = if (selectedTab == 0) contactInfo else null,
+                                    name = name,
+                                    phone = if (selectedTab == 1) contactInfo else null,
                                     unitId = vacancy.id,
                                     unitNbr = vacancy.unitNbr
                                 )

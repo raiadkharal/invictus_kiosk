@@ -43,6 +43,13 @@ object Constants {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-
+    fun formatPhoneNumber(input: String): String {
+        val digits = input.filter { it.isDigit() }
+        return if (digits.length == 10) {
+            "(${digits.substring(0, 3)}) ${digits.substring(3, 6)}-${digits.substring(6)}"
+        } else {
+            digits
+        }
+    }
 
 }

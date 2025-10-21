@@ -204,7 +204,13 @@ fun ApartmentInfoDialog(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Rent : $${Constants.formatNumber(vacancy.rent)}/month",
+                            text = "Rent : ${
+                                if (vacancy.isRentHide) {
+                                    "Contact me"
+                                } else {
+                                    "$${Constants.formatNumber(vacancy.rent)}/month"
+                                }
+                            }",
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
                         )
