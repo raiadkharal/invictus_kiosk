@@ -157,6 +157,7 @@ fun VoicemailRecordingScreen(
                         .padding(16.dp),
                     text = stringResource(R.string.finish_recording).uppercase(),
                     isGradient = true,
+                    enabled = countdown == 0,
                     onClick = {
                         viewModel.stopRecording()
                     },

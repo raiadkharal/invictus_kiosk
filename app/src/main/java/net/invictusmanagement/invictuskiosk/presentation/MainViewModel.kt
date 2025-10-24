@@ -31,6 +31,9 @@ class MainViewModel @Inject constructor(
     private val _kioskName = MutableStateFlow<String?>("")
     val kioskName: StateFlow<String?> = _kioskName
 
+    private val _kioskId = MutableStateFlow<Int>(0)
+    val kioskId: StateFlow<Int> = _kioskId
+
     private val _isUnitFilterEnabled = MutableStateFlow<Boolean>(false)
     val isUnitFilterEnabled: StateFlow<Boolean> = _isUnitFilterEnabled
 
@@ -54,6 +57,7 @@ class MainViewModel @Inject constructor(
             dataStoreManager.kioskDataFlow.collect {
                 _locationName.value = it?.kiosk?.location?.name ?: ""
                 _kioskName.value = it?.kiosk?.name ?: ""
+                _kioskId.value = it?.kiosk?.id ?: 0
                 _isUnitFilterEnabled.value = it?.kiosk?.isUnitFilterEnable ?: false
             }
         }

@@ -38,13 +38,15 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
+import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalREventListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
 import javax.inject.Inject
 
 @HiltViewModel
 class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository
-) : ViewModel() {
+) : ViewModel(), SignalREventListener {
 
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
@@ -68,10 +70,20 @@ class VideoCallViewModel @Inject constructor(
     var remainingSeconds by mutableIntStateOf(timeOutSeconds)
         private set
 
+    var sendToVoiceMail by mutableStateOf(false)
+        private set
+
     private var missedCallJob: Job? = null
     private var remoteParticipantJoined = false
     private var callEndedDueToMissedCall = false
 
+
+    private var signalRManager: SignalRManager? = null
+
+    fun initializeSignalR(kioskId: Int) {
+        signalRManager = SignalRManager(kioskId, this)
+        signalRManager?.connect()
+    }
 
     fun getVideoCallToken(room: String) {
         repository.getVideoCallToken(room).onEach { result ->
@@ -149,7 +161,7 @@ class VideoCallViewModel @Inject constructor(
 
             override fun onDisconnected(room: Room, e: TwilioException?) {
                 connectionState = ConnectionState.DISCONNECTED
-                if (!callEndedDueToMissedCall) {
+                if (!callEndedDueToMissedCall && !sendToVoiceMail) {
                     onDisconnected()
                 }
                 callEndedDueToMissedCall = false // Reset here AFTER decision
@@ -160,7 +172,9 @@ class VideoCallViewModel @Inject constructor(
             }
 
             override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {
-                disconnect()
+                if(sendToVoiceMail) {
+                    disconnect()
+                }
             }
 
             override fun onReconnecting(room: Room, e: TwilioException) {}
@@ -408,4 +422,10 @@ class VideoCallViewModel @Inject constructor(
         super.onCleared()
         disconnect()
     }
+
+    override fun onSendToVoiceMail() {
+        sendToVoiceMail = true
+        disconnect()
+    }
+
 }

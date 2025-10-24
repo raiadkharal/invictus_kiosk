@@ -71,9 +71,11 @@ fun VideoCallScreen(
     val remoteVideoTrack = videoCallViewModel.remoteVideoTrack
     val token = videoCallViewModel.token
     val remainingSeconds = videoCallViewModel.remainingSeconds
+    val sendToVoiceMail = videoCallViewModel.sendToVoiceMail
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+    val kioskId by mainViewModel.kioskId.collectAsStateWithLifecycle()
     val currentAccessPoint by mainViewModel.accessPoint.collectAsStateWithLifecycle()
     val kioskActivationCode by mainViewModel.activationCode.collectAsStateWithLifecycle()
 
@@ -94,6 +96,12 @@ fun VideoCallScreen(
             currentAccessPoint?.let {
                 videoCallViewModel.connectToVideoCall(it.id, residentActivationCode)
             }
+        }
+    }
+
+    LaunchedEffect(sendToVoiceMail) {
+        if (sendToVoiceMail) {
+            showVoiceMailDialog = true
         }
     }
     LaunchedEffect(token) {
@@ -150,6 +158,14 @@ fun VideoCallScreen(
     LaunchedEffect(remoteVideoTrack) {
         remoteVideoTrack?.addSink(remoteVideoView)
     }
+
+    LaunchedEffect(currentAccessPoint) {
+        currentAccessPoint?.let { accessPoint ->
+            videoCallViewModel.initializeSignalR(kioskId)
+        }
+    }
+
+
     DisposableEffect(Unit) {
         onDispose {
             videoCallViewModel.disconnect()
