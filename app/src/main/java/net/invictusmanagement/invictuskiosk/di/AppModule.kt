@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import net.invictusmanagement.invictuskiosk.commons.Constants
+import net.invictusmanagement.invictuskiosk.BuildConfig
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.RestClient
 import net.invictusmanagement.invictuskiosk.data.repository.CouponsRepositoryImpl
@@ -14,6 +14,7 @@ import net.invictusmanagement.invictuskiosk.data.repository.DirectoryRepositoryI
 import net.invictusmanagement.invictuskiosk.data.repository.HomeRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.LoginRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ResidentsRepositoryImpl
+import net.invictusmanagement.invictuskiosk.data.repository.ScreenSaverRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ServiceKeyRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.UnitMapRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.VacancyRepositoryImpl
@@ -24,13 +25,12 @@ import net.invictusmanagement.invictuskiosk.domain.repository.DirectoryRepositor
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
-import net.invictusmanagement.invictuskiosk.data.repository.ScreenSaverRepositoryImpl
-import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import javax.inject.Singleton
 
@@ -50,7 +50,7 @@ object AppModule {
         dataStoreManager: DataStoreManager
     ): RestClient {
         return RestClient(
-            baseUrl = Constants.BASE_URL,
+            baseUrl = BuildConfig._baseUrl,
             dataStoreManager = dataStoreManager
         )
     }

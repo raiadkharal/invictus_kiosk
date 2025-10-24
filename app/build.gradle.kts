@@ -29,7 +29,40 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            isMinifyEnabled = false
+        }
     }
+
+    flavorDimensions += "version"
+
+    productFlavors {
+        create("live") {
+            dimension = "version"
+
+            buildConfigField("String", "_baseUrl", "\"https://kios.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobile.invictusmanagement.net/chathub\"")
+            resValue("string", "app_name", "Invictus kiosk")
+        }
+
+        create("local") {
+            dimension = "version"
+
+            buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
+            resValue("string", "app_name", "Invictus Kiosk")
+        }
+
+        create("localhost") {
+            dimension = "version"
+
+            buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
+            resValue("string", "app_name", "Invictus Kiosk")
+        }
+
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -39,11 +72,11 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -66,41 +99,34 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.accompanist.flowlayout)
 
-    //navigation dependencies
+    // Navigation dependencies
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-
-    // Coroutine Lifecycle Scopes
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
-//    // Dagger - Hilt
+    // Dagger Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
-
-    // Hilt Navigation Compose
     implementation(libs.androidx.hilt.navigation.compose)
 
-
-    // ViewModel Compose
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    //exoplayer
+    // ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.ui.compose)
-    implementation (libs.androidx.media3.datasource)
+    implementation(libs.androidx.media3.datasource)
 
-    //camerax dependency for QR Code scanning
+    // CameraX + ML Kit
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -111,16 +137,15 @@ dependencies {
     // DataStore Preferences
     implementation(libs.androidx.datastore.preferences)
 
-    // Accompanist Permissions
-    implementation (libs.accompanist.permissions)
+    // Permissions
+    implementation(libs.accompanist.permissions)
 
-    //twilio
-    implementation (libs.video.android)
+    // Twilio
+    implementation(libs.video.android)
 
+    // Coil
     implementation(libs.coil.compose)
 
-    //signalR
+    // SignalR
     implementation(libs.signalr)
-
-
 }

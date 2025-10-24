@@ -4,6 +4,7 @@ import android.util.Log
 import com.microsoft.signalr.HubConnection
 import com.microsoft.signalr.HubConnectionBuilder
 import com.microsoft.signalr.TransportEnum
+import net.invictusmanagement.invictuskiosk.BuildConfig
 
 class SignalRManager(
     private val kioskId: Int,
@@ -15,7 +16,7 @@ class SignalRManager(
 
     fun connect() {
         hubConnection = HubConnectionBuilder
-            .create("https://mobiledev.invictusmanagement.net/chathub")
+            .create(BuildConfig._chatMobileHubBaseUrl)
             .withTransport(TransportEnum.LONG_POLLING)
             .build()
 

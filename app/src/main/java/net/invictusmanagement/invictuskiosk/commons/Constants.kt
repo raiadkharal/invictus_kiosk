@@ -6,7 +6,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 object Constants {
-    const val BASE_URL = "https://kioskdev.invictusmanagement.net/api/v1/"
     const val  APP_PREF_KEY = "AppPrefs"
     const val SELECTED_LANGUAGE = "app_language"
     const val SELECTED_COUNTRY = "app_country"
