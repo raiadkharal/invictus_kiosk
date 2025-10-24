@@ -72,14 +72,17 @@ class MainActivity : ComponentActivity() {
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
     fun MyApp() {
+        val screenSaverViewModel = hiltViewModel<ScreenSaverViewModel>()
+        val isPaused by screenSaverViewModel.isPaused.collectAsState()
+
         val handler = remember { Handler(Looper.getMainLooper()) }
-        val inactivityTimeout = 45_000L // 30 seconds
+        val inactivityTimeout = 30_000L // 30 seconds
         var showScreenSaver by remember { mutableStateOf(false) }
 
         // Runnable to trigger screen saver after inactivity
         val showSaverRunnable = remember {
             Runnable {
-                showScreenSaver = true
+                if(!isPaused) showScreenSaver = true
             }
         }
 
@@ -119,6 +122,15 @@ class MainActivity : ComponentActivity() {
                 exit = fadeOut(animationSpec = tween(durationMillis = 300))
             ) {
                 ScreenSaver()
+            }
+        }
+
+        LaunchedEffect(isPaused) {
+            if (isPaused) {
+                handler.removeCallbacks(showSaverRunnable)
+                showScreenSaver = false
+            } else {
+                resetTimer()
             }
         }
 

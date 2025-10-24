@@ -6,13 +6,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import javax.inject.Inject
 
 @HiltViewModel
 class ScreenSaverViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
-): ViewModel(){
+    private val dataStoreManager: DataStoreManager,
+    private val repository: ScreenSaverRepository
+) : ViewModel() {
+
     private val _accessToken = MutableStateFlow<String?>(null)
     val accessToken: StateFlow<String?> = _accessToken
 
@@ -25,6 +28,8 @@ class ScreenSaverViewModel @Inject constructor(
     private val _videoUrl = MutableStateFlow<String?>(null)
     val videoUrl: StateFlow<String?> = _videoUrl
 
+    val isPaused = repository.isPaused
+
     init {
         viewModelScope.launch {
             dataStoreManager.accessTokenFlow.collect {
@@ -33,11 +38,11 @@ class ScreenSaverViewModel @Inject constructor(
         }
     }
 
-    suspend fun loadKioskData(){
-        dataStoreManager.kioskDataFlow.collect{
+    suspend fun loadKioskData() {
+        dataStoreManager.kioskDataFlow.collect {
             _videoUrl.value = it?.ssUrl
-            _locationName.value = it?.kiosk?.location?.name?:""
-            _kioskName.value = it?.kiosk?.name?:""
+            _locationName.value = it?.kiosk?.location?.name ?: ""
+            _kioskName.value = it?.kiosk?.name ?: ""
         }
     }
 }

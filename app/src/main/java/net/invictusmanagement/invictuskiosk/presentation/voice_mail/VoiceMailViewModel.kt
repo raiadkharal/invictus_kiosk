@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import java.io.File
 import javax.inject.Inject
@@ -40,13 +41,14 @@ import kotlin.math.truncate
 
 @HiltViewModel
 class VoicemailViewModel @Inject constructor(
-    private val repository: VoicemailRepository
+    private val repository: VoicemailRepository,
+    private val screenSaverRepository: ScreenSaverRepository
 ) : ViewModel() {
 
     private var onFinishCallback: ((File) -> Unit)? = null
     private var videoFile: File? = null
 
-    private val _countdown = mutableIntStateOf(12)
+    private val _countdown = mutableIntStateOf(6)
     val countdown: State<Int> = _countdown
 
     private val _isRecordingStarted = mutableStateOf(false)
@@ -66,6 +68,7 @@ class VoicemailViewModel @Inject constructor(
                 delay(1000)
                 _countdown.intValue -= 1
             }
+            pauseScreenSaver()
             _isRecordingStarted.value = true
         }
     }
@@ -74,10 +77,12 @@ class VoicemailViewModel @Inject constructor(
         repository.uploadVoicemail(file, userId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    resumeScreenSaver()
                     _uploadState.value = UploadState(data = result.data ?: 1)
                 }
 
                 is Resource.Error -> {
+                    resumeScreenSaver()
                     _uploadState.value =
                         UploadState(error = result.message ?: "An unexpected error occurred")
                 }
@@ -152,6 +157,21 @@ class VoicemailViewModel @Inject constructor(
     fun stopRecording() {
         recording?.stop()
         recording = null
+
+        resumeScreenSaver()
+    }
+
+    fun pauseScreenSaver() {
+        screenSaverRepository.pauseScreenSaver()
+    }
+
+    fun resumeScreenSaver() {
+        screenSaverRepository.resumeScreenSaver()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopRecording()
     }
 
     fun resetState() {

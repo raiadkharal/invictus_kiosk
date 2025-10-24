@@ -29,9 +29,9 @@ import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
+import net.invictusmanagement.invictuskiosk.data.repository.ScreenSaverRepositoryImpl
+import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -123,4 +123,9 @@ object AppModule {
         return UnitMapRepositoryImpl(api)
     }
 
+    @Provides
+    @Singleton
+    fun provideScreenSaverRepository(): ScreenSaverRepository {
+        return ScreenSaverRepositoryImpl()
+    }
 }

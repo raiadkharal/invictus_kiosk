@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.twilio.video.Camera2Capturer
-import com.twilio.video.CameraCapturer
 import com.twilio.video.ConnectOptions
 import com.twilio.video.LocalAudioTrack
 import com.twilio.video.LocalVideoTrack
@@ -38,6 +37,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalREventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
@@ -45,7 +45,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideoCallViewModel @Inject constructor(
-    private val repository: VideoCallRepository
+    private val repository: VideoCallRepository,
+    private val screenSaverRepository: ScreenSaverRepository
 ) : ViewModel(), SignalREventListener {
 
     private var room: Room? = null
@@ -133,6 +134,7 @@ class VideoCallViewModel @Inject constructor(
         onMissedCall: () -> Unit
     ) {
         initializeTracks(context)
+        pauseScreenSaver()
 
         val connectOptions = ConnectOptions.Builder(accessToken)
             .roomName(roomName)
@@ -156,11 +158,13 @@ class VideoCallViewModel @Inject constructor(
             }
 
             override fun onParticipantConnected(room: Room, participant: RemoteParticipant) {
+                pauseScreenSaver()
                 handleRemoteParticipant(participant)
             }
 
             override fun onDisconnected(room: Room, e: TwilioException?) {
                 connectionState = ConnectionState.DISCONNECTED
+                resumeScreenSaver()
                 if (!callEndedDueToMissedCall && !sendToVoiceMail) {
                     onDisconnected()
                 }
@@ -169,9 +173,11 @@ class VideoCallViewModel @Inject constructor(
 
             override fun onConnectFailure(room: Room, e: TwilioException) {
                 connectionState = ConnectionState.FAILED
+                resumeScreenSaver()
             }
 
             override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {
+                resumeScreenSaver()
                 if(sendToVoiceMail) {
                     disconnect()
                 }
@@ -364,6 +370,7 @@ class VideoCallViewModel @Inject constructor(
         videoTrack = null
         audioTrack = null
         connectionState = ConnectionState.DISCONNECTED
+        resumeScreenSaver()
     }
 
     private fun getAvailableFrontCameraId(context: Context): String {
@@ -423,7 +430,16 @@ class VideoCallViewModel @Inject constructor(
         disconnect()
     }
 
+    fun pauseScreenSaver() {
+        screenSaverRepository.pauseScreenSaver()
+    }
+
+    fun resumeScreenSaver() {
+        screenSaverRepository.resumeScreenSaver()
+    }
+
     override fun onSendToVoiceMail() {
+        connectionState = ConnectionState.DISCONNECTED
         sendToVoiceMail = true
         disconnect()
     }
