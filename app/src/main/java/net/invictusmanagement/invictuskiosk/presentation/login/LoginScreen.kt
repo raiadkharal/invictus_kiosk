@@ -30,6 +30,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,6 +55,7 @@ fun LoginScreen(
     val context = LocalContext.current
 
     var activationCode by remember { mutableStateOf("") }
+    var validationError by remember { mutableStateOf("") }
 
     // Convert raw resource to URI string
     val logoUri = remember {
@@ -65,7 +67,7 @@ fun LoginScreen(
             navController.navigate(HomeScreen)
             viewModel.saveActivationCode(activationCode)
         } else if(state.error.isNotEmpty()) {
-            Toast.makeText(context, state.error, Toast.LENGTH_SHORT).show()
+            validationError = state.error
         }
     }
 
@@ -131,16 +133,32 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = activationCode,
-                onValueChange = { activationCode = it },
+                onValueChange = {
+                    activationCode = it
+                    if (validationError.isNotEmpty()) validationError = ""
+                },
                 textStyle = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(0.5f),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorResource(R.color.btn_text),  // Active state border
-                    unfocusedBorderColor = colorResource(R.color.btn_text) // Inactive state border
+                    focusedBorderColor = colorResource(R.color.btn_text),
+                    unfocusedBorderColor = colorResource(R.color.btn_text)
                 )
             )
+
+            if (validationError.isNotEmpty()) {
+                Text(
+                    text = validationError,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge.copy(color = colorResource(R.color.red)),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -150,12 +168,12 @@ fun LoginScreen(
                 isGradient = true,
                 padding = 24,
                 onClick = {
-                    viewModel.login(
-                        LoginDto(
-                            activationCode = activationCode,
-                        )
-
-                    )
+                    if (activationCode.isBlank()) {
+                        validationError = "Activation code is required"
+                    } else {
+                        validationError = ""
+                        viewModel.login(LoginDto(activationCode = activationCode))
+                    }
                 }
             )
         }

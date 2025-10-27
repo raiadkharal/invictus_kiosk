@@ -21,9 +21,13 @@ class LoginRepositoryImpl @Inject constructor(
             emit(Resource.Loading())
             val response = api.login(loginDto).toLogin()
             emit(Resource.Success(response))
-        } catch(e: HttpException) {
-            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-        } catch(e: IOException) {
+        } catch (e: HttpException) {
+            if (e.code() == 400) {
+                emit(Resource.Error("The specified code is invalid. Please check the code and try again."))
+            } else {
+                emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+            }
+        } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
         }
     }
