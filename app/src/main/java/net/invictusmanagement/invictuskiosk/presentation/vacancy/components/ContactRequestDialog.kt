@@ -39,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -60,7 +59,7 @@ fun ContactRequestDialog(
     onSend: (ContactRequest) -> Unit = {}
 ) {
 
-    val resetTimer = LocalUserInteractionReset.current
+    val resetSleepTimer = LocalUserInteractionReset.current
 
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Email, 1=Phone
     var name by remember { mutableStateOf("") }
@@ -69,7 +68,7 @@ fun ContactRequestDialog(
 
     Dialog(
         onDismissRequest = {
-            resetTimer?.invoke()
+            resetSleepTimer?.invoke()
             onDismiss()
         },
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -99,7 +98,7 @@ fun ContactRequestDialog(
                             .background(colorResource(R.color.btn_text))
                             .padding(4.dp)
                             .clickable {
-                                resetTimer?.invoke()
+                                resetSleepTimer?.invoke()
                                 onDismiss()
                             },
                         imageVector = Icons.Default.Close,
@@ -136,7 +135,7 @@ fun ContactRequestDialog(
                             isGradient = selectedTab == 0,
                             isDarkBackground = true,
                             onClick = {
-                                resetTimer?.invoke()
+                                resetSleepTimer?.invoke()
                                 selectedTab = 0
                             }
                         )
@@ -147,7 +146,7 @@ fun ContactRequestDialog(
                             isGradient = selectedTab == 1,
                             isDarkBackground = true,
                             onClick = {
-                                resetTimer?.invoke()
+                                resetSleepTimer?.invoke()
                                 selectedTab = 1
                             }
                         )
@@ -157,7 +156,7 @@ fun ContactRequestDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = {
-                            resetTimer?.invoke()
+                            resetSleepTimer?.invoke()
                             name = it
                         },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(
@@ -188,7 +187,7 @@ fun ContactRequestDialog(
                     OutlinedTextField(
                         value = contactInfo,
                         onValueChange = { newValue ->
-                            resetTimer?.invoke()
+                            resetSleepTimer?.invoke()
                             if (selectedTab == 1) {
                                 // Extract only digits from input
                                 val digitsOnly = newValue.filter { it.isDigit() }
@@ -291,7 +290,7 @@ fun ContactRequestDialog(
                             enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isEmailError,
                             text = stringResource(R.string.send),
                             onClick = {
-                                resetTimer?.invoke()
+                                resetSleepTimer?.invoke()
                                 val contactRequest = ContactRequest(
                                     email = if (selectedTab == 0) contactInfo else null,
                                     name = name,

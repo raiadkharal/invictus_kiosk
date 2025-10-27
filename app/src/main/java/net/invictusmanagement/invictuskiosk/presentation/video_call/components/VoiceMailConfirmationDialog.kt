@@ -38,11 +38,11 @@ fun VoiceMailConfirmationDialog(
     onNoClick: () -> Unit = {}
 ) {
 
-    val resetTimer = LocalUserInteractionReset.current
+    val resetSleepTimer = LocalUserInteractionReset.current
 
     Dialog(
         onDismissRequest = {
-            resetTimer?.invoke()
+            resetSleepTimer?.invoke()
             navController.popBackStack()
         },
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -82,7 +82,7 @@ fun VoiceMailConfirmationDialog(
                         isGradient = true,
                         text = stringResource(R.string.yes).uppercase(),
                         onClick = {
-                            resetTimer?.invoke()
+                            resetSleepTimer?.invoke()
                             onYesClick()
                         }
                     )
@@ -94,7 +94,7 @@ fun VoiceMailConfirmationDialog(
                         isDarkBackground = true,
                         text = stringResource(R.string.no).uppercase(),
                         onClick = {
-                            resetTimer?.invoke()
+                            resetSleepTimer?.invoke()
                             onNoClick()
                         }
                     )

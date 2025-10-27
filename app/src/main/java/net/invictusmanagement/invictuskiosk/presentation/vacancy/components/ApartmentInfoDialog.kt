@@ -60,7 +60,7 @@ fun ApartmentInfoDialog(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
-    val resetTimer = LocalUserInteractionReset.current
+    val resetSleepTimer = LocalUserInteractionReset.current
 
     val unitImages = mainViewModel.unitImages
     val currentImageIndex = mainViewModel.currentImageIndex
@@ -75,7 +75,7 @@ fun ApartmentInfoDialog(
 
     Dialog(
         onDismissRequest = {
-            resetTimer?.invoke()
+            resetSleepTimer?.invoke()
             onDismiss()
         },
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -104,7 +104,7 @@ fun ApartmentInfoDialog(
                             .background(colorResource(R.color.btn_text))
                             .padding(4.dp)
                             .clickable {
-                                resetTimer?.invoke()
+                                resetSleepTimer?.invoke()
                                 onDismiss()
                             },
                         imageVector = Icons.Default.Close,
@@ -144,7 +144,7 @@ fun ApartmentInfoDialog(
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f))
                                 .clickable {
-                                    resetTimer?.invoke()
+                                    resetSleepTimer?.invoke()
                                     mainViewModel.showPreviousImage()
                                 },
                             tint = Color.White
@@ -161,7 +161,7 @@ fun ApartmentInfoDialog(
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f))
                                 .clickable {
-                                    resetTimer?.invoke()
+                                    resetSleepTimer?.invoke()
                                     mainViewModel.showNextImage()
                                 },
                             tint = Color.White
@@ -272,7 +272,7 @@ fun ApartmentInfoDialog(
                         text = stringResource(R.string.contact_now),
                         isGradient = true,
                         onClick = {
-                            resetTimer?.invoke()
+                            resetSleepTimer?.invoke()
                             onContactClick()
                         }
                     )
