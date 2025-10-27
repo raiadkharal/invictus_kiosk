@@ -20,14 +20,8 @@ fun ScreenSaver(
     viewModel: ScreenSaverViewModel = hiltViewModel()
 ) {
 
-    val context = LocalContext.current
-
     val videoUrl by viewModel.videoUrl.collectAsStateWithLifecycle()
 
-    // Convert raw resource to URI string
-    val logoUri = remember {
-        "android.resource://${context.packageName}/${R.raw.logo_video}"
-    }
     LaunchedEffect (Unit){
         viewModel.loadKioskData()
     }

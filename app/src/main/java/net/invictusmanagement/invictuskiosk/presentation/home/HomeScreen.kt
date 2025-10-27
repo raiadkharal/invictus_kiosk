@@ -257,7 +257,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(150.dp),
-                            icon = R.drawable.ic_vacancies,
+                            icon = R.drawable.ic_vacancy,
                             text = stringResource(R.string.vacancies),
                             onClick = { navController.navigate(VacancyScreen) })
                     }
