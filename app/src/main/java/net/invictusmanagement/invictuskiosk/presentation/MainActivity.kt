@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.LoginScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.NavGraph
@@ -93,35 +94,37 @@ class MainActivity : ComponentActivity() {
         }
 
         // UI with pointer detection
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitPointerEvent()
-                            resetTimer()
+        CompositionLocalProvider(LocalUserInteractionReset provides ::resetTimer) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent()
+                                resetTimer()
+                            }
                         }
                     }
+                    .background(Color.Black)
+            ) {
+                // Main Content
+                AnimatedVisibility(
+                    visible = !showScreenSaver,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 300))
+                ) {
+                    MainContent()
                 }
-                .background(Color.Black)
-        ) {
-            // Main Content
-            AnimatedVisibility(
-                visible = !showScreenSaver,
-                enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                exit = fadeOut(animationSpec = tween(durationMillis = 300))
-            ) {
-                MainContent()
-            }
 
-            // Screen Saver
-            AnimatedVisibility(
-                visible = showScreenSaver,
-                enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                exit = fadeOut(animationSpec = tween(durationMillis = 300))
-            ) {
-                ScreenSaver()
+                // Screen Saver
+                AnimatedVisibility(
+                    visible = showScreenSaver,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 300))
+                ) {
+                    ScreenSaver()
+                }
             }
         }
 

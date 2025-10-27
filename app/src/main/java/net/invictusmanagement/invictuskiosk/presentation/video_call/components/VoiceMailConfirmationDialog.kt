@@ -27,6 +27,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 
 @Composable
@@ -37,8 +38,13 @@ fun VoiceMailConfirmationDialog(
     onNoClick: () -> Unit = {}
 ) {
 
+    val resetTimer = LocalUserInteractionReset.current
+
     Dialog(
-        onDismissRequest = {navController.popBackStack()},
+        onDismissRequest = {
+            resetTimer?.invoke()
+            navController.popBackStack()
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
@@ -50,7 +56,8 @@ fun VoiceMailConfirmationDialog(
             tonalElevation = 8.dp,
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -64,17 +71,20 @@ fun VoiceMailConfirmationDialog(
                     style = MaterialTheme.typography.displayLarge.copy(color = colorResource(R.color.btn_text))
                 )
                 Spacer(Modifier.height(32.dp))
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth(0.7f),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
-                ){
+                ) {
                     CustomTextButton(
                         modifier = Modifier.weight(1f),
                         padding = 24,
                         isGradient = true,
                         text = stringResource(R.string.yes).uppercase(),
-                        onClick = onYesClick
+                        onClick = {
+                            resetTimer?.invoke()
+                            onYesClick()
+                        }
                     )
                     Spacer(Modifier.width(16.dp))
                     CustomTextButton(
@@ -83,7 +93,10 @@ fun VoiceMailConfirmationDialog(
                         isGradient = false,
                         isDarkBackground = true,
                         text = stringResource(R.string.no).uppercase(),
-                        onClick = onNoClick
+                        onClick = {
+                            resetTimer?.invoke()
+                            onNoClick()
+                        }
                     )
                 }
 

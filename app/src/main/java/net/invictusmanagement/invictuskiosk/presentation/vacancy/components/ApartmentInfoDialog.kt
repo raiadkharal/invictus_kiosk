@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
+import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 
@@ -59,19 +60,24 @@ fun ApartmentInfoDialog(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
+    val resetTimer = LocalUserInteractionReset.current
+
     val unitImages = mainViewModel.unitImages
     val currentImageIndex = mainViewModel.currentImageIndex
 
     LaunchedEffect(vacancy.id) {
         if (vacancy.imageIds.isNotEmpty()) {
-            mainViewModel.loadImages(vacancy.id.toLong(),vacancy.imageIds)
-        }else{
+            mainViewModel.loadImages(vacancy.id.toLong(), vacancy.imageIds)
+        } else {
             mainViewModel.clearImages()
         }
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            resetTimer?.invoke()
+            onDismiss()
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
@@ -85,18 +91,22 @@ fun ApartmentInfoDialog(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(16.dp),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.End
-                ){
+                ) {
                     Icon(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(colorResource(R.color.btn_text))
                             .padding(4.dp)
-                            .clickable{onDismiss()},
+                            .clickable {
+                                resetTimer?.invoke()
+                                onDismiss()
+                            },
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                     )
@@ -133,7 +143,10 @@ fun ApartmentInfoDialog(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f))
-                                .clickable { mainViewModel.showPreviousImage() },
+                                .clickable {
+                                    resetTimer?.invoke()
+                                    mainViewModel.showPreviousImage()
+                                },
                             tint = Color.White
                         )
 
@@ -147,7 +160,10 @@ fun ApartmentInfoDialog(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.5f))
-                                .clickable { mainViewModel.showNextImage() },
+                                .clickable {
+                                    resetTimer?.invoke()
+                                    mainViewModel.showNextImage()
+                                },
                             tint = Color.White
                         )
                     } else {
@@ -170,19 +186,30 @@ fun ApartmentInfoDialog(
                             .fillMaxWidth(),
                         text = stringResource(R.string.unit_details),
                         textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.displayMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            color = colorResource(R.color.btn_text),
+                            fontWeight = FontWeight.Bold
+                        )
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    Column (
+                    Column(
                         modifier = Modifier.weight(1f)
-                    ){
+                    ) {
                         Text(
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
-                            text = "Bed / Bath: ${Constants.formatNumber(vacancy.bedrooms)}/${Constants.formatNumber(vacancy.bathrooms)}",
+                            text = "Bed / Bath: ${Constants.formatNumber(vacancy.bedrooms)}/${
+                                Constants.formatNumber(
+                                    vacancy.bathrooms
+                                )
+                            }",
                             textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                ), fontWeight = FontWeight.Bold
+                            )
                         )
                         Text(
                             modifier = Modifier
@@ -190,7 +217,11 @@ fun ApartmentInfoDialog(
                                 .fillMaxWidth(),
                             text = "Square Feet: ${Constants.formatNumber(vacancy.area)} sqft",
                             textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                ), fontWeight = FontWeight.Bold
+                            )
                         )
                         Text(
                             modifier = Modifier
@@ -198,7 +229,11 @@ fun ApartmentInfoDialog(
                                 .fillMaxWidth(),
                             text = "Floor: ${vacancy.floor}",
                             textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                ), fontWeight = FontWeight.Bold
+                            )
                         )
                         Text(
                             modifier = Modifier
@@ -212,14 +247,22 @@ fun ApartmentInfoDialog(
                                 }
                             }",
                             textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                ), fontWeight = FontWeight.Bold
+                            )
                         )
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             text = "Available : ${Constants.formatDateString(vacancy.availableDateUtc)}",
                             textAlign = TextAlign.Start,
-                            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                ), fontWeight = FontWeight.Bold
+                            )
                         )
                     }
 
@@ -228,7 +271,10 @@ fun ApartmentInfoDialog(
                             .fillMaxWidth(),
                         text = stringResource(R.string.contact_now),
                         isGradient = true,
-                        onClick = onContactClick
+                        onClick = {
+                            resetTimer?.invoke()
+                            onContactClick()
+                        }
                     )
                 }
 
@@ -255,7 +301,7 @@ private fun ApartmentInfoDialogPreview() {
         unitNbr = "1"
     )
     ApartmentInfoDialog(
-        vacancy =unit,
+        vacancy = unit,
         onDismiss = {}
     )
 }

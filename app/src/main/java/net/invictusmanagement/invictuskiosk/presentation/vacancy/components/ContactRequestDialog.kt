@@ -45,6 +45,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
+import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.ContactRequestState
@@ -59,13 +60,18 @@ fun ContactRequestDialog(
     onSend: (ContactRequest) -> Unit = {}
 ) {
 
+    val resetTimer = LocalUserInteractionReset.current
+
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Email, 1=Phone
     var name by remember { mutableStateOf("") }
     var contactInfo by remember { mutableStateOf("") }
     var isEmailError by remember { mutableStateOf(false) }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            resetTimer?.invoke()
+            onDismiss()
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
@@ -92,7 +98,10 @@ fun ContactRequestDialog(
                             .clip(CircleShape)
                             .background(colorResource(R.color.btn_text))
                             .padding(4.dp)
-                            .clickable { onDismiss() },
+                            .clickable {
+                                resetTimer?.invoke()
+                                onDismiss()
+                            },
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                     )
@@ -126,7 +135,10 @@ fun ContactRequestDialog(
                             text = stringResource(R.string.email).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 0,
                             isDarkBackground = true,
-                            onClick = { selectedTab = 0 }
+                            onClick = {
+                                resetTimer?.invoke()
+                                selectedTab = 0
+                            }
                         )
                         Spacer(Modifier.width(16.dp))
                         CustomTextButton(
@@ -134,14 +146,20 @@ fun ContactRequestDialog(
                             text = stringResource(R.string.phone).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 1,
                             isDarkBackground = true,
-                            onClick = { selectedTab = 1 }
+                            onClick = {
+                                resetTimer?.invoke()
+                                selectedTab = 1
+                            }
                         )
                     }
 
                     // Name field
                     OutlinedTextField(
                         value = name,
-                        onValueChange = { name = it },
+                        onValueChange = {
+                            resetTimer?.invoke()
+                            name = it
+                        },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(
                             color = colorResource(
                                 R.color.btn_text
@@ -169,7 +187,8 @@ fun ContactRequestDialog(
                     // Contact field (dynamic based on selection)
                     OutlinedTextField(
                         value = contactInfo,
-                        onValueChange = {newValue ->
+                        onValueChange = { newValue ->
+                            resetTimer?.invoke()
                             if (selectedTab == 1) {
                                 // Extract only digits from input
                                 val digitsOnly = newValue.filter { it.isDigit() }
@@ -186,7 +205,8 @@ fun ContactRequestDialog(
                             } else {
                                 contactInfo = newValue
                             }
-                            isEmailError = if (selectedTab == 0) !Constants.isValidEmail(newValue) else false
+                            isEmailError =
+                                if (selectedTab == 0) !Constants.isValidEmail(newValue) else false
                         },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(
                             color = colorResource(
@@ -242,7 +262,9 @@ fun ContactRequestDialog(
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 24.dp)
                                 .fillMaxWidth(),
-                            text = if(selectedTab == 0) stringResource(R.string.placeholder_email) else stringResource(R.string.placeholder_phone),
+                            text = if (selectedTab == 0) stringResource(R.string.placeholder_email) else stringResource(
+                                R.string.placeholder_phone
+                            ),
                             textAlign = TextAlign.Start,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 color = colorResource(
@@ -269,6 +291,7 @@ fun ContactRequestDialog(
                             enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isEmailError,
                             text = stringResource(R.string.send),
                             onClick = {
+                                resetTimer?.invoke()
                                 val contactRequest = ContactRequest(
                                     email = if (selectedTab == 0) contactInfo else null,
                                     name = name,

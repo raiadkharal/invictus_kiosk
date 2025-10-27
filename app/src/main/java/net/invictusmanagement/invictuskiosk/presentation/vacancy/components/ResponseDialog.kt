@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import java.util.Locale
@@ -53,9 +54,13 @@ fun ResponseDialog(
     onDismiss: () -> Unit,
 ) {
 
+    val resetTimer = LocalUserInteractionReset.current
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            resetTimer?.invoke()
+            onDismiss()
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
@@ -66,26 +71,30 @@ fun ResponseDialog(
             color = colorResource(R.color.background_dark),
             tonalElevation = 8.dp,
         ) {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.End
-            ){
+            ) {
                 Icon(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(colorResource(R.color.btn_text))
                         .padding(4.dp)
-                        .clickable { onDismiss() },
+                        .clickable {
+                            resetTimer?.invoke()
+                            onDismiss()
+                        },
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close",
                 )
             }
 
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -96,7 +105,10 @@ fun ResponseDialog(
                         .fillMaxWidth(),
                     text = stringResource(R.string.notification),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayMedium.copy(color = colorResource(R.color.btn_text), fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        color = colorResource(R.color.btn_text),
+                        fontWeight = FontWeight.Bold
+                    )
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
@@ -113,7 +125,8 @@ fun ResponseDialog(
                     isGradient = true,
                     text = stringResource(R.string.dismiss),
                     onClick = {
-                      onDismiss()
+                        resetTimer?.invoke()
+                        onDismiss()
                     }
                 )
 
@@ -126,5 +139,5 @@ fun ResponseDialog(
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun ResponseDialogPreview() {
-    ResponseDialog (onDismiss = {})
+    ResponseDialog(onDismiss = {})
 }
