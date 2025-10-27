@@ -120,7 +120,7 @@ class VideoCallViewModel @Inject constructor(
 
             videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
             audioTrack = LocalAudioTrack.create(context, true)
-        }catch (ex: Exception){
+        } catch (ex: Exception) {
             Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
         }
     }
@@ -178,7 +178,7 @@ class VideoCallViewModel @Inject constructor(
 
             override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {
                 resumeScreenSaver()
-                if(sendToVoiceMail) {
+                if (sendToVoiceMail) {
                     disconnect()
                 }
             }
@@ -193,7 +193,7 @@ class VideoCallViewModel @Inject constructor(
 
     private fun startDisconnectTimerWithCountdown() {
         viewModelScope.launch {
-            for (i in timeOutSeconds-1 downTo 0) {
+            for (i in timeOutSeconds - 1 downTo 0) {
                 delay(1000)
                 remainingSeconds = i
             }
@@ -204,7 +204,7 @@ class VideoCallViewModel @Inject constructor(
     private fun startMissedCallTimeout(onMissedCall: () -> Unit) {
         missedCallJob?.cancel()
         missedCallJob = viewModelScope.launch {
-            delay((timeOutSeconds*1000).toLong()) // 45 seconds
+            delay((timeOutSeconds * 1000).toLong()) // 45 seconds
             if (!remoteParticipantJoined) {
                 callEndedDueToMissedCall = true
                 disconnect()
@@ -360,18 +360,24 @@ class VideoCallViewModel @Inject constructor(
     }
 
     fun disconnect() {
-        missedCallJob?.cancel()
-        missedCallJob = null
-        remoteParticipantJoined = false
+        try {
+            missedCallJob?.cancel()
+            missedCallJob = null
+            remoteParticipantJoined = false
 
-        room?.disconnect()
-        room = null
-        videoTrack?.release()
-        audioTrack?.release()
-        videoTrack = null
-        audioTrack = null
-        connectionState = ConnectionState.DISCONNECTED
-        resumeScreenSaver()
+            room?.disconnect()
+            room = null
+            videoTrack?.release()
+            videoTrack = null
+            audioTrack?.release()
+            audioTrack = null
+            connectionState = ConnectionState.DISCONNECTED
+        } catch (e: Exception) {
+            Log.e("TAG", "disconnect: ${e.message}")
+            connectionState = ConnectionState.DISCONNECTED
+        }finally {
+            resumeScreenSaver()
+        }
     }
 
     private fun getAvailableFrontCameraId(context: Context): String {
@@ -413,14 +419,16 @@ class VideoCallViewModel @Inject constructor(
                 kioskName = kioskName,
                 residentActivationCode = residentActivationCode
             )
-        ).onEach { result->
-            when(result){
+        ).onEach { result ->
+            when (result) {
                 is Resource.Success -> {
                     Log.d("TAG", "postMissedCall: Missed call posted")
                 }
+
                 is Resource.Error -> {
                     Log.d("TAG", "postMissedCall: ${result.message}")
                 }
+
                 is Resource.Loading -> {}
             }
         }.launchIn(viewModelScope)
