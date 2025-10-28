@@ -94,7 +94,9 @@ class VideoCallViewModel @Inject constructor(
             listener = this,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
-                    signalRConnectionState = SignalRConnectionState.CONNECTED
+                    if (connectionState == ConnectionState.CONNECTING) {
+                        signalRConnectionState = SignalRConnectionState.CONNECTED
+                    }
                 }
             }
         )
@@ -375,27 +377,6 @@ class VideoCallViewModel @Inject constructor(
         })
     }
 
-    fun disconnect() {
-        try {
-            missedCallJob?.cancel()
-            missedCallJob = null
-            remoteParticipantJoined = false
-
-            room?.disconnect()
-            room = null
-            videoTrack?.release()
-            videoTrack = null
-            audioTrack?.release()
-            audioTrack = null
-            connectionState = ConnectionState.DISCONNECTED
-        } catch (e: Exception) {
-            Log.e("TAG", "disconnect: ${e.message}")
-            connectionState = ConnectionState.DISCONNECTED
-        }finally {
-            resumeScreenSaver()
-        }
-    }
-
     private fun getAvailableFrontCameraId(context: Context): String {
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         cameraManager.cameraIdList.forEach { id ->
@@ -448,6 +429,27 @@ class VideoCallViewModel @Inject constructor(
                 is Resource.Loading -> {}
             }
         }.launchIn(viewModelScope)
+    }
+
+    fun disconnect() {
+        try {
+            missedCallJob?.cancel()
+            missedCallJob = null
+            remoteParticipantJoined = false
+
+            room?.disconnect()
+            room = null
+            videoTrack?.release()
+            videoTrack = null
+            audioTrack?.release()
+            audioTrack = null
+            connectionState = ConnectionState.DISCONNECTED
+        } catch (e: Exception) {
+            Log.e("TAG", "disconnect: ${e.message}")
+            connectionState = ConnectionState.DISCONNECTED
+        }finally {
+            resumeScreenSaver()
+        }
     }
 
     override fun onCleared() {

@@ -152,8 +152,8 @@ fun VideoCallScreen(
         )
     }
 
-    LaunchedEffect(hasAllPermissions,signalRConnectionState) {
-        if (hasAllPermissions && signalRConnectionState == SignalRConnectionState.CONNECTED) {
+    LaunchedEffect(hasAllPermissions) {
+        if (hasAllPermissions) {
             videoCallViewModel.getVideoCallToken(kioskActivationCode)
         }
     }

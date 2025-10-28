@@ -105,7 +105,7 @@ class SignalRManager(
     /**
      * Cleanly disconnects from SignalR
      */
-    fun disconnect() {
+   private fun disconnect() {
         coroutineScope.launch {
             try {
                 Log.d(TAG, "disconnect: Stopping SignalR connection...")
