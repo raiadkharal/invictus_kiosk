@@ -13,6 +13,11 @@ enum class ConnectionState(val displayName: String){
     FAILED("Failed")
 }
 
+enum class SignalRConnectionState(val displayName: String){
+    CONNECTING("Connecting..."),
+    CONNECTED("Connected"),
+}
+
 enum class IntroButtons(val value: String) {
     RESIDENTS("residents"),
     LEASING_OFFICE("leasingOffice"),

@@ -49,6 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.LeasingOffic
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
+import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 
 @Composable
 fun VideoCallScreen(
@@ -68,6 +69,7 @@ fun VideoCallScreen(
     var showVoiceMailDialog by remember { mutableStateOf(false) }
 
     val connectionState by remember { derivedStateOf { videoCallViewModel.connectionState } }
+    val signalRConnectionState by remember { derivedStateOf { videoCallViewModel.signalRConnectionState } }
     val remoteVideoTrack = videoCallViewModel.remoteVideoTrack
     val token = videoCallViewModel.token
     val remainingSeconds = videoCallViewModel.remainingSeconds
@@ -150,8 +152,10 @@ fun VideoCallScreen(
         )
     }
 
-    LaunchedEffect(hasAllPermissions) {
-        videoCallViewModel.getVideoCallToken(kioskActivationCode)
+    LaunchedEffect(hasAllPermissions,signalRConnectionState) {
+        if (hasAllPermissions && signalRConnectionState == SignalRConnectionState.CONNECTED) {
+            videoCallViewModel.getVideoCallToken(kioskActivationCode)
+        }
     }
 
     // Attach remote video when available

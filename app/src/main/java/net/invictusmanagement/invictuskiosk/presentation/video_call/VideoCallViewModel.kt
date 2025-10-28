@@ -38,9 +38,11 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
+import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalREventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
+import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,6 +70,9 @@ class VideoCallViewModel @Inject constructor(
     var connectionState by mutableStateOf(ConnectionState.CONNECTING)
         private set
 
+    var signalRConnectionState by mutableStateOf(SignalRConnectionState.CONNECTING)
+        private set
+
     var remainingSeconds by mutableIntStateOf(timeOutSeconds)
         private set
 
@@ -82,7 +87,18 @@ class VideoCallViewModel @Inject constructor(
     private var signalRManager: SignalRManager? = null
 
     fun initializeSignalR(kioskId: Int) {
-        signalRManager = SignalRManager(kioskId, this)
+        signalRConnectionState = SignalRConnectionState.CONNECTING
+
+        signalRManager = SignalRManager(
+            kioskId = kioskId,
+            listener = this,
+            connectionListener = object : SignalRConnectionListener {
+                override fun onConnected() {
+                    signalRConnectionState = SignalRConnectionState.CONNECTED
+                }
+            }
+        )
+
         signalRManager?.connect()
     }
 
@@ -437,6 +453,7 @@ class VideoCallViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
+        signalRManager?.cleanup()
     }
 
     fun pauseScreenSaver() {
