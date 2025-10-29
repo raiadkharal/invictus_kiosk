@@ -99,30 +99,34 @@ class VoicemailViewModel @Inject constructor(
         context: Context,
         lifecycleOwner: LifecycleOwner
     ) {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().apply {
-                surfaceProvider = previewView.surfaceProvider
-            }
+        try {
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+            cameraProviderFuture.addListener({
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().apply {
+                    surfaceProvider = previewView.surfaceProvider
+                }
 
-            val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.HD))
-                .build()
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .build()
 
-            val videoCap = VideoCapture.withOutput(recorder)
-            _videoCapture.value = videoCap
+                val videoCap = VideoCapture.withOutput(recorder)
+                _videoCapture.value = videoCap
 
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                videoCap
-            )
-        }, ContextCompat.getMainExecutor(context))
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    videoCap
+                )
+            }, ContextCompat.getMainExecutor(context))
+        }catch (e: Exception){
+            Log.d("TAG", "setupCamera: $e")
+        }
     }
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -130,35 +134,46 @@ class VoicemailViewModel @Inject constructor(
         context: Context,
         onFinish: (File) -> Unit
     ) {
-        val capture = videoCapture.value ?: return
+        val capture = videoCapture.value ?: run {
+            Log.e("VoicemailViewModel", "VideoCapture is null. Cannot start recording.")
+            return
+        }
 
-        videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
-        val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
-        onFinishCallback = onFinish
+        try {
+            videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
+            val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
+            onFinishCallback = onFinish
 
-        recording = capture.output
-            .prepareRecording(context, outputOptions)
-            .withAudioEnabled()
-            .start(ContextCompat.getMainExecutor(context)) { event ->
-                if (event is VideoRecordEvent.Finalize) {
-                    if (!event.hasError()) {
-                        onFinishCallback?.invoke(videoFile!!)
-                    } else {
-                        Log.e("Voicemail", "Recording error: ${event.error}")
+            recording = capture.output
+                .prepareRecording(context, outputOptions)
+                .withAudioEnabled()
+                .start(ContextCompat.getMainExecutor(context)) { event ->
+                    if (event is VideoRecordEvent.Finalize) {
+                        if (!event.hasError()) {
+                            onFinishCallback?.invoke(videoFile!!)
+                        } else {
+                            Log.e("Voicemail", "Recording error: ${event.error}")
+                        }
                     }
                 }
-            }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            recording?.stop()
-        }, 30_000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                recording?.stop()
+            }, 30_000)
+        }catch (e: Exception) {
+            Log.e("Voicemail", "Recording error: ${e.message}")
+        }
     }
 
     fun stopRecording() {
-        recording?.stop()
-        recording = null
-
-        resumeScreenSaver()
+        try {
+            recording?.stop()
+        } catch (e: Exception) {
+            Log.e("VoicemailViewModel", "Error stopping recording: ${e.message}", e)
+        } finally {
+            recording = null
+            resumeScreenSaver()
+        }
     }
 
     fun pauseScreenSaver() {
