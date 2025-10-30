@@ -52,19 +52,22 @@ class QRScannerViewModel @Inject constructor(
         }
     }
     fun validateDigitalKey(digitalKeyDto: DigitalKeyDto) {
+        resetError()
         homeRepository.validateDigitalKey(digitalKeyDto).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    setLoading(false)
                     _digitalKeyValidationState.value = DigitalKeyState(digitalKey = result.data)
+                    setLoading(false)
                 }
 
                 is Resource.Error -> {
-                    setLoading(false)
+                    _digitalKeyValidationState.value = DigitalKeyState(error = result.message?: "An unexpected error occurred")
                     reportError(result.message ?: "An unexpected error occurred")
+                    setLoading(false)
                 }
 
                 is Resource.Loading -> {
+                    _digitalKeyValidationState.value = DigitalKeyState(isLoading = true)
                    setLoading(true)
                 }
 
@@ -90,6 +93,10 @@ class QRScannerViewModel @Inject constructor(
 
     fun stopScanning() {
         _uiState.update { it.copy(isScanning = false) }
+    }
+
+    fun startScanning() {
+        _uiState.update { it.copy(isScanning = true) }
     }
 
     fun resetError() {

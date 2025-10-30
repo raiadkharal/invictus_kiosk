@@ -96,7 +96,6 @@ fun QRScannerScreen(
         if (keyValidationState.digitalKey?.isValid == true) {
             viewModel.stopScanning()
             viewModel.resetError()
-            delay(2000)
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = keyValidationState.digitalKey?.unitId ?: 0,
@@ -108,6 +107,8 @@ fun QRScannerScreen(
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             viewModel.reportError("Invalid QRCode! Please show valid QRCode.")
+            delay(2000)
+            viewModel.startScanning()
         }
     }
 
@@ -124,6 +125,7 @@ fun QRScannerScreen(
                 scanner = viewModel.scanner,
                 isScanning = { uiState.isScanning },
                 onSuccess = { result ->
+                    viewModel.stopScanning()
                     viewModel.validateDigitalKey(
                         DigitalKeyDto(
                             accessPointId = currentAccessPoint?.id ?: 0,
