@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -18,6 +19,8 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
+import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUiState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.UiEvent
@@ -26,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class QRScannerViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val relayRepository: RelayManagerRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QRScannerUiState())
@@ -51,24 +55,34 @@ class QRScannerViewModel @Inject constructor(
             }
         }
     }
+
     fun validateDigitalKey(digitalKeyDto: DigitalKeyDto) {
         resetError()
         homeRepository.validateDigitalKey(digitalKeyDto).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    if (result.data?.isValid == true) {
+                        //send open AccessPoint request to the relay manager if the digital key is valid
+                        relayRepository.openAccessPoint(
+                            accessPoint.value?.relayPort,
+                            accessPoint.value?.relayOpenTimer,
+                            accessPoint.value?.relayDelayTimer
+                        )
+                    }
                     _digitalKeyValidationState.value = DigitalKeyState(digitalKey = result.data)
                     setLoading(false)
                 }
 
                 is Resource.Error -> {
-                    _digitalKeyValidationState.value = DigitalKeyState(error = result.message?: "An unexpected error occurred")
+                    _digitalKeyValidationState.value =
+                        DigitalKeyState(error = result.message ?: "An unexpected error occurred")
                     reportError(result.message ?: "An unexpected error occurred")
                     setLoading(false)
                 }
 
                 is Resource.Loading -> {
                     _digitalKeyValidationState.value = DigitalKeyState(isLoading = true)
-                   setLoading(true)
+                    setLoading(true)
                 }
 
             }

@@ -13,6 +13,7 @@ import net.invictusmanagement.invictuskiosk.data.repository.CouponsRepositoryImp
 import net.invictusmanagement.invictuskiosk.data.repository.DirectoryRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.HomeRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.LoginRepositoryImpl
+import net.invictusmanagement.invictuskiosk.data.repository.RelayManagerRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ResidentsRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ScreenSaverRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ServiceKeyRepositoryImpl
@@ -24,6 +25,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.DirectoryRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
@@ -32,6 +34,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.relaymanager.RelayManager
 import javax.inject.Singleton
 
 @Module
@@ -127,5 +130,17 @@ object AppModule {
     @Singleton
     fun provideScreenSaverRepository(): ScreenSaverRepository {
         return ScreenSaverRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRelayManager(@ApplicationContext context: Context): RelayManager {
+        return RelayManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRelayRepository(relayManager: RelayManager): RelayManagerRepository {
+        return RelayManagerRepositoryImpl(relayManager)
     }
 }

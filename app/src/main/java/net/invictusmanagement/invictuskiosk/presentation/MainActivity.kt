@@ -1,17 +1,20 @@
 package net.invictusmanagement.invictuskiosk.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.IntentFilter
 import android.content.res.Configuration
+import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -34,7 +37,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.LoginScreen
@@ -42,17 +47,38 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.NavGraph
 import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSaver
 import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSaverViewModel
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
+import net.invictusmanagement.invictuskiosk.usb.UsbPermissionReceiver
 import net.invictusmanagement.invictuskiosk.util.locale.AppLocale
 import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
+import net.invictusmanagement.relaymanager.RelayManager
 import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
+
+    private lateinit var usbManager: UsbManager
+    private lateinit var relayManager : RelayManager
+    private val TAG = "detectRelayOnStartup"
+
+    private val usbPermissionReceiver = UsbPermissionReceiver { device ->
+        lifecycleScope.launch {
+            try {
+                relayManager.initializeDevice(device.deviceName)
+            } catch (e: Exception) {
+                Log.d(TAG, "error: ")
+            }
+        }
+    }
+
+
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        usbManager = getSystemService(USB_SERVICE) as UsbManager
+        relayManager = RelayManager(this@MainActivity)
+
+//        detectRelayOnStartup()
 
         enableEdgeToEdge()
         setContent {
@@ -69,7 +95,91 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun detectRelayOnStartup() {
+//        for (device in usbManager.deviceList.values) {
+//            if (device.vendorId == 0x2A19) { // Numato Vendor ID (adjust if different)
+//                if (!usbManager.hasPermission(device)) {
+//                    val permissionIntent = PendingIntent.getBroadcast(
+//                        this,
+//                        0,
+//                        Intent(UsbPermissionReceiver.ACTION_USB_PERMISSION),
+//                        PendingIntent.FLAG_IMMUTABLE
+//                    )
+//                    usbManager.requestPermission(device, permissionIntent)
+//                } else {
+//                    // Permission already granted — directly initialize
+//                    lifecycleScope.launch {
+//                        NumatoRelayManager.getInstance(this@MainActivity)
+//                            .initializeDevice(device)
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+//    private fun detectRelayOnStartup() {
+//        lifecycleScope.launch {
+//            try {
+//                val delayMillis = 1000
+//                val relayManager = NumatoRelayManager.getInstance(this@MainActivity)
+//                val devices = relayManager.getDevices()
+//
+//                if (devices.isEmpty()) {
+//                    Log.w(TAG, "WARNING: No relay devices detected.")
+//                    return@launch
+//                }
+//
+//                val targetDevice = devices.first()
+//                Log.i(TAG, "Initializing relay device: ${targetDevice.name}")
+//
+//                relayManager.initializeDevice(targetDevice)
+//
+//                // Step 1: Open/close each relay one by one
+//                for (i in 1..relayManager.relayCount) {
+//                    Log.i(TAG, "Opening relay $i.")
+//                    relayManager.openRelays(listOf(i))
+//
+//                    if (relayManager.isRelayOpen(i)) {
+//                        Log.i(TAG, "Delaying for $delayMillis milliseconds.")
+//                        delay(delayMillis.toLong())
+//                        Log.i(TAG, "Closing relay $i.")
+//                        relayManager.closeRelays(listOf(i))
+//                    }
+//                }
+//
+//                // Step 2: Open/close relay 1 & 3
+//                Log.i(TAG, "Opening relay 1 & 3.")
+//                relayManager.openRelays(listOf(1, 3))
+//                if (relayManager.isRelayOpen(1) && relayManager.isRelayOpen(3)) {
+//                    delay(delayMillis.toLong())
+//                    Log.i(TAG, "Closing relay 1 & 3.")
+//                    relayManager.closeRelays(listOf(1, 3))
+//                }
+//
+//                // Step 3: Open/close relay 2 & 4
+//                Log.i(TAG, "Opening relay 2 & 4.")
+//                relayManager.openRelays(listOf(2, 4))
+//                if (relayManager.isRelayOpen(2) && relayManager.isRelayOpen(4)) {
+//                    delay(delayMillis.toLong())
+//                    Log.i(TAG, "Closing relay 2 & 4.")
+//                    relayManager.closeRelays(listOf(2, 4))
+//                }
+//
+//                // Step 4: Open/close all relays
+//                Log.i(TAG, "Opening all relays.")
+//                relayManager.openAllRelays()
+//                delay(delayMillis.toLong())
+//                Log.i(TAG, "Closing all relays.")
+//                relayManager.closeAllRelays()
+//
+//            } catch (e: Exception) {
+//                Log.e(TAG, "Error while detecting or testing relay: ${e.message}", e)
+//            }
+//        }
+//    }
+
+
+
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
     fun MyApp() {
@@ -143,7 +253,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
     fun MainContent() {
@@ -194,4 +304,31 @@ class MainActivity : ComponentActivity() {
         return context.createConfigurationContext(config)
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    override fun onResume() {
+        super.onResume()
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(
+                    usbPermissionReceiver,
+                    IntentFilter(UsbPermissionReceiver.ACTION_USB_PERMISSION),
+                    RECEIVER_NOT_EXPORTED
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                registerReceiver(
+                    usbPermissionReceiver,
+                    IntentFilter(UsbPermissionReceiver.ACTION_USB_PERMISSION)
+                )
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "onResume: error registering usb permission receiver: ${e.message}")
+        }
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(usbPermissionReceiver)
+    }
 }

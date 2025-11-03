@@ -42,7 +42,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolba
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CouponsDetailsScreen(
@@ -180,7 +180,7 @@ fun CouponsDetailsScreen(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun CouponDetailsScreenPreview() {
