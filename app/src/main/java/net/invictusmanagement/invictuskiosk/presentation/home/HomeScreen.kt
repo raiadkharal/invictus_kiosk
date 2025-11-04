@@ -86,6 +86,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     var currentLocale by remember { mutableStateOf(LocaleHelper.getCurrentLocale(context)) }
     var showHomeBottomSheet by remember { mutableStateOf(false) }
@@ -102,6 +103,13 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
     }
+
+    LaunchedEffect(isConnected) {
+        if(isConnected && introButtons.isEmpty()){
+            viewModel.loadInitialData()
+        }
+    }
+
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
             isError = false

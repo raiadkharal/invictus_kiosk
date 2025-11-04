@@ -32,6 +32,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import javax.inject.Singleton
 
 @Module
@@ -47,9 +48,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRestClient(
+        @ApplicationContext context: Context,
         dataStoreManager: DataStoreManager
     ): RestClient {
         return RestClient(
+            context,
             baseUrl = BuildConfig._baseUrl,
             dataStoreManager = dataStoreManager
         )
@@ -128,4 +131,11 @@ object AppModule {
     fun provideScreenSaverRepository(): ScreenSaverRepository {
         return ScreenSaverRepositoryImpl()
     }
+
+    @Provides
+    @Singleton
+    fun provideNetworkMonitor(@ApplicationContext context: Context): NetworkMonitor {
+        return NetworkMonitor(context)
+    }
+
 }

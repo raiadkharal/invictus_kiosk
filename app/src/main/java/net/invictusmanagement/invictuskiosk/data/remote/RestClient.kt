@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote
 
+import android.content.Context
 import kotlinx.coroutines.flow.firstOrNull
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import kotlinx.coroutines.runBlocking
@@ -11,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 class RestClient(
+    private val context: Context,
     private val baseUrl: String,
     private val dataStoreManager: DataStoreManager
 ) {
@@ -37,6 +39,8 @@ class RestClient(
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(logging)
+//            .addInterceptor(RetryInterceptor())
+//            .addInterceptor(NetworkConnectionInterceptor(context))
             .connectTimeout(1, TimeUnit.MINUTES)
             .readTimeout(2, TimeUnit.MINUTES)
             .writeTimeout(2, TimeUnit.MINUTES)
