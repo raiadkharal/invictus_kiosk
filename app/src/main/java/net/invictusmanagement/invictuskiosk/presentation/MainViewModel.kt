@@ -131,6 +131,12 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun updateImageIndex(newIndex: Int) {
+        if (unitImages.isNotEmpty()) {
+            currentImageIndex = newIndex.coerceIn(0, unitImages.lastIndex)
+        }
+    }
+
     fun showPreviousImage() {
         if (unitImages.isNotEmpty()) {
             currentImageIndex =
