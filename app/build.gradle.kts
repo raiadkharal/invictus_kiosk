@@ -40,7 +40,8 @@ android {
         create("live") {
             dimension = "version"
 
-            buildConfigField("String", "_baseUrl", "\"https://kios.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_baseUrl", "\"https://kiosk.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobile.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobile.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus kiosk")
         }
@@ -49,6 +50,7 @@ android {
             dimension = "version"
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
@@ -57,6 +59,7 @@ android {
             dimension = "version"
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }

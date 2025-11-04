@@ -10,11 +10,16 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import net.invictusmanagement.relaymanager.models.RelayDeviceInfo
+import net.invictusmanagement.relaymanager.util.ILogger
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.log
 
-internal class NumatoRelayManager(private val context: Context) : IRelayManager {
+internal class NumatoRelayManager(
+    private val context: Context,
+    private val logger: ILogger
+) : IRelayManager {
 
     private val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
     private var port: UsbSerialPort? = null
@@ -36,7 +41,7 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
                 try {
                     cmd()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Command execution failed", e)
+                    logger.log("NumatoRelayManager", "Command execution failed", e)
                 }
             }
         }
@@ -47,7 +52,6 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
         val deviceList = usbManager.deviceList.values
 
         if (deviceList.isEmpty()) {
-            Log.i("RelayManager", "No USB relay devices found.")
             return@withContext emptyList()
         }
 
@@ -64,17 +68,18 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
                     devices.add(info)
                 }
             } catch (e: Exception) {
-                Log.e("RelayManager", "Error reading device info: ${e.message}")
+                throw IllegalStateException("Error reading device info: ${e.message}", e)
             }
         }
 
-        Log.i("RelayManager", "Found ${devices.size} relay devices.")
         return@withContext devices
     }
 
 
     override suspend fun initializeDevice(id: String) {
         initialized.set(false)
+
+        logger.log("initializeDevice", "Initializing device with ID: $id")
 
         val device = usbManager.deviceList.values.firstOrNull { it.deviceName == id }
             ?: throw IllegalArgumentException("Device with ID $id not found")
@@ -89,19 +94,27 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
 
         if (!usbManager.hasPermission(usbDevice)) {
             usbManager.requestPermission(usbDevice, permissionIntent)
-            Log.i(TAG, "Requesting permission for ${usbDevice.deviceName}")
+            logger.log("initializeDevice", "Requesting permission for ${usbDevice.deviceName}", null)
             return
         }
+        logger.log("initializeDevice", "Permission granted for ${usbDevice.deviceName}")
 
         // --- Equivalent to: _controller.OpenBySerialNumber(id)
         val driver = UsbSerialProber.getDefaultProber().probeDevice(usbDevice)
             ?: throw IllegalStateException("No serial driver found for ${usbDevice.deviceName}")
 
+        logger.log("initializeDevice", "Driver found: ${driver.javaClass.simpleName}")
+
         val connection = usbManager.openDevice(driver.device)
             ?: throw IllegalStateException("Failed to open USB connection")
 
+        logger.log("initializeDevice", "Connection opened successfully")
+
         // --- Equivalent to: SetBitMode (configure serial parameters)
         port = driver.ports.firstOrNull()
+
+        logger.log("initializeDevice", "Port found: ${port?.portNumber}")
+
         port?.open(connection)
         port?.setParameters(
             9600,
@@ -112,7 +125,7 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
 
         // Successfully initialized
         initialized.set(true)
-        Log.i(TAG, "Relay device initialized successfully on port ${port?.portNumber}")
+        logger.log("initializeDevice", "Relay device initialized successfully on port ${port?.portNumber}")
     }
 
     override suspend fun initializeDevice(device: RelayDeviceInfo) {
@@ -124,6 +137,8 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
         if (!initialized.get()) {
             throw IllegalStateException("No device initialized.")
         }
+
+        logger.log("openRelays", "Opening relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
             if (relayNumber in 0..relayCount) {
                 sendCommand("relay on $relayNumber\r")
@@ -136,6 +151,7 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
             throw IllegalStateException("No device initialized.")
         }
 
+        logger.log("closeRelays", "Closing relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
             if (relayNumber in 0..relayCount) {
                 sendCommand("relay off $relayNumber\r")
@@ -148,6 +164,7 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
             throw IllegalStateException("No device initialized.")
         }
 
+        logger.log("openAllRelays", "Opening all relays")
         sendCommand("relay writeall 0F\r")
     }
 
@@ -156,6 +173,7 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
             throw IllegalStateException("No device initialized.")
         }
 
+        logger.log("closeAllRelays", "Closing all relays")
         sendCommand("relay writeall 00\r")
     }
 
@@ -174,18 +192,20 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
                 port?.close()
                 job.cancel()
                 initialized.set(false)
-                Log.i("RelayManager", "Relay device disconnected.")
+                logger.log("disconnect", "Relay device disconnected")
             } catch (e: Exception) {
-                Log.e("RelayManager", "Error closing relay connection", e)
+                logger.log("disconnect", "Error closing relay connection", e)
             }
         }
     }
 
     private suspend fun enqueue(block: suspend () -> Unit) {
+        logger.log("enqueue", "Enqueuing command")
         commandQueue.send(block)
     }
 
     private suspend fun sendCommand(cmd: String) {
+        logger.log("sendCommand", "Sending command: $cmd")
         port?.write(cmd.toByteArray(), 500)
         delay(delay)
     }
@@ -197,15 +217,14 @@ internal class NumatoRelayManager(private val context: Context) : IRelayManager 
     }
 
     companion object {
-        private const val TAG = "RelayManagerImpl"
         const val ACTION_USB_PERMISSION = "com.invictus.RELAY_USB_PERMISSION"
 
         @Volatile
         private var instance: NumatoRelayManager? = null
 
-        fun getInstance(context: Context): NumatoRelayManager {
+        fun getInstance(context: Context, logger: ILogger): NumatoRelayManager {
             return instance ?: synchronized(this) {
-                instance ?: NumatoRelayManager(context.applicationContext).also { instance = it }
+                instance ?: NumatoRelayManager(context.applicationContext, logger).also { instance = it }
             }
         }
     }

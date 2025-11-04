@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
@@ -48,6 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSave
 import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSaverViewModel
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.usb.UsbPermissionReceiver
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import net.invictusmanagement.invictuskiosk.util.locale.AppLocale
 import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
 import net.invictusmanagement.relaymanager.RelayManager
@@ -57,6 +59,8 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     private lateinit var usbManager: UsbManager
+    @Inject
+    lateinit var globalLogger: GlobalLogger
     private lateinit var relayManager : RelayManager
     private val TAG = "detectRelayOnStartup"
 
@@ -76,7 +80,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         usbManager = getSystemService(USB_SERVICE) as UsbManager
-        relayManager = RelayManager(this@MainActivity)
+        relayManager = RelayManager(this@MainActivity,globalLogger)
 
 //        detectRelayOnStartup()
 

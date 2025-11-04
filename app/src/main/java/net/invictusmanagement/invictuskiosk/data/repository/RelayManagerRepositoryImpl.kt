@@ -1,27 +1,29 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
-import android.util.Log
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import net.invictusmanagement.relaymanager.RelayManager
 import net.invictusmanagement.relaymanager.models.OpenRelayModel
 
 class RelayManagerRepositoryImpl(
-    private val relayManager: RelayManager
+    private val relayManager: RelayManager,
+    private val logger: GlobalLogger
 ) : RelayManagerRepository {
     override var relayId: String? = null
-    private val tag = "relayManagerRepository"
 
     override suspend fun initializeRelayManager() {
         try {
             val devices = relayManager.getDevices()
+            logger.log("initializeRelayManager", "Found ${devices.size} relay devices.")
             if(devices.isNotEmpty()) {
                 relayId = devices.first().id
-                Log.d(tag, "initializeRelayManager: Relay manager connection established to: $relayId")
+                logger.log("initializeRelayManager", "Relay manager connection established to: $relayId")
             }else{
-                Log.d(tag, "initializeRelayManager: No Relay Devices are detected")
+                relayId = "54545454"
+                logger.log("initializeRelayManager", "No USB Relay Devices are detected")
             }
         }catch (e: Exception){
-            Log.d(tag, "initializeRelayManager: ${e.message} - Unable to communicate with relay device")
+            logger.log("initializeRelayManager", "Unable to communicate with relay device",e)
         }
     }
 
@@ -31,7 +33,7 @@ class RelayManagerRepositoryImpl(
         relayDelayTimer: Int?
     ): Result<Unit> {
         if (relayId.isNullOrEmpty()) {
-            Log.w(tag, "Relay manager identifier is missing.")
+            logger.log("openAccessPoint", "Relay manager identifier is missing.")
             return Result.failure(IllegalStateException("Relay manager identifier is missing."))
         }
 
@@ -39,7 +41,7 @@ class RelayManagerRepositoryImpl(
         val relayOpenTimer: Int = relayOpenTimer ?: 0
         val relayDelayTimer: Int = relayDelayTimer ?: 0
 
-        Log.d(tag, "Opening access point: id=$relayId port=$relayPort open=$relayOpenTimer delay=$relayDelayTimer")
+        logger.log("openAccessPoint", "Opening access point: id=$relayId port=$relayPort open=$relayOpenTimer delay=$relayDelayTimer")
 
         val model = OpenRelayModel(
             relayId = relayId ?: "",
@@ -49,17 +51,18 @@ class RelayManagerRepositoryImpl(
         )
 
         return try {
+            logger.log("openAccessPoint", "Invictus: Going to Open Door - ${model.relayId}:${model.relayNumber}:${model.relayDelayTimer}")
             val result = relayManager.open(model)
 
             result.onSuccess {
-                Log.i(tag, "Access point opened successfully for relay ${model.relayNumber}")
+                logger.log("openAccessPoint", "Access point opened successfully for relay ${model.relayNumber}")
             }.onFailure { exception ->
-                Log.e(tag, "Failed to open access point: ${exception.message}", exception)
+                logger.log("openAccessPoint", "Failed to open access point: ${exception.message}", exception)
             }
 
             result
         } catch (e: Exception) {
-            Log.e(tag, "Unable to open access point. ${e.message}", e)
+            logger.log("openAccessPoint", "Unable to open access point. ${e.message}", e)
             Result.failure(e)
         }
     }

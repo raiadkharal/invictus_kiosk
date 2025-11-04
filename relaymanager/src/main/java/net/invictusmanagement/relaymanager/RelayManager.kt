@@ -1,22 +1,22 @@
 package net.invictusmanagement.relaymanager
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.invictusmanagement.relaymanager.models.OpenRelayModel
 import net.invictusmanagement.relaymanager.models.RelayDeviceInfo
+import net.invictusmanagement.relaymanager.util.ILogger
 import java.io.File
 import java.nio.file.Paths
 
 class RelayManager(
-    context: Context
+    context: Context,
+    private val logger: ILogger
 ) {
 
-    private var relayManager: IRelayManager = NumatoRelayManager(context)
+    private var relayManager: IRelayManager = NumatoRelayManager.getInstance(context,logger)
 
     private val tag = "InvictusRelayManager"
 
@@ -40,13 +40,11 @@ class RelayManager(
 //            devices
              relayManager.getDevices()
         } catch (ex: Exception) {
-            Log.e(tag, "Error getting devices: ${ex.message}", ex)
-            emptyList()
+            throw IllegalStateException("Error getting devices: ${ex.message}", ex)
         }
     }
 
     suspend fun open(model: OpenRelayModel): Result<Unit> {
-        Log.i(tag, "Invictus: Going to Open Door - ${model.relayId}:${model.relayNumber}:${model.relayDelayTimer}")
 
         return try {
             if (!relayManager.isInitialized) {
@@ -67,10 +65,8 @@ class RelayManager(
 
             relayManager.closeRelays(relays)
 
-            Log.i(tag, "Invictus: Opened - ${model.relayId}:${model.relayNumber}:${model.relayDelayTimer}")
             Result.success(Unit)
         } catch (ex: Exception) {
-            Log.e(tag, "Invictus: Error in Open Method - ${ex.message}", ex)
 //            restartServiceItself()
             Result.failure(ex)
         }
