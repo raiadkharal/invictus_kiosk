@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +65,14 @@ fun ContactRequestDialog(
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Email, 1=Phone
     var name by remember { mutableStateOf("") }
     var contactInfo by remember { mutableStateOf("") }
-    var isEmailError by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedTab) {
+        resetSleepTimer?.invoke()
+        contactInfo = ""
+        name = ""
+        isError = false
+    }
 
     Dialog(
         onDismissRequest = {
@@ -204,8 +212,8 @@ fun ContactRequestDialog(
                             } else {
                                 contactInfo = newValue
                             }
-                            isEmailError =
-                                if (selectedTab == 0) !Constants.isValidEmail(newValue) else false
+                            isError =
+                                if (selectedTab == 0) !Constants.isValidEmail(newValue) else !Constants.isValidPhoneNumber(contactInfo)
                         },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(
                             color = colorResource(
@@ -241,7 +249,7 @@ fun ContactRequestDialog(
                             unfocusedBorderColor = colorResource(R.color.btn_text) // Inactive state border
                         )
                     )
-                    if (isEmailError && selectedTab == 0) {
+                    if (isError && selectedTab == 0) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 4.dp)
@@ -255,8 +263,22 @@ fun ContactRequestDialog(
                                 )
                             )
                         )
+                    }else if(isError && selectedTab == 1){
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .fillMaxWidth(),
+                            text = "Please enter a valid phone number",
+                            textAlign = TextAlign.Start,
+                            color = Color.Red,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                )
+                            )
+                        )
                     }
-                    if (!isEmailError || selectedTab == 1) {
+                    if (!isError) {
                         Text(
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 24.dp)
@@ -287,7 +309,7 @@ fun ContactRequestDialog(
                             modifier = Modifier.fillMaxWidth(0.6f),
                             padding = 24,
                             isGradient = true,
-                            enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isEmailError,
+                            enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isError,
                             text = stringResource(R.string.send),
                             onClick = {
                                 resetSleepTimer?.invoke()
