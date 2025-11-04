@@ -105,7 +105,6 @@ fun HomeScreen(
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
             isError = false
-            delay(2000)
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = keyValidationState.digitalKey?.unitId ?: 0,
@@ -117,7 +116,7 @@ fun HomeScreen(
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
-            delay(3000)
+            delay(2000)
             isError = false
         }
         viewModel.eventFlow.collect { event ->

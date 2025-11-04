@@ -72,7 +72,7 @@ fun PinCodeBottomSheet(
 
             val buttons: List<List<String>> = listOf(
                 listOf("1", "2", "3", "4", "5", "6"),
-                listOf("7", "8", "9", "0", "clear")
+                listOf("7", "8", "9", "0","X", "clear")
             )
             PinInputPanel(
                 modifier = Modifier.fillMaxSize(),
