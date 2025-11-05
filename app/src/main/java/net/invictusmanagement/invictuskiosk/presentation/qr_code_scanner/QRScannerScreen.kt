@@ -120,7 +120,7 @@ fun QRScannerScreen(
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
-                CameraSelector.DEFAULT_FRONT_CAMERA,
+                CameraSelector.DEFAULT_BACK_CAMERA,
                 preview,
                 imageAnalysis
             )
