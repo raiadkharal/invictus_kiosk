@@ -19,7 +19,6 @@ class RelayManagerRepositoryImpl(
                 relayId = devices.first().id
                 logger.log("initializeRelayManager", "Relay manager connection established to: $relayId")
             }else{
-                relayId = "54545454"
                 logger.log("initializeRelayManager", "No USB Relay Devices are detected")
             }
         }catch (e: Exception){

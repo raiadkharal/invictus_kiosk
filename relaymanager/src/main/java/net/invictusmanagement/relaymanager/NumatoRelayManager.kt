@@ -51,6 +51,10 @@ internal class NumatoRelayManager(
         val devices = mutableListOf<RelayDeviceInfo>()
         val deviceList = usbManager.deviceList.values
 
+        logger.log("getDevices", "Found ${deviceList.size} devices.")
+        logger.log("getDevices", "Devices: $deviceList")
+
+
         if (deviceList.isEmpty()) {
             return@withContext emptyList()
         }
@@ -60,7 +64,7 @@ internal class NumatoRelayManager(
                 // Filter: Only include Numato devices (vendorId = 0x2A19)
                 if (device.vendorId == 0x2A19) {
                     val info = RelayDeviceInfo(
-                        id = device.serialNumber ?: device.deviceName,
+                        id = device.deviceName,
                         name = device.productName ?: "Numato USB Relay",
                         vendorId = device.vendorId,
                         productId = device.productId
@@ -140,7 +144,7 @@ internal class NumatoRelayManager(
 
         logger.log("openRelays", "Opening relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
-            if (relayNumber in 0..relayCount) {
+            if (relayNumber in 0..relayCount-1) {
                 sendCommand("relay on $relayNumber\r")
             }
         }
@@ -153,7 +157,7 @@ internal class NumatoRelayManager(
 
         logger.log("closeRelays", "Closing relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
-            if (relayNumber in 0..relayCount) {
+            if (relayNumber in 0..relayCount-1) {
                 sendCommand("relay off $relayNumber\r")
             }
         }
@@ -217,7 +221,7 @@ internal class NumatoRelayManager(
     }
 
     companion object {
-        const val ACTION_USB_PERMISSION = "com.invictus.RELAY_USB_PERMISSION"
+        const val ACTION_USB_PERMISSION = "net.invictusmanagement.invictuskiosk.USB_PERMISSION"
 
         @Volatile
         private var instance: NumatoRelayManager? = null
