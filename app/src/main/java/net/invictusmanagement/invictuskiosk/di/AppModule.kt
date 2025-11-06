@@ -38,6 +38,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import net.invictusmanagement.relaymanager.RelayManager
 import javax.inject.Singleton
@@ -55,9 +56,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRestClient(
+        @ApplicationContext context: Context,
         dataStoreManager: DataStoreManager
     ): RestClient {
         return RestClient(
+            context,
             baseUrl = BuildConfig._baseUrl,
             dataStoreManager = dataStoreManager
         )
@@ -181,4 +184,11 @@ object AppModule {
     fun provideRelayRepository(relayManager: RelayManager,globalLogger: GlobalLogger): RelayManagerRepository {
         return RelayManagerRepositoryImpl(relayManager,globalLogger)
     }
+
+    @Provides
+    @Singleton
+    fun provideNetworkMonitor(@ApplicationContext context: Context): NetworkMonitor {
+        return NetworkMonitor(context)
+    }
+
 }

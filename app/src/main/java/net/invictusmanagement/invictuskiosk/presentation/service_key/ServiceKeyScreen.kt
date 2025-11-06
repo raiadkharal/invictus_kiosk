@@ -64,7 +64,6 @@ fun ServiceKeyScreen(
     LaunchedEffect(state) {
         if (state.digitalKey?.isValid == true) {
             isError = false
-            delay(3000)
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = 0,

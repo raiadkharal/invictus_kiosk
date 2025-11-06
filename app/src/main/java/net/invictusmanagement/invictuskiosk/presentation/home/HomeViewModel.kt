@@ -22,6 +22,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.relaymanager.RelayManager
 import net.invictusmanagement.relaymanager.models.OpenRelayModel
@@ -32,8 +33,11 @@ class HomeViewModel @Inject constructor(
     private val repository: HomeRepository,
     private val dataStoreManager: DataStoreManager,
     private val relayRepository: RelayManagerRepository
+    private val dataStoreManager: DataStoreManager,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
+    val isConnected = networkMonitor.isConnected
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
     val digitalKeyValidationState: StateFlow<DigitalKeyState> = _digitalKeyValidationState
 

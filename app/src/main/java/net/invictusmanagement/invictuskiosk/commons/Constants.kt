@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.commons
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -26,6 +27,7 @@ object Constants {
             val dateTime = LocalDateTime.parse(inputDate, inputFormatter)
             outputFormatter.format(dateTime)
         } catch (e: Exception) {
+            Log.d("formatDateString", "formatDateString: error: ${e.message}")
             ""
         }
     }
@@ -40,6 +42,11 @@ object Constants {
 
     fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    fun isValidPhoneNumber(phoneNumber: String): Boolean {
+        val digitsOnly = phoneNumber.filter { it.isDigit() }
+        return digitsOnly.length == 10
     }
 
     fun formatPhoneNumber(input: String): String {

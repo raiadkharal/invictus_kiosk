@@ -73,7 +73,6 @@ fun LeasingOfficeScreen(
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
             isError = false
-            delay(2000)
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = keyValidationState.digitalKey.unitId,

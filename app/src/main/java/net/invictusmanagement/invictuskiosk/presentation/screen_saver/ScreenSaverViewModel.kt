@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.screen_saver
 
+import android.app.usage.NetworkStatsManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import javax.inject.Inject
 
 @HiltViewModel

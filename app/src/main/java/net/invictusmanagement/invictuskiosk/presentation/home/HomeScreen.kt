@@ -86,6 +86,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     var currentLocale by remember { mutableStateOf(LocaleHelper.getCurrentLocale(context)) }
     var showHomeBottomSheet by remember { mutableStateOf(false) }
@@ -102,10 +103,16 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
     }
+
+    LaunchedEffect(isConnected) {
+        if(isConnected && introButtons.isEmpty()){
+            viewModel.loadInitialData()
+        }
+    }
+
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
             isError = false
-            delay(2000)
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = keyValidationState.digitalKey?.unitId ?: 0,
@@ -117,7 +124,7 @@ fun HomeScreen(
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
-            delay(3000)
+            delay(2000)
             isError = false
         }
         viewModel.eventFlow.collect { event ->
