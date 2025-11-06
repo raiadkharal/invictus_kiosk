@@ -15,8 +15,8 @@ android {
         applicationId = "net.invictusmanagement.invictuskiosk"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.7"
+        versionCode = 12
+        versionName = "1.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,7 +52,7 @@ android {
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
-            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechatdev.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
@@ -62,7 +62,7 @@ android {
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
-            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechatdev.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }

@@ -137,7 +137,7 @@ class VideoCallViewModel @Inject constructor(
         try {
             cameraCapturer = Camera2Capturer(
                 context,
-                getAvailableFrontCameraId(context),
+                getAvailableCameraId(context),
                 object : Camera2Capturer.Listener {
                     override fun onFirstFrameAvailable() {}
                     override fun onCameraSwitched(newCameraId: String) {}
@@ -388,17 +388,31 @@ class VideoCallViewModel @Inject constructor(
         })
     }
 
-    private fun getAvailableFrontCameraId(context: Context): String {
+    private fun getAvailableCameraId(context: Context): String {
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        var backCameraId: String? = null
+
         cameraManager.cameraIdList.forEach { id ->
             val characteristics = cameraManager.getCameraCharacteristics(id)
-            val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if (cameraDirection == CameraCharacteristics.LENS_FACING_BACK) {
-                return id
+            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+
+            when (lensFacing) {
+                CameraCharacteristics.LENS_FACING_FRONT -> {
+                    return id
+                }
+                CameraCharacteristics.LENS_FACING_BACK -> {
+                    backCameraId = id
+                }
             }
         }
-        throw IllegalStateException("No front-facing camera found.")
+
+        backCameraId?.let {
+            Log.w("CameraCheck", "No front camera found. Falling back to back camera: $it")
+            return it
+        }
+        throw IllegalStateException("No available cameras found on this device.")
     }
+
 
     fun connectToVideoCall(accessPointId: Int, residentActivationCode: String) {
         repository.connectToVideoCall(

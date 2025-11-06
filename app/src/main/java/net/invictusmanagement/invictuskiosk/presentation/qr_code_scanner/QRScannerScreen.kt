@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
 import android.Manifest
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -118,9 +119,19 @@ fun QRScannerScreen(
                 .also { it.setAnalyzer(executor, analyzer) }
 
             cameraProvider.unbindAll()
+
+            val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                frontCameraSelector
+            } else {
+                backCameraSelector
+            }
+
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
-                CameraSelector.DEFAULT_BACK_CAMERA,
+                cameraSelector,
                 preview,
                 imageAnalysis
             )
