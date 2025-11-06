@@ -42,6 +42,7 @@ android {
 
             buildConfigField("String", "_baseUrl", "\"https://kiosk.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_mobileBaseUrl", "\"https://mobile.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobile.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus kiosk")
         }
@@ -51,6 +52,7 @@ android {
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
@@ -60,6 +62,7 @@ android {
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
             buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
