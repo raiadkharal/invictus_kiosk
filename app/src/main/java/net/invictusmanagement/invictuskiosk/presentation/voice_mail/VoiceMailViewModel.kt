@@ -113,7 +113,14 @@ class VoicemailViewModel @Inject constructor(
             val videoCap = VideoCapture.withOutput(recorder)
             _videoCapture.value = videoCap
 
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                frontCameraSelector
+            } else {
+                backCameraSelector
+            }
 
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(

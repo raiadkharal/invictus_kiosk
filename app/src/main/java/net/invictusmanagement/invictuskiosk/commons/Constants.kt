@@ -14,7 +14,7 @@ object Constants {
     const val DIGITAL_KEY_GENERIC_ERROR = "We were unable to check this guest key at this time. Please try again later or contact your administrator."
     const val CONNECTION_ERROR = "Unable to connect to the server. Please check your internet connection and try again."
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun formatDateString(
         inputDate: String,
         inputPattern: String = "yyyy-MM-dd'T'HH:mm:ss",

@@ -19,15 +19,20 @@ import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.model.LeasingOffice
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.relaymanager.RelayManager
+import net.invictusmanagement.relaymanager.models.OpenRelayModel
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: HomeRepository,
+    private val dataStoreManager: DataStoreManager,
+    private val relayRepository: RelayManagerRepository
     private val dataStoreManager: DataStoreManager,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
@@ -81,6 +86,11 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             loadIntroButtons()
         }
+
+
+        viewModelScope.launch {
+            relayRepository.initializeRelayManager()
+        }
     }
     private suspend fun loadVideoUrl() {
         dataStoreManager.kioskDataFlow.collect {
@@ -124,10 +134,20 @@ class HomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
     fun validateDigitalKey(digitalKeyDto: DigitalKeyDto) {
         repository.validateDigitalKey(digitalKeyDto).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    if (result.data?.isValid == true) {
+                        //send open AccessPoint request to the relay manager if the digital key is valid
+                        relayRepository.openAccessPoint(
+                            accessPoint.value?.relayPort,
+                            accessPoint.value?.relayOpenTimer,
+                            accessPoint.value?.relayDelayTimer
+                        )
+                    }
+
                     _digitalKeyValidationState.value = DigitalKeyState(digitalKey = result.data)
                 }
 
@@ -211,6 +231,8 @@ class HomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+
 
 
     fun resetState() {

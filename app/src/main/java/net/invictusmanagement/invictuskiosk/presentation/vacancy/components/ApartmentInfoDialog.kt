@@ -44,7 +44,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.AutoImageSli
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun ApartmentInfoDialog(
     vacancy: net.invictusmanagement.invictuskiosk.domain.model.Unit,
@@ -229,7 +229,7 @@ fun ApartmentInfoDialog(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun ApartmentInfoDialogPreview() {

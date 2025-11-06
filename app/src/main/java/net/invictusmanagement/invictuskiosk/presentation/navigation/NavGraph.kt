@@ -38,7 +38,7 @@ import net.invictusmanagement.invictuskiosk.presentation.voice_mail.VoicemailRec
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
 @Composable
 fun NavGraph(

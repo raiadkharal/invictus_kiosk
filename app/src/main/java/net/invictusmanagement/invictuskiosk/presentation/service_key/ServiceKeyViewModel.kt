@@ -11,14 +11,17 @@ import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
+import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import javax.inject.Inject
 
 @HiltViewModel
 class ServiceKeyViewModel @Inject constructor(
     private val repository: ServiceKeyRepository,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val relayRepository: RelayManagerRepository
 ):ViewModel() {
     private val _serviceKeyState = MutableStateFlow(ServiceKeyState())
     val serviceKeyState: StateFlow<ServiceKeyState> = _serviceKeyState
@@ -38,6 +41,15 @@ class ServiceKeyViewModel @Inject constructor(
         repository.validateServiceKey(serviceKeyDto).onEach { result->
             when(result){
                 is Resource.Success ->{
+                    if (result.data?.isValid == true) {
+                        //send open AccessPoint request to the relay manager if the digital key is valid
+                        relayRepository.openAccessPoint(
+                            accessPoint.value?.relayPort,
+                            accessPoint.value?.relayOpenTimer,
+                            accessPoint.value?.relayDelayTimer
+                        )
+                    }
+
                     _serviceKeyState.value = ServiceKeyState(digitalKey = result.data)
                 }
                 is Resource.Error ->{

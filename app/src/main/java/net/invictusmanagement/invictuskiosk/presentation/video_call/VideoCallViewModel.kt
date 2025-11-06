@@ -36,11 +36,14 @@ import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
-import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRConnectionListener
-import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalREventListener
-import net.invictusmanagement.invictuskiosk.presentation.signalR.SignalRManager
+import net.invictusmanagement.invictuskiosk.presentation.signalR.ChatHubManager
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.ChatHubEventListener
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
 import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
@@ -48,8 +51,9 @@ import javax.inject.Inject
 @HiltViewModel
 class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository,
-    private val screenSaverRepository: ScreenSaverRepository
-) : ViewModel(), SignalREventListener {
+    private val screenSaverRepository: ScreenSaverRepository,
+    private val relayManagerRepository: RelayManagerRepository
+) : ViewModel(), MobileChatHubEventListener, ChatHubEventListener {
 
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
@@ -84,12 +88,13 @@ class VideoCallViewModel @Inject constructor(
     private var callEndedDueToMissedCall = false
 
 
-    private var signalRManager: SignalRManager? = null
+    private var mobileChatHubManager: MobileChatHubManager? = null
+    private var chatHubManager: ChatHubManager? = null
 
     fun initializeSignalR(kioskId: Int) {
         signalRConnectionState = SignalRConnectionState.CONNECTING
 
-        signalRManager = SignalRManager(
+        mobileChatHubManager = MobileChatHubManager(
             kioskId = kioskId,
             listener = this,
             connectionListener = object : SignalRConnectionListener {
@@ -101,7 +106,13 @@ class VideoCallViewModel @Inject constructor(
             }
         )
 
-        signalRManager?.connect()
+        chatHubManager = ChatHubManager(
+            kioskId = kioskId,
+            listener = this
+        )
+
+        chatHubManager?.connect()
+        mobileChatHubManager?.connect()
     }
 
     fun getVideoCallToken(room: String) {
@@ -126,7 +137,7 @@ class VideoCallViewModel @Inject constructor(
         try {
             cameraCapturer = Camera2Capturer(
                 context,
-                getAvailableFrontCameraId(context),
+                getAvailableCameraId(context),
                 object : Camera2Capturer.Listener {
                     override fun onFirstFrameAvailable() {}
                     override fun onCameraSwitched(newCameraId: String) {}
@@ -377,17 +388,31 @@ class VideoCallViewModel @Inject constructor(
         })
     }
 
-    private fun getAvailableFrontCameraId(context: Context): String {
+    private fun getAvailableCameraId(context: Context): String {
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        var backCameraId: String? = null
+
         cameraManager.cameraIdList.forEach { id ->
             val characteristics = cameraManager.getCameraCharacteristics(id)
-            val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if (cameraDirection == CameraCharacteristics.LENS_FACING_FRONT) {
-                return id
+            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+
+            when (lensFacing) {
+                CameraCharacteristics.LENS_FACING_FRONT -> {
+                    return id
+                }
+                CameraCharacteristics.LENS_FACING_BACK -> {
+                    backCameraId = id
+                }
             }
         }
-        throw IllegalStateException("No front-facing camera found.")
+
+        backCameraId?.let {
+            Log.w("CameraCheck", "No front camera found. Falling back to back camera: $it")
+            return it
+        }
+        throw IllegalStateException("No available cameras found on this device.")
     }
+
 
     fun connectToVideoCall(accessPointId: Int, residentActivationCode: String) {
         repository.connectToVideoCall(
@@ -455,7 +480,7 @@ class VideoCallViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
-        signalRManager?.cleanup()
+        mobileChatHubManager?.cleanup()
     }
 
     fun pauseScreenSaver() {
@@ -470,6 +495,23 @@ class VideoCallViewModel @Inject constructor(
         connectionState = ConnectionState.DISCONNECTED
         sendToVoiceMail = true
         disconnect()
+    }
+
+    override fun onOpenAccessPoint(
+        relayPort: Int,
+        relayOpenTimer: Int,
+        relayDelayTimer: Int,
+        silent: Boolean
+    ) {
+        viewModelScope.launch {
+            //send open AccessPoint request to the relay manager when get the access granted via video call
+            relayManagerRepository.openAccessPoint(
+                relayPort,
+                relayOpenTimer,
+                relayDelayTimer
+            )
+        }
+
     }
 
 }

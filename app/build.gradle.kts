@@ -15,8 +15,8 @@ android {
         applicationId = "net.invictusmanagement.invictuskiosk"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 12
+        versionName = "1.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,7 +40,9 @@ android {
         create("live") {
             dimension = "version"
 
-            buildConfigField("String", "_baseUrl", "\"https://kios.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_baseUrl", "\"https://kiosk.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobile.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechat.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobile.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus kiosk")
         }
@@ -49,6 +51,8 @@ android {
             dimension = "version"
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechatdev.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
@@ -57,6 +61,8 @@ android {
             dimension = "version"
 
             buildConfigField("String", "_baseUrl", "\"https://kioskdev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_mobileBaseUrl", "\"https://mobiledev.invictusmanagement.net/api/v1/\"")
+            buildConfigField("String", "_chatHubBaseUrl", "\"https://mobilechatdev.invictusmanagement.net/chathub\"")
             buildConfigField("String", "_chatMobileHubBaseUrl", "\"https://mobiledev.invictusmanagement.net/chathub\"")
             resValue("string", "app_name", "Invictus Kiosk")
         }
@@ -77,6 +83,9 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":relaymanager"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

@@ -42,7 +42,6 @@ import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.Resp
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.TableHeader
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.TableRow
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun VacancyScreen(
     modifier: Modifier = Modifier,
@@ -181,7 +180,7 @@ fun VacancyScreen(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun VacancyScreenPreview() {

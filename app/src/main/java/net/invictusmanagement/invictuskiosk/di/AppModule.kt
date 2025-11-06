@@ -8,11 +8,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.BuildConfig
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
+import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
+import net.invictusmanagement.invictuskiosk.data.remote.MobileRestClient
 import net.invictusmanagement.invictuskiosk.data.remote.RestClient
 import net.invictusmanagement.invictuskiosk.data.repository.CouponsRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.DirectoryRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.HomeRepositoryImpl
+import net.invictusmanagement.invictuskiosk.data.repository.LogRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.LoginRepositoryImpl
+import net.invictusmanagement.invictuskiosk.data.repository.RelayManagerRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ResidentsRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ScreenSaverRepositoryImpl
 import net.invictusmanagement.invictuskiosk.data.repository.ServiceKeyRepositoryImpl
@@ -23,7 +27,9 @@ import net.invictusmanagement.invictuskiosk.data.repository.VoicemailRepositoryI
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.DirectoryRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.LogRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
@@ -33,6 +39,8 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepositor
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.relaymanager.RelayManager
 import javax.inject.Singleton
 
 @Module
@@ -64,6 +72,22 @@ object AppModule {
         restClient: RestClient
     ): ApiInterface {
         return restClient.createApi()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMobileRestClient(): MobileRestClient {
+        return MobileRestClient(
+            baseUrl = BuildConfig._mobileBaseUrl,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideMobileApiInterface(
+        mobileRestClient: MobileRestClient
+    ): MobileApiInterface {
+        return mobileRestClient.createApi()
     }
 
     @Provides
@@ -130,6 +154,35 @@ object AppModule {
     @Singleton
     fun provideScreenSaverRepository(): ScreenSaverRepository {
         return ScreenSaverRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLogRepository(
+        api: MobileApiInterface,
+    ): LogRepository {
+        return LogRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGlobalLogger(
+        logRepository: LogRepository,
+        dataStoreManager: DataStoreManager
+    ): GlobalLogger {
+        return GlobalLogger(logRepository, dataStoreManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRelayManager(@ApplicationContext context: Context,globalLogger: GlobalLogger): RelayManager {
+        return RelayManager(context,globalLogger)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRelayRepository(relayManager: RelayManager,globalLogger: GlobalLogger): RelayManagerRepository {
+        return RelayManagerRepositoryImpl(relayManager,globalLogger)
     }
 
     @Provides

@@ -6,12 +6,14 @@ import com.microsoft.signalr.HubConnectionBuilder
 import com.microsoft.signalr.TransportEnum
 import kotlinx.coroutines.*
 import net.invictusmanagement.invictuskiosk.BuildConfig
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.ChatHubEventListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
 import java.util.concurrent.atomic.AtomicBoolean
 
-class SignalRManager(
+class ChatHubManager(
     private val kioskId: Int,
-    private val listener: SignalREventListener,
-    private val connectionListener: SignalRConnectionListener
+    private val listener: ChatHubEventListener
 ) {
 
     private val TAG = "SignalRManager"
@@ -25,12 +27,11 @@ class SignalRManager(
     fun connect() {
         if (hubConnection != null && hubConnection?.connectionState?.name == "CONNECTED") {
             Log.d(TAG, "connect: Already connected")
-            connectionListener.onConnected()
             return
         }
 
         hubConnection = HubConnectionBuilder
-            .create(BuildConfig._chatMobileHubBaseUrl)
+            .create(BuildConfig._chatHubBaseUrl)
             .withTransport(TransportEnum.LONG_POLLING)
             .build()
 
@@ -41,7 +42,6 @@ class SignalRManager(
                 Log.d(TAG, "connect: Connecting to SignalR...")
                 hubConnection?.start()?.blockingAwait()
                 registerToHub()
-                connectionListener.onConnected()
                 Log.d(TAG, "connect: SignalR connected and registered (Kiosk $kioskId)")
             } catch (e: Exception) {
                 Log.e(TAG, "Error connecting to SignalR: ${e.message}")
@@ -56,7 +56,7 @@ class SignalRManager(
     private suspend fun registerToHub() {
         withContext(Dispatchers.IO) {
             try {
-                hubConnection?.invoke("Register", kioskId.toLong())
+                hubConnection?.invoke("RegisterVideoGroup", kioskId.toLong())
                 Log.d(TAG, "registerToHub: Kiosk registered successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "registerToHub: Failed to register kiosk: ${e.message}")
@@ -70,12 +70,44 @@ class SignalRManager(
     private fun registerHandlers() {
         hubConnection?.on("Connected", { message: String? ->
             Log.d(TAG, "Connected event from server: $message")
-            connectionListener.onConnected()
         }, String::class.java)
 
-        hubConnection?.on("SendToVoiceMail", {
-            listener.onSendToVoiceMail()
-        })
+        hubConnection?.on(
+            "OpenAccessPoint",
+            { relayPort: Int, relayOpenTimer: Int, relayDelayTimer: Int, silent: Boolean ->
+                Log.d(
+                    TAG,
+                    "Open access point: port=$relayPort open=$relayOpenTimer delay=$relayDelayTimer silent=$silent"
+                )
+
+//                if (!silent) {
+//                    val resident = app.sidebars.residents.currentResident()
+//                    val unitId = resident?.unitId ?: 0
+//                    val mapIds = resident?.mapIds ?: ""
+//
+//                    // Update current map URL
+//                    app.sidebars.residents.currentMapUrl("/api/units/$unitId/maps/$mapIds")
+//
+//                    // Update UI state
+//                    app.sidebars.residents.isChatOpen(false).isMapOpen(true)
+//
+//                    // Switch video
+//                    invictus.switchVideo(invictus.videoManager.getCurrentHost().accessGrantedVideo)
+//                }
+
+                listener.onOpenAccessPoint(relayPort, relayOpenTimer, relayDelayTimer, silent)
+
+//                // Delay 2 seconds before opening the relay
+//                Handler(Looper.getMainLooper()).postDelayed({
+//                    invictus.openAccessPoint(relayPort, relayOpenTimer, relayDelayTimer)
+//                }, 2000)
+            },
+            Int::class.java,
+            Int::class.java,
+            Int::class.java,
+            Boolean::class.java
+        )
+
 
         hubConnection?.on("Disconnected", { message: String? ->
             Log.d(TAG, "Disconnected event from server: $message")
