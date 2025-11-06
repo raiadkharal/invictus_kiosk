@@ -44,7 +44,6 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.launch
-import jakarta.inject.Inject
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.components.NetworkStatusBar
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
@@ -354,11 +353,8 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
 //        relayManager.disconnect()
-        unregisterReceiver(usbPermissionReceiver)
-    }
-    override fun onDestroy() {
         networkMonitor.stopMonitoring()
-        super.onDestroy()
+        unregisterReceiver(usbPermissionReceiver)
     }
 
 }

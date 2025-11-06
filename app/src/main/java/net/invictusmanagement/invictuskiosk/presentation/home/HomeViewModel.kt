@@ -32,8 +32,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val repository: HomeRepository,
     private val dataStoreManager: DataStoreManager,
-    private val relayRepository: RelayManagerRepository
-    private val dataStoreManager: DataStoreManager,
+    private val relayRepository: RelayManagerRepository,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
