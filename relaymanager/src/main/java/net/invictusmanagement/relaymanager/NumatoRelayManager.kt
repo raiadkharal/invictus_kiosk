@@ -3,6 +3,7 @@ package net.invictusmanagement.relaymanager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.util.Log
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -11,6 +12,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import net.invictusmanagement.relaymanager.models.RelayDeviceInfo
 import net.invictusmanagement.relaymanager.util.ILogger
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,7 +56,7 @@ internal class NumatoRelayManager(
 
         logger.log("getDevices", "Found ${deviceList.size} devices.")
         logger.log("getDevices", "Devices: $deviceList")
-
+        logUsbDevices(deviceList,logger)
 
         if (deviceList.isEmpty()) {
             return@withContext emptyList()
@@ -144,7 +147,7 @@ internal class NumatoRelayManager(
 
         logger.log("openRelays", "Opening relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
-            if (relayNumber in 0..relayCount-1) {
+            if (relayNumber in 0 until relayCount) {
                 sendCommand("relay on $relayNumber\r")
             }
         }
@@ -157,7 +160,7 @@ internal class NumatoRelayManager(
 
         logger.log("closeRelays", "Closing relays: $relayNumbers")
         relayNumbers.forEach { relayNumber ->
-            if (relayNumber in 0..relayCount-1) {
+            if (relayNumber in 0 until relayCount) {
                 sendCommand("relay off $relayNumber\r")
             }
         }
@@ -232,4 +235,39 @@ internal class NumatoRelayManager(
             }
         }
     }
+
+
+    fun logUsbDevices(deviceList: Collection<UsbDevice>, logger: ILogger) {
+        val jsonArray = JSONArray()
+
+        for (device in deviceList) {
+            try {
+                val jsonDevice = JSONObject().apply {
+                    put("deviceId", device.deviceId)
+                    put("name", device.deviceName)
+                    put("vendorId", device.vendorId)
+                    put("productId", device.productId)
+                    put("deviceClass", device.deviceClass)
+                    put("deviceProtocol", device.deviceProtocol)
+
+                    // Safely add optional properties
+                    put("serialNumber", runCatching { device.serialNumber }.getOrNull())
+                    put("manufacturerName", runCatching { device.manufacturerName }.getOrNull())
+                    put("productName", runCatching { device.productName }.getOrNull())
+                    put("version", runCatching { device.version }.getOrNull())
+                }
+                jsonArray.put(jsonDevice)
+            } catch (e: Exception) {
+                logger.log("getDevices", "Error reading device info: ${e.message}")
+            }
+        }
+
+        try {
+            val jsonString = JSONObject().put("devices", jsonArray).toString(2)
+            logger.log("getDevices DeviceList", jsonString)
+        } catch (e: Exception) {
+            logger.log("getDevices", "Failed to build JSON: ${e.message}")
+        }
+    }
+
 }

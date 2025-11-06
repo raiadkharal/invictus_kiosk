@@ -112,5 +112,9 @@ class RelayManager(
         }
     }
 
+    fun disconnect(){
+        relayManager.disconnect()
+    }
+
 
 }

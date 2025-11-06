@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
             try {
                 relayManager.initializeDevice(device.deviceName)
             } catch (e: Exception) {
-                Log.d(TAG, "error: ")
+                Log.d(TAG, "error: initializing device after permission granted: ${e.message}")
             }
         }
     }
@@ -333,6 +333,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+//        relayManager.disconnect()
         unregisterReceiver(usbPermissionReceiver)
     }
 }
