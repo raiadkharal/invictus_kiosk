@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
@@ -53,12 +55,14 @@ fun ApartmentInfoDialog(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
+    val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
+
     val resetSleepTimer = LocalUserInteractionReset.current
 
     val unitImages = mainViewModel.unitImages
     val currentImageIndex = mainViewModel.currentImageIndex
 
-    LaunchedEffect(vacancy.id) {
+    LaunchedEffect(isConnected) {
         if (vacancy.imageIds.isNotEmpty()) {
             mainViewModel.loadImages(vacancy.id.toLong(), vacancy.imageIds)
         } else {

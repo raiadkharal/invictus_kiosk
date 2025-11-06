@@ -25,8 +25,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
-    private val unitMapRepository: UnitMapRepository
+    private val unitMapRepository: UnitMapRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
+
+    val isConnected = networkMonitor.isConnected
 
     private val _locationName = MutableStateFlow<String?>("")
     val locationName: StateFlow<String?> = _locationName

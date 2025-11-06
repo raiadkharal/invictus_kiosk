@@ -79,14 +79,14 @@ class VideoCallViewModel @Inject constructor(
 
     var remainingSeconds by mutableIntStateOf(timeOutSeconds)
         private set
+    var callEndedDueToMissedCall by mutableStateOf(false)
+        private set
 
     var sendToVoiceMail by mutableStateOf(false)
         private set
 
     private var missedCallJob: Job? = null
     private var remoteParticipantJoined = false
-    private var callEndedDueToMissedCall = false
-
 
     private var mobileChatHubManager: MobileChatHubManager? = null
     private var chatHubManager: ChatHubManager? = null
@@ -203,6 +203,7 @@ class VideoCallViewModel @Inject constructor(
             override fun onConnectFailure(room: Room, e: TwilioException) {
                 connectionState = ConnectionState.FAILED
                 resumeScreenSaver()
+                onDisconnected()
             }
 
             override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {

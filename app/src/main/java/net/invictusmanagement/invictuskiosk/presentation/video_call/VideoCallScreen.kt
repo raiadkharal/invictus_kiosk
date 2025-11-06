@@ -74,6 +74,7 @@ fun VideoCallScreen(
     val token = videoCallViewModel.token
     val remainingSeconds = videoCallViewModel.remainingSeconds
     val sendToVoiceMail = videoCallViewModel.sendToVoiceMail
+    val callEndedDueToMissedCall = videoCallViewModel.callEndedDueToMissedCall
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
@@ -98,6 +99,16 @@ fun VideoCallScreen(
             currentAccessPoint?.let {
                 videoCallViewModel.connectToVideoCall(it.id, residentActivationCode)
             }
+        }else if (connectionState == ConnectionState.DISCONNECTED && !callEndedDueToMissedCall){
+            navController.navigate(
+                LeasingOfficeScreenRoute(
+                    residentId = residentId,
+                    residentDisplayName = residentDisplayName,
+                    residentActivationCode = residentActivationCode
+                )
+            ) {
+                popUpTo(HomeScreen)
+            }
         }
     }
 
@@ -117,15 +128,15 @@ fun VideoCallScreen(
                         videoCallViewModel.videoTrack?.addSink(localVideoView)
                     },
                     onDisconnected = {
-                        navController.navigate(
-                            LeasingOfficeScreenRoute(
-                                residentId = residentId,
-                                residentDisplayName = residentDisplayName,
-                                residentActivationCode = residentActivationCode
-                            )
-                        ) {
-                           popUpTo(HomeScreen)
-                        }
+//                        navController.navigate(
+//                            LeasingOfficeScreenRoute(
+//                                residentId = residentId,
+//                                residentDisplayName = residentDisplayName,
+//                                residentActivationCode = residentActivationCode
+//                            )
+//                        ) {
+//                           popUpTo(HomeScreen)
+//                        }
                     },
                     onMissedCall = {
                         videoCallViewModel.postMissedCall(kioskName ?: "", residentActivationCode)

@@ -85,7 +85,7 @@ fun ResidentsScreen(
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
 
     val filteredResidents =
-        residentList.filter { it.displayName.contains(searchQuery, ignoreCase = true) }
+        residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
 
     LaunchedEffect(Unit) {
@@ -170,7 +170,7 @@ fun ResidentsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (residentList.isEmpty()) {
+                if (residentList.isEmpty() || filteredResidents.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

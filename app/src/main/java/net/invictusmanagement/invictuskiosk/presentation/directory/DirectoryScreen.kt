@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,9 +92,9 @@ fun DirectoryScreen(
     var isFirstNameSelected by remember { mutableStateOf(false) }
     var showFilteredResidents by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
-    val filteredList = list.filter { it.contains(searchQuery, ignoreCase = true) }
+    val filteredList = list.filter { it.contains(searchQuery.trim(), ignoreCase = true) }
     val filteredResidents =
-        residentList.filter { it.displayName.contains(searchQuery, ignoreCase = true) }
+        residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
@@ -142,12 +145,12 @@ fun DirectoryScreen(
             showFilteredResidents = true
             residentList = residentState.residents?.filter {
                 it.displayName.contains(
-                    searchQuery,
+                    searchQuery.trim(),
                     ignoreCase = true
                 )
             }
                 ?: emptyList()
-        }else{
+        } else {
             showFilteredResidents = false
         }
     }
@@ -226,54 +229,92 @@ fun DirectoryScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (showFilteredResidents) {
-                    // Residents List
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(filteredResidents) { resident ->
-                            ResidentListItem(
-                                residentName = resident.displayName,
-                                isSelected = resident.id == selectedResident?.id,
-                                onItemClick = {
-                                    selectedResident = resident
-                                },
-                                onCallClick = {
-                                    navController.navigate(
-                                        VideoCallScreenRoute(
-                                            residentId = resident.id,
-                                            residentDisplayName = resident.displayName,
-                                            residentActivationCode = resident.activationCode ?: "",
-                                        )
-                                    )
-                                }
+
+                    if (filteredResidents.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                stringResource(R.string.no_residents_found),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorResource(R.color.btn_text)
+                                )
                             )
+                        }
+                    } else {
+                        // Residents List
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            items(filteredResidents) { resident ->
+                                ResidentListItem(
+                                    residentName = resident.displayName,
+                                    isSelected = resident.id == selectedResident?.id,
+                                    onItemClick = {
+                                        selectedResident = resident
+                                    },
+                                    onCallClick = {
+                                        navController.navigate(
+                                            VideoCallScreenRoute(
+                                                residentId = resident.id,
+                                                residentDisplayName = resident.displayName,
+                                                residentActivationCode = resident.activationCode
+                                                    ?: "",
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 } else {
-                    // Residents List
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(filteredList) { item ->
-                            FilterListItem(
-                                name = item,
-                                onClick = {
-                                    //navigate to residents screen
-                                    navController.navigate(
-                                        ResidentsScreen(
-                                            isLeasingOffice = item == "Leasing Office / agents",
-                                            isUnitSelected = isUnitNumberSelected,
-                                            unitNumber = if (isUnitNumberSelected) item else "",
-                                            filter = if (!isUnitNumberSelected) item else "",
-                                            byName = if (isFirstNameSelected) "f" else "l"
-                                        )
-                                    )
-                                }
+
+                    if (filteredList.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                stringResource(R.string.no_units_found),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorResource(R.color.btn_text)
+                                )
                             )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            items(filteredList) { item ->
+                                FilterListItem(
+                                    name = item,
+                                    onClick = {
+                                        //navigate to residents screen
+                                        navController.navigate(
+                                            ResidentsScreen(
+                                                isLeasingOffice = item == "Leasing Office / agents",
+                                                isUnitSelected = isUnitNumberSelected,
+                                                unitNumber = if (isUnitNumberSelected) item else "",
+                                                filter = if (!isUnitNumberSelected) item else "",
+                                                byName = if (isFirstNameSelected) "f" else "l"
+                                            )
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }

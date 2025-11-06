@@ -3,6 +3,7 @@ package net.invictusmanagement.invictuskiosk.presentation.coupon_list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -71,14 +73,14 @@ fun CouponListScreen(
     val filteredCoupons = couponsList.filter { it.name.contains(searchQuery, ignoreCase = true) }
     var selectedCoupon by remember { mutableStateOf<PromotionsCategory?>(null) }
 
-    LaunchedEffect (couponsList){
+    LaunchedEffect(couponsList) {
         selectedCoupon = couponsList.find { it.id == selectedCouponId }
     }
 
-    LaunchedEffect (Unit){
+    LaunchedEffect(Unit) {
         viewModel.getPromotionsCategory()
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -183,29 +185,58 @@ fun CouponListScreen(
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
                     )
-
-                    LazyColumn {
-                        items(businessPromotion.promotions){ promotion->
+                    if (businessPromotion.promotions.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                                    .clickable(onClick = {
-                                        val businessPromotionStr = Json.encodeToString<BusinessPromotion>(businessPromotion)
-                                        val businessPromotionJson = URLEncoder.encode(businessPromotionStr, StandardCharsets.UTF_8.toString())
-
-                                        navController.navigate(
-                                            CouponDetailsScreen(
-                                                promotionId = promotion.id,
-                                                businessPromotionJson = businessPromotionJson
-                                            )
-                                        )
-                                    }),
-                                text = promotion.name,
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.no_coupons_available),
                                 textAlign = TextAlign.Start,
-                                style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    color = colorResource(
+                                        R.color.btn_text
+                                    )
+                                )
                             )
+                        }
+                    } else {
+                        LazyColumn {
+                            items(businessPromotion.promotions) { promotion ->
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                        .clickable(onClick = {
+                                            val businessPromotionStr =
+                                                Json.encodeToString<BusinessPromotion>(
+                                                    businessPromotion
+                                                )
+                                            val businessPromotionJson = URLEncoder.encode(
+                                                businessPromotionStr,
+                                                StandardCharsets.UTF_8.toString()
+                                            )
 
+                                            navController.navigate(
+                                                CouponDetailsScreen(
+                                                    promotionId = promotion.id,
+                                                    businessPromotionJson = businessPromotionJson
+                                                )
+                                            )
+                                        }),
+                                    text = promotion.name,
+                                    textAlign = TextAlign.Start,
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        color = colorResource(
+                                            R.color.btn_text
+                                        )
+                                    )
+                                )
+
+                            }
                         }
                     }
                 }
