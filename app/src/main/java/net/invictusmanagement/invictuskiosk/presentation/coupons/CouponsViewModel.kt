@@ -12,6 +12,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
+import net.invictusmanagement.invictuskiosk.presentation.coupons_business_list.CouponsBusinessState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,25 +20,25 @@ class CouponsViewModel @Inject constructor(
     private val repository: CouponsRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(emptyList<PromotionsCategory>())
-    val state: StateFlow<List<PromotionsCategory>> = _state
+    private val _state = MutableStateFlow(CouponsCategoryState())
+    val state: StateFlow<CouponsCategoryState> = _state
 
-    private val _businessPromotions = MutableStateFlow(emptyList<BusinessPromotion>())
-    val businessPromotions: StateFlow<List<BusinessPromotion>> = _businessPromotions
+    private val _businessPromotions = MutableStateFlow<CouponsBusinessState>(CouponsBusinessState())
+    val businessPromotions: StateFlow<CouponsBusinessState> = _businessPromotions
 
     fun getPromotionsCategory() {
         repository.getPromotionsCategories().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _state.value = result.data ?: emptyList()
+                    _state.value = CouponsCategoryState(couponsCategories = result.data ?: emptyList())
                 }
 
                 is Resource.Error -> {
-                    _state.value = emptyList()
+                    _state.value = CouponsCategoryState(error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {
-                    _state.value = emptyList()
+                    _state.value = CouponsCategoryState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
@@ -47,15 +48,15 @@ class CouponsViewModel @Inject constructor(
         repository.getPromotionsByCategory(id).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _businessPromotions.value = result.data ?: emptyList()
+                    _businessPromotions.value = CouponsBusinessState(businessPromotions =result.data ?: emptyList())
                 }
 
                 is Resource.Error -> {
-                    _businessPromotions.value =  emptyList()
+                    _businessPromotions.value = CouponsBusinessState(error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {
-                    _businessPromotions.value =  emptyList()
+                    _businessPromotions.value =  CouponsBusinessState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)

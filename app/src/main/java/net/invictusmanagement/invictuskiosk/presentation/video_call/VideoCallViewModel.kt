@@ -163,6 +163,7 @@ class VideoCallViewModel @Inject constructor(
             .roomName(roomName)
             .audioTracks(listOfNotNull(audioTrack))
             .videoTracks(listOfNotNull(videoTrack))
+            .region("gll")          // best Twilio edge automatically
             .build()
 
         room = Video.connect(context, connectOptions, object : Room.Listener {

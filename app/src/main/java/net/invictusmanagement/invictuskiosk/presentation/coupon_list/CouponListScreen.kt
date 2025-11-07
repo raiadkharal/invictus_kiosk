@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,14 +41,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
-import net.invictusmanagement.invictuskiosk.domain.model.Promotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponListScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -66,15 +63,15 @@ fun CouponListScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    val couponsList by viewModel.state.collectAsStateWithLifecycle()
+    val categoryState by viewModel.state.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    val filteredCoupons = couponsList.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val filteredCoupons = categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
     var selectedCoupon by remember { mutableStateOf<PromotionsCategory?>(null) }
 
-    LaunchedEffect(couponsList) {
-        selectedCoupon = couponsList.find { it.id == selectedCouponId }
+    LaunchedEffect(categoryState) {
+        selectedCoupon = categoryState.couponsCategories.find { it.id == selectedCouponId }
     }
 
     LaunchedEffect(Unit) {

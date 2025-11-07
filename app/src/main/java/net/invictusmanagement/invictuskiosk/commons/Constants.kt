@@ -4,6 +4,8 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 object Constants {
@@ -22,15 +24,23 @@ object Constants {
     ): String {
         return try {
             val inputFormatter = DateTimeFormatter.ofPattern(inputPattern)
-            val outputFormatter = DateTimeFormatter.ofPattern(outputPattern)
+                .withZone(ZoneOffset.UTC) // interpret input as UTC
 
-            val dateTime = LocalDateTime.parse(inputDate, inputFormatter)
-            outputFormatter.format(dateTime)
+            val outputFormatter = DateTimeFormatter.ofPattern(outputPattern)
+                .withZone(ZoneId.systemDefault()) // convert to device local zone
+
+            // Parse as Instant
+            val instant = LocalDateTime.parse(inputDate, inputFormatter)
+                .atOffset(ZoneOffset.UTC)
+                .toInstant()
+
+            outputFormatter.format(instant)
         } catch (e: Exception) {
-            Log.d("formatDateString", "formatDateString: error: ${e.message}")
+            Log.d("formatDateString", "Error: ${e.message}")
             ""
         }
     }
+
 
     fun formatNumber(value: Float): String {
         return if (value % 1.0 == 0.0) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,11 +45,11 @@ fun CouponsScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
-    val couponsCategories by viewModel.state.collectAsStateWithLifecycle()
+    val categoryState by viewModel.state.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    LaunchedEffect (Unit){
+    LaunchedEffect(Unit) {
         viewModel.getPromotionsCategory()
     }
 
@@ -93,36 +94,53 @@ fun CouponsScreen(
             )
             Spacer(Modifier.height(8.dp))
 
-            if(couponsCategories.isEmpty()){
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.no_coupons_available),
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                    )
+            when {
+                categoryState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }else{
-                FlowRow(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    couponsCategories.forEach { coupon ->
-                        CustomTextButton(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(170.dp)
-                                .width(300.dp)
-                                .padding(end = 16.dp, top = 16.dp),
-                            text = coupon.name,
-                            padding = 48,
-                            isGradient = true,
-                            onClick = { navController.navigate(CouponsBusinessListScreen(coupon.id)) }
+
+                categoryState.couponsCategories.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.no_coupons_available),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = colorResource(
+                                    R.color.btn_text
+                                )
+                            )
                         )
+                    }
+                }
+
+                else -> {
+                    FlowRow(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        categoryState.couponsCategories.forEach { coupon ->
+                            CustomTextButton(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(170.dp)
+                                    .width(300.dp)
+                                    .padding(end = 16.dp, top = 16.dp),
+                                text = coupon.name,
+                                padding = 48,
+                                isGradient = true,
+                                onClick = { navController.navigate(CouponsBusinessListScreen(coupon.id)) }
+                            )
+                        }
                     }
                 }
             }

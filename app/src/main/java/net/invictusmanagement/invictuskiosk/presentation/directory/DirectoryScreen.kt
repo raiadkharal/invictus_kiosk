@@ -277,21 +277,31 @@ fun DirectoryScreen(
                 } else {
 
                     if (filteredList.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                stringResource(R.string.no_units_found),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = colorResource(R.color.btn_text)
+                        if (unitList == null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    stringResource(R.string.no_units_found),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = colorResource(R.color.btn_text)
+                                    )
                                 )
-                            )
+                            }
                         }
+
                     } else {
                         LazyColumn(
                             modifier = Modifier
