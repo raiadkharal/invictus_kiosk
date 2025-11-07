@@ -62,4 +62,8 @@ class ServiceKeyViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+    fun resetServiceKeyState(){
+        _serviceKeyState.value = ServiceKeyState()
+    }
 }

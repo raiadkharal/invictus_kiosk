@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -76,6 +77,13 @@ fun ServiceKeyScreen(
             isError = true
             delay(2000)
             isError = false
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            isError = false
+            viewModel.resetServiceKeyState()
         }
     }
 
