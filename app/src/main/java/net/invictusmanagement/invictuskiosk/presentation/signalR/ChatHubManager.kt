@@ -74,37 +74,17 @@ class ChatHubManager(
 
         hubConnection?.on(
             "OpenAccessPoint",
-            { relayPort: Int, relayOpenTimer: Int, relayDelayTimer: Int, silent: Boolean ->
+            { relayPort: String, relayOpenTimer: String, relayDelayTimer: String, silent: Boolean ->
                 Log.d(
                     TAG,
                     "Open access point: port=$relayPort open=$relayOpenTimer delay=$relayDelayTimer silent=$silent"
                 )
 
-//                if (!silent) {
-//                    val resident = app.sidebars.residents.currentResident()
-//                    val unitId = resident?.unitId ?: 0
-//                    val mapIds = resident?.mapIds ?: ""
-//
-//                    // Update current map URL
-//                    app.sidebars.residents.currentMapUrl("/api/units/$unitId/maps/$mapIds")
-//
-//                    // Update UI state
-//                    app.sidebars.residents.isChatOpen(false).isMapOpen(true)
-//
-//                    // Switch video
-//                    invictus.switchVideo(invictus.videoManager.getCurrentHost().accessGrantedVideo)
-//                }
-
-                listener.onOpenAccessPoint(relayPort, relayOpenTimer, relayDelayTimer, silent)
-
-//                // Delay 2 seconds before opening the relay
-//                Handler(Looper.getMainLooper()).postDelayed({
-//                    invictus.openAccessPoint(relayPort, relayOpenTimer, relayDelayTimer)
-//                }, 2000)
+                listener.onOpenAccessPoint(relayPort.toInt(), relayOpenTimer.toInt(), relayDelayTimer.toInt(), silent)
             },
-            Int::class.java,
-            Int::class.java,
-            Int::class.java,
+            String::class.java,
+            String::class.java,
+            String::class.java,
             Boolean::class.java
         )
 

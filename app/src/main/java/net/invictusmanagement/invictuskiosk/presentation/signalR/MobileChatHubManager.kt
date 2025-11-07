@@ -88,6 +88,23 @@ class MobileChatHubManager(
             Log.d(TAG, "SignalR connection closed: ${error?.message ?: "no error"}")
             scheduleReconnect()
         }
+
+        hubConnection?.on(
+            "OpenAccessPoint",
+            { relayPort: String, relayOpenTimer: String, relayDelayTimer: String, silent: Boolean ->
+                Log.d(
+                    TAG,
+                    "Open access point: port=$relayPort open=$relayOpenTimer delay=$relayDelayTimer silent=$silent"
+                )
+
+
+                listener.onOpenAccessPoint(relayPort.toInt(), relayOpenTimer.toInt(), relayDelayTimer.toInt(), silent)
+            },
+            String::class.java,
+            String::class.java,
+            String::class.java,
+            Boolean::class.java
+        )
     }
 
     /**

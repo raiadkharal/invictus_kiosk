@@ -39,11 +39,9 @@ import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
-import net.invictusmanagement.invictuskiosk.presentation.signalR.ChatHubManager
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
-import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.ChatHubEventListener
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
 import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
@@ -53,7 +51,7 @@ class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository,
     private val screenSaverRepository: ScreenSaverRepository,
     private val relayManagerRepository: RelayManagerRepository
-) : ViewModel(), MobileChatHubEventListener, ChatHubEventListener {
+) : ViewModel(), MobileChatHubEventListener {
 
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
@@ -85,11 +83,13 @@ class VideoCallViewModel @Inject constructor(
     var sendToVoiceMail by mutableStateOf(false)
         private set
 
+    var isAccessGranted by mutableStateOf(false)
+        private set
+
     private var missedCallJob: Job? = null
     private var remoteParticipantJoined = false
 
     private var mobileChatHubManager: MobileChatHubManager? = null
-    private var chatHubManager: ChatHubManager? = null
 
     fun initializeSignalR(kioskId: Int) {
         signalRConnectionState = SignalRConnectionState.CONNECTING
@@ -106,12 +106,6 @@ class VideoCallViewModel @Inject constructor(
             }
         )
 
-        chatHubManager = ChatHubManager(
-            kioskId = kioskId,
-            listener = this
-        )
-
-        chatHubManager?.connect()
         mobileChatHubManager?.connect()
     }
 
@@ -512,6 +506,8 @@ class VideoCallViewModel @Inject constructor(
                 relayDelayTimer
             )
         }
+        isAccessGranted = true
+        disconnect()
 
     }
 

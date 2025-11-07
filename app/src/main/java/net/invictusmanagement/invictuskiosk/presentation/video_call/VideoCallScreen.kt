@@ -46,6 +46,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.LeasingOfficeScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
@@ -62,6 +63,8 @@ fun VideoCallScreen(
     videoCallViewModel: VideoCallViewModel = hiltViewModel(),
 ) {
 
+    val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val localVideoView = remember { VideoView(context) }
     val remoteVideoView = remember { VideoView(context) }
@@ -75,6 +78,7 @@ fun VideoCallScreen(
     val remainingSeconds = videoCallViewModel.remainingSeconds
     val sendToVoiceMail = videoCallViewModel.sendToVoiceMail
     val callEndedDueToMissedCall = videoCallViewModel.callEndedDueToMissedCall
+    val isAccessGranted = videoCallViewModel.isAccessGranted
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
@@ -99,16 +103,27 @@ fun VideoCallScreen(
             currentAccessPoint?.let {
                 videoCallViewModel.connectToVideoCall(it.id, residentActivationCode)
             }
-        }else if (connectionState == ConnectionState.DISCONNECTED && !callEndedDueToMissedCall){
-            navController.navigate(
-                LeasingOfficeScreenRoute(
-                    residentId = residentId,
-                    residentDisplayName = residentDisplayName,
-                    residentActivationCode = residentActivationCode
-                )
-            ) {
-                popUpTo(HomeScreen)
-            }
+        }else if ((connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.FAILED) && !callEndedDueToMissedCall) {
+            if (isAccessGranted) {
+                navController.navigate(
+                    UnlockedScreenRoute(
+                        unitId = 0,
+                        mapId = 0
+                    )
+                ){
+                    popUpTo(HomeScreen)
+                }
+            } else{
+                navController.navigate(
+                    LeasingOfficeScreenRoute(
+                        residentId = residentId,
+                        residentDisplayName = residentDisplayName,
+                        residentActivationCode = residentActivationCode
+                    )
+                ) {
+                    popUpTo(HomeScreen)
+                }
+        }
         }
     }
 
@@ -163,7 +178,7 @@ fun VideoCallScreen(
         )
     }
 
-    LaunchedEffect(hasAllPermissions) {
+    LaunchedEffect(hasAllPermissions,isConnected) {
         if (hasAllPermissions) {
             videoCallViewModel.getVideoCallToken(kioskActivationCode)
         }
