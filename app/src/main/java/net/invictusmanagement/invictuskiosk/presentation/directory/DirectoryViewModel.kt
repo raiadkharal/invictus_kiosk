@@ -75,7 +75,7 @@ class DirectoryViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
-                    _unitList.value = emptyList()
+                    _unitList.value = null
                 }
             }
         }.launchIn(viewModelScope)
