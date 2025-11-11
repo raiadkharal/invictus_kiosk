@@ -86,13 +86,13 @@ fun DirectoryScreen(
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
 
     var searchQuery by remember { mutableStateOf("") }
-    var list by remember { mutableStateOf(emptyList<String>()) }
+    var list by remember { mutableStateOf<List<String>?>(null) }
     var selectedFilterOption by remember { mutableStateOf(FilterOption.FIRST_NAME) }
     var isUnitNumberSelected by remember { mutableStateOf(false) }
     var isFirstNameSelected by remember { mutableStateOf(false) }
     var showFilteredResidents by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
-    val filteredList = list.filter { it.contains(searchQuery.trim(), ignoreCase = true) }
+    val filteredList = list?.filter { it.contains(searchQuery.trim(), ignoreCase = true) }
     val filteredResidents =
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
@@ -105,7 +105,7 @@ fun DirectoryScreen(
         if (isUnitFilterEnabled) {
             isUnitNumberSelected = true
             selectedFilterOption = FilterOption.UNIT_NUMBER
-            list = unitList?.map { it.unitNbr } ?: emptyList()
+            list = unitList?.map { it.unitNbr }
         }
     }
 
@@ -176,7 +176,7 @@ fun DirectoryScreen(
                 searchQuery = ""
                 showFilteredResidents = false
                 isUnitNumberSelected = true
-                list = unitList?.map { it.unitNbr } ?: emptyList()
+                list = unitList?.map { it.unitNbr }
             }
         }
     }
@@ -276,15 +276,17 @@ fun DirectoryScreen(
                     }
                 } else {
 
-                    if (filteredList.isEmpty()) {
-                        if (unitList == null) {
+                    when {
+                        filteredList == null -> {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
                             }
-                        } else {
+                        }
+
+                        filteredList.isEmpty() -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -292,7 +294,7 @@ fun DirectoryScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    stringResource(R.string.no_units_found),
+                                    text = stringResource(R.string.no_units_found),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontWeight = FontWeight.Bold,
@@ -302,28 +304,29 @@ fun DirectoryScreen(
                             }
                         }
 
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            items(filteredList) { item ->
-                                FilterListItem(
-                                    name = item,
-                                    onClick = {
-                                        //navigate to residents screen
-                                        navController.navigate(
-                                            ResidentsScreen(
-                                                isLeasingOffice = item == "Leasing Office / agents",
-                                                isUnitSelected = isUnitNumberSelected,
-                                                unitNumber = if (isUnitNumberSelected) item else "",
-                                                filter = if (!isUnitNumberSelected) item else "",
-                                                byName = if (isFirstNameSelected) "f" else "l"
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                            ) {
+                                items(filteredList) { item ->
+                                    FilterListItem(
+                                        name = item,
+                                        onClick = {
+                                            // Navigate to residents screen
+                                            navController.navigate(
+                                                ResidentsScreen(
+                                                    isLeasingOffice = item == "Leasing Office / agents",
+                                                    isUnitSelected = isUnitNumberSelected,
+                                                    unitNumber = if (isUnitNumberSelected) item else "",
+                                                    filter = if (!isUnitNumberSelected) item else "",
+                                                    byName = if (isFirstNameSelected) "f" else "l"
+                                                )
                                             )
-                                        )
-                                    }
-                                )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

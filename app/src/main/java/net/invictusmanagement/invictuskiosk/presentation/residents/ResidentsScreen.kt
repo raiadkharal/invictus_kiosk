@@ -78,14 +78,14 @@ fun ResidentsScreen(
     val residentState by viewModel.residentsState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     val keyValidationState = viewModel.keyValidationState.value
-    var residentList by remember { mutableStateOf(residentState.residents ?: emptyList()) }
+    var residentList by remember { mutableStateOf<List<Resident>?>(null) }
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
     var isError by remember { mutableStateOf(false) }
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
 
     val filteredResidents =
-        residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
+        residentList?.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
 
     LaunchedEffect(Unit) {
@@ -130,7 +130,7 @@ fun ResidentsScreen(
         }
     }
     LaunchedEffect(residentState) {
-        residentList = residentState.residents ?: emptyList()
+        residentList = residentState.residents
     }
 
     Column(
@@ -170,18 +170,30 @@ fun ResidentsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (residentList.isEmpty() || filteredResidents.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (residentState.isLoading) {
+                when {
+                    filteredResidents == null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
-                        } else {
+                        }
+                    }
+
+                    filteredResidents.isEmpty() -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(R.string.no_residents_found),
+                                text = if (isLeasingOffice)
+                                    stringResource(R.string.no_leasing_officers_found)
+                                else
+                                    stringResource(R.string.no_residents_found),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,
@@ -190,30 +202,30 @@ fun ResidentsScreen(
                             )
                         }
                     }
-                } else {
-                    // Residents List
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(filteredResidents) { resident ->
-                            ResidentListItem(
-                                residentName = resident.displayName,
-                                isSelected = resident.id == selectedResident?.id,
-                                onItemClick = {
-                                    selectedResident = resident
-                                },
-                                onCallClick = {
-                                    navController.navigate(
-                                        VideoCallScreenRoute(
-                                            residentId = resident.id,
-                                            residentDisplayName = resident.displayName,
-                                            residentActivationCode = resident.activationCode ?: "",
+
+                    else -> {
+                        // Residents List
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            items(filteredResidents) { resident ->
+                                ResidentListItem(
+                                    residentName = resident.displayName,
+                                    isSelected = resident.id == selectedResident?.id,
+                                    onItemClick = { selectedResident = resident },
+                                    onCallClick = {
+                                        navController.navigate(
+                                            VideoCallScreenRoute(
+                                                residentId = resident.id,
+                                                residentDisplayName = resident.displayName,
+                                                residentActivationCode = resident.activationCode ?: "",
+                                            )
                                         )
-                                    )
-                                }
-                            )
+                                    }
+                                )
+                            }
                         }
                     }
                 }

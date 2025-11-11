@@ -70,7 +70,7 @@ class ResidentsViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
-                    _residentsState.value = ResidentState(isLoading = true)
+                    _residentsState.value = ResidentState(isLoading = true, residents = null)
                 }
 
             }
@@ -89,7 +89,7 @@ class ResidentsViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
-                    _residentsState.value = ResidentState(isLoading = true)
+                    _residentsState.value = ResidentState(isLoading = true,residents = null)
                 }
             }
         }.launchIn(viewModelScope)
@@ -138,7 +138,7 @@ class ResidentsViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
-                    _residentsState.value = ResidentState(isLoading = true)
+                    _residentsState.value = ResidentState(isLoading = true,residents = null)
                 }
             }
         }.launchIn(viewModelScope)
