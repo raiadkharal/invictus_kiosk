@@ -279,7 +279,9 @@ fun DirectoryScreen(
                     when {
                         filteredList == null -> {
                             Box(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
