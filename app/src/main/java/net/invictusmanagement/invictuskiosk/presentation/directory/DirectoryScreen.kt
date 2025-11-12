@@ -350,14 +350,14 @@ fun DirectoryScreen(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = if (isError) {
-                        stringResource(R.string.invalid_key)
+                        stringResource(R.string.invalid_guest_key)
                     } else {
                         if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
                             R.string.qr_code_title_text
                         )
                     },
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(
+                    style = MaterialTheme.typography.headlineLarge.copy(
                         color = if (isError) Color.Red else colorResource(
                             R.color.btn_text
                         )
@@ -395,8 +395,6 @@ fun DirectoryScreen(
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
-                        imageWidth = 350.dp,
-                        imageHeight = 350.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }

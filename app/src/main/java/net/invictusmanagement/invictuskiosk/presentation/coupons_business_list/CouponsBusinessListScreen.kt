@@ -147,11 +147,12 @@ fun CouponsBusinessListScreen(
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        filteredCoupons?.forEach { coupon ->
+                        filteredCoupons.forEach { coupon ->
                             CustomTextButton(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(180.dp)
+                                    .width(300.dp)
                                     .padding(end = 16.dp, top = 16.dp),
                                 text = coupon.name,
                                 padding = 48,

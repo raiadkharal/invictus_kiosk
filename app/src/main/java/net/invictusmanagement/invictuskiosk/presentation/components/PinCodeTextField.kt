@@ -128,7 +128,7 @@ fun OtpCell(
     ) {
         Text(
             text = if (isCursorVisible) cursorSymbol else value,
-            style = MaterialTheme.typography.headlineSmall.copy(color = if (isError) Color.Red else colorResource(R.color.btn_text)),
+            style = MaterialTheme.typography.headlineMedium.copy(color = if (isError) Color.Red else colorResource(R.color.btn_text)),
             modifier = Modifier.align(Alignment.Center)
         )
         if(value.isEmpty()){

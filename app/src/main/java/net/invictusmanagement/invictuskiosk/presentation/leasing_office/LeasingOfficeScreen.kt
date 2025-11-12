@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,12 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
@@ -84,7 +81,7 @@ fun LeasingOfficeScreen(
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
             isError = true
-            delay(3000)
+            delay(2000)
             isError = false
         }
 
@@ -164,9 +161,10 @@ fun LeasingOfficeScreen(
             PinInputPanel(
                 modifier = Modifier
                     .weight(1f)
-                    .width(720.dp),
+                    .width(920.dp),
                 buttons = buttons,
                 isError = isError,
+                message = if (isError) stringResource(R.string.invalid_guest_key) else stringResource(R.string.pin_title_text),
                 onCompleted = { pinCode ->
                     viewModel.validateDigitalKey(
                         DigitalKeyDto(

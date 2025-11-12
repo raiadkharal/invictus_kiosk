@@ -34,7 +34,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScr
 fun CustomIconButton(
     modifier: Modifier = Modifier,
     icon: Int,
-    iconSize: Int = 60,
+    iconSize: Int = 80,
     text: String,
     onClick:()->Unit = {}
 ) {
@@ -52,7 +52,7 @@ fun CustomIconButton(
             .background(gradient)
             .border(1.dp, colorResource(R.color.btn_text), RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -67,7 +67,7 @@ fun CustomIconButton(
         Text(
             text = text,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
+            style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
         )
     }
 }

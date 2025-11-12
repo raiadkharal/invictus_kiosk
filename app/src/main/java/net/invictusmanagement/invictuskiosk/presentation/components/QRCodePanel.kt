@@ -29,8 +29,8 @@ import net.invictusmanagement.invictuskiosk.R
 @Composable
 fun QRCodePanel(
     modifier: Modifier = Modifier,
-    imageWidth: Dp = 300.dp,
-    imageHeight: Dp = 300.dp,
+    imageWidth: Dp = 500.dp,
+    imageHeight: Dp = 500.dp,
     onScanClick: () -> Unit = {}
 ) {
     Column(
@@ -51,9 +51,9 @@ fun QRCodePanel(
         )
         Spacer(Modifier.height(32.dp))
         OTPButton(
-            modifier = Modifier.width(172.dp),
+            modifier = Modifier.width(240.dp),
             text = stringResource(R.string.scan_qr_code),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = colorResource(R.color.btn_text)
             ),
             onClick = onScanClick

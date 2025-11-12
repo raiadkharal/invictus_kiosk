@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +44,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -239,14 +237,14 @@ fun ResidentsScreen(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = if (isError) {
-                        stringResource(R.string.invalid_key)
+                        stringResource(R.string.invalid_guest_key)
                     } else {
                         if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
                             R.string.qr_code_title_text
                         )
                     },
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(
+                    style = MaterialTheme.typography.displaySmall.copy(
                         color = if (isError) Color.Red else colorResource(
                             R.color.btn_text
                         )
@@ -284,8 +282,6 @@ fun ResidentsScreen(
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
-                        imageWidth = 350.dp,
-                        imageHeight = 350.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }

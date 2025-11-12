@@ -76,7 +76,7 @@ fun SelfGuidedTourScreen(
             PinInputPanel(
                 modifier = Modifier
                     .weight(1f)
-                    .width(720.dp),
+                    .width(920.dp),
                 buttons = buttons,
                 message = stringResource(R.string.prospect_key)
             )

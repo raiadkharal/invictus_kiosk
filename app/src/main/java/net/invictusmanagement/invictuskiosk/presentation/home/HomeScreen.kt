@@ -290,7 +290,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.qr_code_title_text),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
+                    style = MaterialTheme.typography.headlineLarge.copy(color = colorResource(R.color.btn_text))
                 )
 
                 AnimatedVisibility(
@@ -313,8 +313,8 @@ fun HomeScreen(
                 ) {
                     Image(
                         modifier = Modifier
-                            .width(60.dp)
-                            .height(60.dp)
+                            .width(80.dp)
+                            .height(80.dp)
                             .clickable(onClick = {
                                 // Update to Spanish (Mexico)
                                 CoroutineScope(Dispatchers.IO).launch {
@@ -332,8 +332,8 @@ fun HomeScreen(
                     Spacer(Modifier.width(12.dp))
                     Image(
                         modifier = Modifier
-                            .width(60.dp)
-                            .height(60.dp)
+                            .width(80.dp)
+                            .height(80.dp)
                             .clickable(onClick = { showHomeBottomSheet = true }),
                         painter = painterResource(R.drawable.ic_wheel_chair),
                         contentDescription = "Wheel chair icon"

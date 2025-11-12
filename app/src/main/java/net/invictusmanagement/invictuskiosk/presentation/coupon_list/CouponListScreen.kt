@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,7 +68,7 @@ fun CouponListScreen(
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    val filteredCoupons = categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val filteredCategories = categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
     var selectedCoupon by remember { mutableStateOf<PromotionsCategory?>(null) }
 
     LaunchedEffect(categoryState) {
@@ -142,11 +143,12 @@ fun CouponListScreen(
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        filteredCoupons.forEach { coupon ->
+                        filteredCategories.forEach { coupon ->
                             CustomTextButton(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(180.dp)
+                                    .width(300.dp)
                                     .padding(end = 16.dp, top = 16.dp),
                                 text = coupon.name,
                                 padding = 48,

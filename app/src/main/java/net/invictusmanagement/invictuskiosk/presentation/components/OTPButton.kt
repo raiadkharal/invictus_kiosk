@@ -27,7 +27,7 @@ fun OTPButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(72.dp)
+            .height(104.dp)
             .background(
                 color = colorResource(R.color.btn_pin_code),
                 shape = RoundedCornerShape(20.dp)

@@ -115,7 +115,7 @@ fun ServiceKeyScreen(
             PinInputPanel(
                 modifier = Modifier
                     .weight(1f)
-                    .width(720.dp),
+                    .width(920.dp),
                 buttons = otpButtons,
                 isError = isError,
                 message = if (isError) stringResource(R.string.invalid_service_key) else stringResource(

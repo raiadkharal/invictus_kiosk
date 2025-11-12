@@ -132,8 +132,8 @@ fun CouponsScreen(
                             CustomTextButton(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(170.dp)
-                                    .width(300.dp)
+                                    .height(180.dp)
+                                    .width(400.dp)
                                     .padding(end = 16.dp, top = 16.dp),
                                 text = coupon.name,
                                 padding = 48,

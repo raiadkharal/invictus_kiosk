@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +45,7 @@ fun PinInputPanel(
     modifier: Modifier = Modifier,
     pinLength: Int = 4,
     message: String = "",
-    onMessageClick: () -> Unit = {},
+    onMessageClick: (() -> Unit)? = null,
     isError: Boolean = false,
     onCompleted: (String) -> Unit = {},
     buttons: List<List<String>> = listOf(
@@ -62,6 +63,8 @@ fun PinInputPanel(
     ) {
         // OTP display
         PinCodeTextField(
+            modifier = Modifier
+                .padding(vertical = 8.dp),
             value = otp,
             isError = isError,
             length = pinLength,
@@ -70,23 +73,31 @@ fun PinInputPanel(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         if (message.isNotEmpty()) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onMessageClick),
-                text = message,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = if (isError) Color.Red else colorResource(
-                        R.color.btn_text
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = if (onMessageClick != null) {
+                        Modifier.clickable(onClick = onMessageClick)
+                    } else {
+                        Modifier
+                    },
+                    text = message,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        color = if (isError) Color.Red else colorResource(
+                            R.color.btn_text
+                        )
                     )
                 )
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            }
         }
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Buttons for digits
         OTPButtonGrid(
@@ -106,7 +117,7 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         buttons.forEach { row ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(32.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(6f)
@@ -118,7 +129,7 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                 onClick = { onOtpChange("") },
                                 modifier = Modifier
                                     .weight(if (row.size == 2 || row.size == 5) 2f else 1f) // Adjust the weight as needed
-                                    .height(72.dp)
+                                    .height(104.dp)
                                     .background(
                                         color = colorResource(R.color.btn_pin_code),
                                         shape = RoundedCornerShape(20.dp)
@@ -130,11 +141,6 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                         color = colorResource(R.color.btn_text)
                                     )
                                 )
-                                //                            Icon(
-                                //                                painter = painterResource(id = R.drawable.ic_clear),
-                                //                                contentDescription = "Clear Text",
-                                //                                tint = colorResource(R.color.btn_text)
-                                //                            )
                             }
                         }
 
@@ -147,16 +153,16 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(72.dp)
+                                    .height(104.dp)
                                     .background(
                                         color = colorResource(R.color.btn_pin_code),
                                         shape = RoundedCornerShape(20.dp)
                                     )
                             ) {
                                 Icon(
-                                    modifier = Modifier.size(30.dp),
-                                    imageVector = Icons.Filled.Clear,
-                                    contentDescription = "Clear Text",
+                                    modifier = Modifier.size(50.dp),
+                                    imageVector = Icons.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Delete",
                                     tint = colorResource(R.color.btn_text)
                                 )
                             }
@@ -176,7 +182,7 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
