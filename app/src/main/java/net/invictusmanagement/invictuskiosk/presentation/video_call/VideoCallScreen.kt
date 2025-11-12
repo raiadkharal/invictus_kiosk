@@ -113,7 +113,7 @@ fun VideoCallScreen(
                 ){
                     popUpTo(HomeScreen)
                 }
-            } else{
+            } else if(!sendToVoiceMail){
                 navController.navigate(
                     LeasingOfficeScreenRoute(
                         residentId = residentId,
