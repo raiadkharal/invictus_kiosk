@@ -2,7 +2,6 @@ package net.invictusmanagement.invictuskiosk.presentation.coupons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,9 +29,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
+import net.invictusmanagement.invictuskiosk.presentation.components.EmptyStateMessage
+import net.invictusmanagement.invictuskiosk.presentation.components.LoadingIndicator
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -96,60 +97,53 @@ fun CouponsScreen(
 
             when {
                 categoryState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    LoadingIndicator()
                 }
 
                 categoryState.couponsCategories.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.no_coupons_available),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                color = colorResource(
-                                    R.color.btn_text
-                                )
-                            )
-                        )
-                    }
+                    EmptyStateMessage(messageResId = R.string.no_coupons_available)
                 }
 
                 else -> {
-                    FlowRow(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        categoryState.couponsCategories.forEach { coupon ->
-                            CustomTextButton(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(170.dp)
-                                    .width(300.dp)
-                                    .padding(end = 16.dp, top = 16.dp),
-                                text = coupon.name,
-                                padding = 48,
-                                isGradient = true,
-                                onClick = { navController.navigate(CouponsBusinessListScreen(coupon.id)) }
-                            )
+                    CouponsGrid(
+                        categories = categoryState.couponsCategories,
+                        onCategoryClick = { coupon ->
+                            navController.navigate(CouponsBusinessListScreen(coupon.id))
                         }
-                    }
+                    )
                 }
             }
         }
-
     }
-
 }
 
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CouponsGrid(
+    categories: List<PromotionsCategory>,
+    onCategoryClick: (PromotionsCategory) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        categories.forEach { coupon ->
+            CustomTextButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(170.dp)
+                    .width(300.dp)
+                    .padding(end = 16.dp, top = 16.dp),
+                text = coupon.name,
+                padding = 48,
+                isGradient = true,
+                onClick = { onCategoryClick(coupon) }
+            )
+        }
+    }
+}
 
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable

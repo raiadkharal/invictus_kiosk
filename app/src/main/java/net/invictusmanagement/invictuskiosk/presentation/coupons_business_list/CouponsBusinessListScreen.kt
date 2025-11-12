@@ -3,7 +3,6 @@ package net.invictusmanagement.invictuskiosk.presentation.coupons_business_list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,9 +47,10 @@ import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
+import net.invictusmanagement.invictuskiosk.presentation.components.EmptyStateMessage
+import net.invictusmanagement.invictuskiosk.presentation.components.LoadingIndicator
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponListScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -71,11 +70,12 @@ fun CouponsBusinessListScreen(
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    val filteredCoupons = categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
-    var selectedCoupon by remember { mutableStateOf<PromotionsCategory?>(null) }
+    val filteredCategories =
+        categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    var selectedCategory by remember { mutableStateOf<PromotionsCategory?>(null) }
 
     LaunchedEffect(categoryState) {
-        selectedCoupon = categoryState.couponsCategories.find { it.id == selectedCouponId }
+        selectedCategory = categoryState.couponsCategories.find { it.id == selectedCouponId }
     }
 
     LaunchedEffect(Unit) {
@@ -109,62 +109,16 @@ fun CouponsBusinessListScreen(
             Spacer(Modifier.height(16.dp))
 
             Row {
-                Column(
+                CouponsCategorySection(
                     modifier = Modifier
                         .weight(6f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-
-                    //search bar
-//                    SearchTextField(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        searchQuery = searchQuery,
-//                        placeholder = "Search Coupons",
-//                        onValueChange = { searchQuery = it }
-//                    )
-
-//                    Spacer(Modifier.height(16.dp))
-
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.category),
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        thickness = 2.dp,
-                        color = colorResource(R.color.btn_text)
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-
-                    FlowRow(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        filteredCoupons?.forEach { coupon ->
-                            CustomTextButton(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(180.dp)
-                                    .padding(end = 16.dp, top = 16.dp),
-                                text = coupon.name,
-                                padding = 48,
-                                isSelected = coupon == selectedCoupon,
-                                isGradient = true,
-                                onClick = {
-                                    selectedCoupon = coupon
-                                    viewModel.getPromotionsByCategory(coupon.id)
-                                }
-                            )
-                        }
+                    filteredCategories = filteredCategories,
+                    selectedCoupon = selectedCategory,
+                    onCategorySelected = { category ->
+                        selectedCategory = category
+                        viewModel.getPromotionsByCategory(category.id)
                     }
-                }
+                )
 
                 VerticalDivider(
                     modifier = Modifier
@@ -174,97 +128,214 @@ fun CouponsBusinessListScreen(
                     color = colorResource(R.color.divider_color)
                 )
 
-                Column(
-                    modifier = Modifier
-                        .weight(4f)
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(colorResource(R.color.btn_pin_code))
-                            .padding(8.dp),
-                        text = selectedCoupon?.name ?: "",
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
-                    )
+                PromotionsSection(
+                    modifier = Modifier.weight(4f),
+                    selectedCategory = selectedCategory,
+                    state = couponsBusinessState,
+                    selectedCouponId = selectedCouponId,
+                    navController = navController
+                )
 
-                    when {
-                        couponsBusinessState.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-
-                        couponsBusinessState.businessPromotions.isEmpty() -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    text = stringResource(R.string.no_coupons_available),
-                                    textAlign = TextAlign.Start,
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        color = colorResource(
-                                            R.color.btn_text
-                                        )
-                                    )
-                                )
-                            }
-                        }
-
-                        else -> {
-                            LazyColumn {
-                                items(couponsBusinessState.businessPromotions) { businessPromotion ->
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(8.dp)
-                                            .clickable(onClick = {
-
-                                                val json = Json.encodeToString<BusinessPromotion>(
-                                                    businessPromotion
-                                                )
-                                                val businessPromotionJson = URLEncoder.encode(
-                                                    json,
-                                                    StandardCharsets.UTF_8.toString()
-                                                )
-
-                                                navController.navigate(
-                                                    CouponListScreen(
-                                                        businessPromotionJson = businessPromotionJson,
-                                                        selectedCouponId = selectedCouponId
-                                                    )
-                                                )
-                                            }),
-                                        text = businessPromotion.name,
-                                        textAlign = TextAlign.Start,
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            color = colorResource(
-                                                R.color.btn_text
-                                            )
-                                        )
-                                    )
-
-                                }
-                            }
-                        }
-                    }
-                }
+//                Column(
+//                    modifier = Modifier
+//                        .weight(4f)
+//                ) {
+//                    Text(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .clip(RoundedCornerShape(8.dp))
+//                            .background(colorResource(R.color.btn_pin_code))
+//                            .padding(8.dp),
+//                        text = selectedCategory?.name ?: "",
+//                        textAlign = TextAlign.Start,
+//                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
+//                    )
+//
+//                    when {
+//                        couponsBusinessState.isLoading -> LoadingIndicator()
+//
+//                        couponsBusinessState.businessPromotions.isEmpty() -> EmptyStateMessage(
+//                            messageResId = R.string.no_coupons_available
+//                        )
+//
+//                        else -> BusinessPromotionsList(
+//                            promotions = couponsBusinessState.businessPromotions,
+//                            onPromotionClick = { promotion ->
+//                                val json = Json.encodeToString(promotion)
+//                                val encodedJson =
+//                                    URLEncoder.encode(json, StandardCharsets.UTF_8.toString())
+//
+//                                navController.navigate(
+//                                    CouponListScreen(
+//                                        businessPromotionJson = encodedJson,
+//                                        selectedCouponId = selectedCouponId
+//                                    )
+//                                )
+//                            }
+//                        )
+//                    }
+//                }
             }
         }
-
-
     }
-
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CouponsCategorySection(
+    modifier: Modifier = Modifier,
+    filteredCategories: List<PromotionsCategory>,
+    selectedCoupon: PromotionsCategory?,
+    onCategorySelected: (PromotionsCategory) -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.category),
+                textAlign = TextAlign.Start,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    color = colorResource(R.color.btn_text)
+                )
+            )
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                thickness = 2.dp,
+                color = colorResource(R.color.btn_text)
+            )
+
+            Spacer(Modifier.height(8.dp))
+        }
+
+        CategoryGrid(
+            categories = filteredCategories,
+            selectedCategory = selectedCoupon,
+            onCategoryClick = onCategorySelected
+        )
+    }
+}
+
+@Composable
+private fun PromotionsSection(
+    modifier: Modifier = Modifier,
+    selectedCategory: PromotionsCategory?,
+    state: CouponsBusinessState,
+    selectedCouponId: String,
+    navController: NavController
+) {
+    Column(
+        modifier = modifier.fillMaxHeight()
+    ) {
+        // Category title header
+        Text(
+            text = selectedCategory?.name.orEmpty(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(colorResource(R.color.btn_pin_code))
+                .padding(8.dp),
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = colorResource(R.color.btn_text)
+            )
+        )
+
+        when {
+            state.isLoading -> LoadingIndicator()
+
+            state.businessPromotions.isEmpty() -> EmptyStateMessage(
+                messageResId = R.string.no_coupons_available
+            )
+
+            else -> BusinessPromotionsList(
+                promotions = state.businessPromotions,
+                onPromotionClick = { promotion ->
+                    val json = Json.encodeToString(promotion)
+                    val encodedJson = URLEncoder.encode(json, StandardCharsets.UTF_8.toString())
+
+                    navController.navigate(
+                        CouponListScreen(
+                            businessPromotionJson = encodedJson,
+                            selectedCouponId = selectedCouponId
+                        )
+                    )
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CategoryGrid(
+    categories: List<PromotionsCategory>,
+    selectedCategory: PromotionsCategory?,
+    onCategoryClick: (PromotionsCategory) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        categories.forEach { category ->
+            CustomTextButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp, top = 16.dp)
+                    .height(180.dp),
+                text = category.name,
+                padding = 48,
+                isSelected = category == selectedCategory,
+                isGradient = true,
+                onClick = { onCategoryClick(category) }
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun BusinessPromotionsList(
+    promotions: List<BusinessPromotion>,
+    onPromotionClick: (BusinessPromotion) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(promotions) { promotion ->
+            PromotionItem(
+                promotion = promotion,
+                onClick = { onPromotionClick(promotion) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PromotionItem(
+    promotion: BusinessPromotion,
+    onClick: () -> Unit
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        text = promotion.name,
+        textAlign = TextAlign.Start,
+        style = MaterialTheme.typography.headlineSmall.copy(
+            color = colorResource(
+                R.color.btn_text
+            )
+        )
+    )
+}
 
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
