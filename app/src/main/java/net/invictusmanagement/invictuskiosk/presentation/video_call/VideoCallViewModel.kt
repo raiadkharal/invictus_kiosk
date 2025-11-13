@@ -27,11 +27,14 @@ import com.twilio.video.TwilioException
 import com.twilio.video.Video
 import com.twilio.video.VideoCapturer
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
@@ -56,36 +59,30 @@ class VideoCallViewModel @Inject constructor(
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
     private val timeOutSeconds: Int = 45
-
-    var token by mutableStateOf(VideoCallToken(token = ""))
-        private set
-
     var videoTrack by mutableStateOf<LocalVideoTrack?>(null)
         private set
-
     var audioTrack by mutableStateOf<LocalAudioTrack?>(null)
         private set
-
     var remoteVideoTrack by mutableStateOf<RemoteVideoTrack?>(null)
         private set
-
     var connectionState by mutableStateOf(ConnectionState.CONNECTING)
         private set
-
     var signalRConnectionState by mutableStateOf(SignalRConnectionState.CONNECTING)
         private set
-
     var remainingSeconds by mutableIntStateOf(timeOutSeconds)
         private set
     var callEndedDueToMissedCall by mutableStateOf(false)
         private set
-
     var sendToVoiceMail by mutableStateOf(false)
         private set
-
     var isAccessGranted by mutableStateOf(false)
         private set
-
+    var tokenFetchAttemptCount by mutableIntStateOf(0)
+        private set
+    var isFetchingToken by mutableStateOf(false)
+        private set
+    var showVoiceMailDialog by mutableStateOf(false)
+        private set
     private var missedCallJob: Job? = null
     private var remoteParticipantJoined = false
 
@@ -109,23 +106,103 @@ class VideoCallViewModel @Inject constructor(
         mobileChatHubManager?.connect()
     }
 
-    fun getVideoCallToken(room: String) {
-        repository.getVideoCallToken(room).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    token = result.data ?: VideoCallToken(token = "")
+    fun connectToVideoCallWithRetry(
+        context: Context,
+        kioskActivationCode: String,
+        kioskName: String?,
+        residentActivationCode: String,
+        maxRetries: Int = 5,
+        delayBetweenRetriesMillis: Long = 2000,
+        onAllRetriesFailed: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            connectionState = ConnectionState.CONNECTING
+            tokenFetchAttemptCount = 0
+            var success = false
+
+            repeat(maxRetries) { attempt ->
+                tokenFetchAttemptCount = attempt + 1
+
+                try {
+                    // Get token
+                    var newToken: VideoCallToken? = null
+                    repository.getVideoCallToken(kioskActivationCode).collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val token = result.data?.token
+                                if (!token.isNullOrEmpty()) {
+                                    newToken = VideoCallToken(token = token)
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                Log.e("VideoCall", "Token fetch failed: ${result.message}")
+                            }
+
+                            is Resource.Loading -> {
+                                // Handle loading state if needed
+                            }
+                        }
+                    }
+
+                    if (newToken == null) {
+                        Log.d("VideoCall", "Token fetch failed — retrying...")
+                        delay(delayBetweenRetriesMillis)
+                        return@repeat
+                    }
+
+                    val connected = CompletableDeferred<Boolean>()
+
+                    // Try connecting to room
+                    connectToRoom(
+                        context = context,
+                        accessToken = newToken.token,
+                        roomName = kioskActivationCode,
+                        onConnected = {
+                            connected.complete(true)
+                        },
+                        onDisconnected = {
+                            if (!connected.isCompleted) connected.complete(false)
+                        },
+                        onMissedCall = {
+                            postMissedCall(kioskName ?: "", residentActivationCode)
+                            showVoiceMailDialog = true
+                        }
+                    )
+
+                    val result = withTimeoutOrNull(10_000) {
+                        connected.await()
+                    }
+
+                    // If connectToRoom succeeded (Twilio connected)
+                    if (result == true) {
+                        success = true
+                        Log.d("VideoCall", "Video call setup successful on attempt $tokenFetchAttemptCount")
+                        return@launch // stop retry loop, connection established
+                    } else {
+                        Log.w("VideoCall", "Connection attempt timed out or failed — retrying...")
+                    }
+
+                } catch (e: Exception) {
+                    Log.e(
+                        "VideoCall",
+                        "Attempt $tokenFetchAttemptCount failed with exception: ${e.message}"
+                    )
                 }
 
-                is Resource.Error -> {
-
-                }
-
-                is Resource.Loading -> {
-
-                }
+                // Wait before next retry
+                delay(delayBetweenRetriesMillis)
             }
-        }.launchIn(viewModelScope)
+
+            // All retries failed
+            if (!success) {
+                connectionState = ConnectionState.FAILED
+                onAllRetriesFailed()
+                Log.e("VideoCall", "Failed to connect after $maxRetries attempts.")
+            }
+        }
     }
+
 
     private fun initializeTracks(context: Context) {
         try {
@@ -396,6 +473,7 @@ class VideoCallViewModel @Inject constructor(
                 CameraCharacteristics.LENS_FACING_FRONT -> {
                     return id
                 }
+
                 CameraCharacteristics.LENS_FACING_BACK -> {
                     backCameraId = id
                 }
@@ -458,6 +536,9 @@ class VideoCallViewModel @Inject constructor(
             missedCallJob = null
             remoteParticipantJoined = false
 
+            // Cancel ongoing token fetch or retries
+            viewModelScope.coroutineContext.cancelChildren()
+
             room?.disconnect()
             room = null
             videoTrack?.release()
@@ -468,7 +549,7 @@ class VideoCallViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("TAG", "disconnect: ${e.message}")
             connectionState = ConnectionState.DISCONNECTED
-        }finally {
+        } finally {
             resumeScreenSaver()
         }
     }
@@ -512,4 +593,8 @@ class VideoCallViewModel @Inject constructor(
 
     }
 
+
+    fun setVoiceMailDialogVisibility(isVisible: Boolean) {
+        showVoiceMailDialog = isVisible
+    }
 }

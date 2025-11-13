@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.video_call
 
 import android.Manifest
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -38,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.twilio.video.VideoView
+import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
@@ -69,16 +72,16 @@ fun VideoCallScreen(
     val localVideoView = remember { VideoView(context) }
     val remoteVideoView = remember { VideoView(context) }
     var hasAllPermissions by remember { mutableStateOf(false) }
-    var showVoiceMailDialog by remember { mutableStateOf(false) }
 
     val connectionState by remember { derivedStateOf { videoCallViewModel.connectionState } }
     val signalRConnectionState by remember { derivedStateOf { videoCallViewModel.signalRConnectionState } }
     val remoteVideoTrack = videoCallViewModel.remoteVideoTrack
-    val token = videoCallViewModel.token
+    val localVideoTrack = videoCallViewModel.videoTrack
     val remainingSeconds = videoCallViewModel.remainingSeconds
     val sendToVoiceMail = videoCallViewModel.sendToVoiceMail
     val callEndedDueToMissedCall = videoCallViewModel.callEndedDueToMissedCall
     val isAccessGranted = videoCallViewModel.isAccessGranted
+    val showVoiceMailDialog by remember { derivedStateOf { videoCallViewModel.showVoiceMailDialog } }
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
@@ -103,17 +106,18 @@ fun VideoCallScreen(
             currentAccessPoint?.let {
                 videoCallViewModel.connectToVideoCall(it.id, residentActivationCode)
             }
-        }else if ((connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.FAILED) && !callEndedDueToMissedCall) {
+        } else if ((connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.FAILED) && !callEndedDueToMissedCall) {
             if (isAccessGranted) {
                 navController.navigate(
                     UnlockedScreenRoute(
                         unitId = 0,
                         mapId = 0
                     )
-                ){
+                ) {
                     popUpTo(HomeScreen)
                 }
-            } else if(!sendToVoiceMail){
+            } else if (!sendToVoiceMail) {
+                delay(2000)
                 navController.navigate(
                     LeasingOfficeScreenRoute(
                         residentId = residentId,
@@ -123,51 +127,14 @@ fun VideoCallScreen(
                 ) {
                     popUpTo(HomeScreen)
                 }
-        }
+            }
         }
     }
 
     LaunchedEffect(sendToVoiceMail) {
         if (sendToVoiceMail) {
-            showVoiceMailDialog = true
+            videoCallViewModel.setVoiceMailDialogVisibility(true)
         }
-    }
-    LaunchedEffect(token) {
-        if (hasAllPermissions) {
-            if (token.token.isNotEmpty()) {
-                videoCallViewModel.connectToRoom(
-                    context,
-                    token.token,
-                    kioskActivationCode,
-                    onConnected = {
-                        videoCallViewModel.videoTrack?.addSink(localVideoView)
-                    },
-                    onDisconnected = {
-//                        navController.navigate(
-//                            LeasingOfficeScreenRoute(
-//                                residentId = residentId,
-//                                residentDisplayName = residentDisplayName,
-//                                residentActivationCode = residentActivationCode
-//                            )
-//                        ) {
-//                           popUpTo(HomeScreen)
-//                        }
-                    },
-                    onMissedCall = {
-                        videoCallViewModel.postMissedCall(kioskName ?: "", residentActivationCode)
-                        showVoiceMailDialog = true
-                    }
-                )
-            }
-        } else {
-            permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.CAMERA
-                )
-            )
-        }
-
     }
     LaunchedEffect(Unit) {
         permissionLauncher.launch(
@@ -178,15 +145,37 @@ fun VideoCallScreen(
         )
     }
 
-    LaunchedEffect(hasAllPermissions,isConnected) {
+    LaunchedEffect(hasAllPermissions, isConnected) {
         if (hasAllPermissions) {
-            videoCallViewModel.getVideoCallToken(kioskActivationCode)
+            videoCallViewModel.connectToVideoCallWithRetry(
+                context = context,
+                kioskActivationCode = kioskActivationCode,
+                kioskName = kioskName,
+                residentActivationCode = residentActivationCode,
+                onAllRetriesFailed = {
+                    // Optional UI handling
+                    Log.e("VideoCall", "Unable to connect after all retries.")
+                }
+            )
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.CAMERA
+                )
+            )
         }
     }
+
 
     // Attach remote video when available
     LaunchedEffect(remoteVideoTrack) {
         remoteVideoTrack?.addSink(remoteVideoView)
+    }
+
+    // Attach local video when available
+    LaunchedEffect(localVideoTrack) {
+        localVideoTrack?.addSink(localVideoView)
     }
 
     LaunchedEffect(currentAccessPoint) {
@@ -229,11 +218,15 @@ fun VideoCallScreen(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = when (connectionState) {
-                    ConnectionState.CONNECTING -> ConnectionState.CONNECTING.displayName
+                text = when (videoCallViewModel.connectionState) {
+                    ConnectionState.CONNECTING -> when (videoCallViewModel.tokenFetchAttemptCount) {
+                        1 -> ConnectionState.CONNECTING.displayName
+                        else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
+                    }
+
                     ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"
                     ConnectionState.DISCONNECTED -> ConnectionState.DISCONNECTED.displayName
-                    ConnectionState.FAILED -> ConnectionState.FAILED.displayName
+                    ConnectionState.FAILED -> "Failed to connect after multiple attempts"
                 },
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineSmall
@@ -315,7 +308,7 @@ fun VideoCallScreen(
         VoiceMailConfirmationDialog(
             navController = navController,
             onYesClick = {
-                showVoiceMailDialog = false
+                videoCallViewModel.setVoiceMailDialogVisibility(false)
                 navController.navigate(
                     VoiceMailRecordingScreenRoute(
                         residentId,
@@ -326,7 +319,7 @@ fun VideoCallScreen(
                 }
             },
             onNoClick = {
-                showVoiceMailDialog = false
+                videoCallViewModel.setVoiceMailDialogVisibility(false)
                 navController.navigate(HomeScreen) {
                     popUpTo(HomeScreen)
                 }
