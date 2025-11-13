@@ -1,6 +1,15 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
-import android.util.Log
+import android.content.Context
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -8,6 +17,8 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -20,10 +31,10 @@ import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
-import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
+import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.BarcodeAnalyzer
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUiState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
-import net.invictusmanagement.invictuskiosk.util.UiEvent
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 @HiltViewModel
@@ -89,6 +100,74 @@ class QRScannerViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    @OptIn(ExperimentalGetImage::class)
+    fun startCamera(
+        context: Context,
+        lifecycleOwner: LifecycleOwner,
+        previewView: PreviewView,
+        executor: Executor,
+        currentAccessPointId: Int,
+    ) {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().apply {
+                    surfaceProvider = previewView.surfaceProvider
+                }
+
+                val analyzer = BarcodeAnalyzer(
+                    scanner = scanner,
+                    isScanning = { uiState.value.isScanning },
+                    onSuccess = { result ->
+                        stopScanning()
+                        validateDigitalKey(
+                            DigitalKeyDto(
+                                accessPointId = currentAccessPointId,
+                                key = result
+                            )
+                        )
+                    },
+                    onFailure = { reportError("Scan failed: ${it.localizedMessage}") }
+                )
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also { it.setAnalyzer(executor, analyzer) }
+
+                cameraProvider.unbindAll()
+
+                val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                    frontCameraSelector
+                } else {
+                    backCameraSelector
+                }
+
+                // Must be on main thread
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    imageAnalysis
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportError(getFriendlyCameraError(e))
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    fun getFriendlyCameraError(e: Exception): String = when (e) {
+        is java.util.concurrent.ExecutionException -> "Camera failed to start. Please try again."
+        is IllegalStateException -> "Camera is not available right now."
+        is SecurityException -> "Camera permission is missing. Please enable it in settings."
+        else -> "Unable to initialize the camera. Please try again."
+    }
+
     fun onPermissionResult(granted: Boolean) {
         if (granted) {
             _uiState.update { it.copy(hasCameraPermission = true, errorMessage = null) }
@@ -116,6 +195,19 @@ class QRScannerViewModel @Inject constructor(
     fun resetError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
+
+    fun releaseCamera(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                delay(150)
+                val provider = ProcessCameraProvider.getInstance(context).get()
+                provider.unbindAll()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     override fun onCleared() {
         scanner.close()

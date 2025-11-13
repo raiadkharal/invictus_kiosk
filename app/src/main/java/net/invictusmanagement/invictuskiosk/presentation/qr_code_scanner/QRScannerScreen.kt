@@ -1,10 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
 import android.Manifest
-import androidx.camera.camera2.interop.Camera2CameraInfo
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -32,12 +28,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
-import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.BarcodeAnalyzer
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUI
 import java.util.concurrent.Executors
 
@@ -79,7 +73,7 @@ fun QRScannerScreen(
                     mapId = keyValidationState.digitalKey?.mapId ?: 0,
                     toPackageCenter = keyValidationState.digitalKey?.toPackageCenter ?: false
                 )
-            ){
+            ) {
                 popUpTo(HomeScreen)
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
@@ -90,61 +84,23 @@ fun QRScannerScreen(
     }
 
     LaunchedEffect(uiState.hasCameraPermission) {
-        if (!uiState.hasCameraPermission) return@LaunchedEffect
-
-        try {
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().apply {
-                surfaceProvider = previewView.surfaceProvider
-            }
-
-            val analyzer = BarcodeAnalyzer(
-                scanner = viewModel.scanner,
-                isScanning = { uiState.isScanning },
-                onSuccess = { result ->
-                    viewModel.stopScanning()
-                    viewModel.validateDigitalKey(
-                        DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id ?: 0,
-                            key = result
-                        )
-                    )
-                },
-                onFailure = { viewModel.reportError("Scan failed: ${it.localizedMessage}") }
+        if (uiState.hasCameraPermission) {
+            viewModel.startCamera(
+                context = context,
+                lifecycleOwner = lifecycleOwner,
+                previewView = previewView,
+                executor = executor,
+                currentAccessPointId = currentAccessPoint?.id ?: 0
             )
-
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also { it.setAnalyzer(executor, analyzer) }
-
-            cameraProvider.unbindAll()
-
-            val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-            val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
-                frontCameraSelector
-            } else {
-                backCameraSelector
-            }
-
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                imageAnalysis
-            )
-        } catch (e: Exception) {
-            viewModel.reportError("Camera setup failed: ${e.localizedMessage}")
         }
     }
+
 
     DisposableEffect(Unit) {
         onDispose {
             viewModel.scanner.close()
             executor.shutdown()
-            cameraProviderFuture.get().unbindAll()
+            viewModel.releaseCamera(context)
         }
     }
 
