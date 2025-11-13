@@ -1,5 +1,9 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
+import android.Manifest
+import android.util.Log
+import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,20 +22,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -40,6 +50,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScr
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 
+@RequiresPermission(Manifest.permission.RECORD_AUDIO)
 @Composable
 fun ServiceKeyScreen(
     modifier: Modifier = Modifier,
@@ -48,6 +59,7 @@ fun ServiceKeyScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val state by viewModel.serviceKeyState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
@@ -55,12 +67,24 @@ fun ServiceKeyScreen(
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
+    val coroutineScope = rememberCoroutineScope()
+
     val otpButtons: List<List<String>> = listOf(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
         listOf("0", "X", "clear")
     )
+
+    val previewView = remember { PreviewView(context) }
+    LaunchedEffect(previewView) { viewModel.initializeCamera(previewView, context, lifecycleOwner) }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp) // make it 1 pixel
+            .alpha(0f)  // fully invisible
+    )
+
 
     LaunchedEffect(state) {
         if (state.digitalKey?.isValid == true) {
@@ -83,6 +107,7 @@ fun ServiceKeyScreen(
     DisposableEffect(Unit) {
         onDispose {
             isError = false
+            viewModel.stopRecording()
             viewModel.resetServiceKeyState()
         }
     }
@@ -125,25 +150,21 @@ fun ServiceKeyScreen(
                     navController.navigate(DirectoryScreen)
                 },
                 onCompleted = { pinCode ->
-                    viewModel.validateServiceKey(
-                        ServiceKeyDto(
-                            accessPointId = currentAccessPoint?.id ?: 0,
-                            key = pinCode
+                    coroutineScope.launch {
+                        delay(500)
+                        viewModel.startRecording(context) { file ->
+                            val fileSizeInMB = file.length() / (1024 * 1024)
+                            Log.d("FileSize", "Size: $fileSizeInMB MB")
+                        }
+                        viewModel.validateServiceKey(
+                            ServiceKeyDto(
+                                accessPointId = currentAccessPoint?.id ?: 0,
+                                key = pinCode
+                            )
                         )
-                    )
+                    }
                 }
             )
-
         }
-
     }
-
-}
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun ServiceScreenPreview() {
-    val navController = rememberNavController()
-    ServiceKeyScreen(navController = navController)
 }
