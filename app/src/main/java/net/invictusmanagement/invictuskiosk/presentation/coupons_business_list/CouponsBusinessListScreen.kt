@@ -66,6 +66,7 @@ fun CouponsBusinessListScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
+    val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     val categoryState by viewModel.state.collectAsStateWithLifecycle()
     val couponsBusinessState by viewModel.businessPromotions.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
@@ -78,9 +79,11 @@ fun CouponsBusinessListScreen(
         selectedCoupon = categoryState.couponsCategories.find { it.id == selectedCouponId }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.getPromotionsCategory()
-        viewModel.getPromotionsByCategory(selectedCouponId)
+    LaunchedEffect(Unit,isConnected) {
+        if (isConnected) {
+            viewModel.getPromotionsCategory()
+            viewModel.getPromotionsByCategory(selectedCouponId)
+        }
     }
 
     Column(

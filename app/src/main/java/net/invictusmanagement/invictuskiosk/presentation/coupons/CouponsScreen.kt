@@ -45,12 +45,15 @@ fun CouponsScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
+    val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     val categoryState by viewModel.state.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.getPromotionsCategory()
+    LaunchedEffect(Unit,isConnected) {
+        if (isConnected) {
+            viewModel.getPromotionsCategory()
+        }
     }
 
     Column(
