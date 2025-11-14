@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.vacancy
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +48,7 @@ fun VacancyScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     val vacanciesState by viewModel.unitList.collectAsStateWithLifecycle()
     val contactRequestState by viewModel.contactRequestState.collectAsStateWithLifecycle()
     var showVacancyInfoDialog by remember { mutableStateOf(false) }
@@ -67,6 +66,13 @@ fun VacancyScreen(
     LaunchedEffect(Unit) {
         viewModel.getUnits()
     }
+
+    LaunchedEffect(isConnected) {
+        if (vacanciesState.vacancies.isEmpty()) {
+            viewModel.getUnits()
+        }
+    }
+
     LaunchedEffect(contactRequestState) {
         if (contactRequestState.contactRequest != null) {
             showContactDialog = false

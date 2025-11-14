@@ -11,14 +11,17 @@ import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.domain.model.Unit
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import javax.inject.Inject
 
 @HiltViewModel
 class VacancyViewModel @Inject constructor(
-    private val repository: VacancyRepository
+    private val repository: VacancyRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
+    val isConnected = networkMonitor.isConnected
     private val _unitList = MutableStateFlow(VacancyState())
     val unitList: StateFlow<VacancyState> = _unitList
 
