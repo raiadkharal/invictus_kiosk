@@ -117,7 +117,7 @@ fun VideoCallScreen(
                     popUpTo(HomeScreen)
                 }
             } else if (!sendToVoiceMail) {
-                delay(2000)
+                delay(1000)
                 navController.navigate(
                     LeasingOfficeScreenRoute(
                         residentId = residentId,
@@ -145,7 +145,7 @@ fun VideoCallScreen(
         )
     }
 
-    LaunchedEffect(hasAllPermissions, isConnected) {
+    LaunchedEffect(hasAllPermissions) {
         if (hasAllPermissions) {
             videoCallViewModel.connectToVideoCallWithRetry(
                 context = context,
@@ -223,10 +223,11 @@ fun VideoCallScreen(
                         1 -> ConnectionState.CONNECTING.displayName
                         else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
                     }
-
+                    ConnectionState.RECONNECTING -> "Network lost. Trying to reconnect..."
+                    ConnectionState.RECONNECTED -> "Remaining: $remainingSeconds seconds"
                     ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"
                     ConnectionState.DISCONNECTED -> ConnectionState.DISCONNECTED.displayName
-                    ConnectionState.FAILED -> "Failed to connect after multiple attempts"
+                    ConnectionState.FAILED -> "Failed to connect."
                 },
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineSmall
@@ -234,6 +235,8 @@ fun VideoCallScreen(
                         color = when (connectionState) {
                             ConnectionState.CONNECTING -> colorResource(R.color.btn_text)
                             ConnectionState.CONNECTED -> colorResource(R.color.btn_text)
+                            ConnectionState.RECONNECTING -> colorResource(R.color.btn_text)
+                            ConnectionState.RECONNECTED -> colorResource(R.color.btn_text)
                             ConnectionState.DISCONNECTED -> colorResource(R.color.red)
                             ConnectionState.FAILED -> colorResource(R.color.red)
                         }

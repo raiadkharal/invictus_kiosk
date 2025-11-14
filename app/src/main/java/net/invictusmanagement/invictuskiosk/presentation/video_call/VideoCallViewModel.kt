@@ -28,6 +28,8 @@ import com.twilio.video.Video
 import com.twilio.video.VideoCapturer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -59,6 +61,7 @@ class VideoCallViewModel @Inject constructor(
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
     private val timeOutSeconds: Int = 45
+    private val reconnectionTimeoutSeconds: Int = 20
     var videoTrack by mutableStateOf<LocalVideoTrack?>(null)
         private set
     var audioTrack by mutableStateOf<LocalAudioTrack?>(null)
@@ -84,6 +87,7 @@ class VideoCallViewModel @Inject constructor(
     var showVoiceMailDialog by mutableStateOf(false)
         private set
     private var missedCallJob: Job? = null
+    private var reconnectionJob: Job? = null
     private var remoteParticipantJoined = false
 
     private var mobileChatHubManager: MobileChatHubManager? = null
@@ -177,7 +181,10 @@ class VideoCallViewModel @Inject constructor(
                     // If connectToRoom succeeded (Twilio connected)
                     if (result == true) {
                         success = true
-                        Log.d("VideoCall", "Video call setup successful on attempt $tokenFetchAttemptCount")
+                        Log.d(
+                            "VideoCall",
+                            "Video call setup successful on attempt $tokenFetchAttemptCount"
+                        )
                         return@launch // stop retry loop, connection established
                     } else {
                         Log.w("VideoCall", "Connection attempt timed out or failed — retrying...")
@@ -285,34 +292,25 @@ class VideoCallViewModel @Inject constructor(
                 }
             }
 
-            override fun onReconnecting(room: Room, e: TwilioException) {}
-            override fun onReconnected(room: Room) {}
+            override fun onReconnecting(room: Room, e: TwilioException) {
+                connectionState = ConnectionState.RECONNECTING
+                pauseScreenSaver()
+                startReconnectionWatchdog()  // start reconnect timeout counter
+            }
+
+            override fun onReconnected(room: Room) {
+                connectionState = ConnectionState.RECONNECTED
+                cancelReconnectionWatchdog()  // Stop reconnect timeout
+
+                room.remoteParticipants.forEach { participant ->
+                    handleRemoteParticipant(participant)
+                }
+            }
+
             override fun onRecordingStarted(room: Room) {}
             override fun onRecordingStopped(room: Room) {}
         })
 
-    }
-
-    private fun startDisconnectTimerWithCountdown() {
-        viewModelScope.launch {
-            for (i in timeOutSeconds - 1 downTo 0) {
-                delay(1000)
-                remainingSeconds = i
-            }
-            disconnect()
-        }
-    }
-
-    private fun startMissedCallTimeout(onMissedCall: () -> Unit) {
-        missedCallJob?.cancel()
-        missedCallJob = viewModelScope.launch {
-            delay((timeOutSeconds * 1000).toLong()) // 45 seconds
-            if (!remoteParticipantJoined) {
-                callEndedDueToMissedCall = true
-                disconnect()
-                onMissedCall()
-            }
-        }
     }
 
     private fun handleRemoteParticipant(participant: RemoteParticipant) {
@@ -528,6 +526,44 @@ class VideoCallViewModel @Inject constructor(
                 is Resource.Loading -> {}
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun startDisconnectTimerWithCountdown() {
+        viewModelScope.launch {
+            for (i in timeOutSeconds - 1 downTo 0) {
+                delay(1000)
+                remainingSeconds = i
+            }
+            disconnect()
+        }
+    }
+
+    private fun startMissedCallTimeout(onMissedCall: () -> Unit) {
+        missedCallJob?.cancel()
+        missedCallJob = viewModelScope.launch {
+            delay((timeOutSeconds * 1000).toLong())
+            if (!remoteParticipantJoined) {
+                callEndedDueToMissedCall = true
+                disconnect()
+                onMissedCall()
+            }
+        }
+    }
+
+    private fun startReconnectionWatchdog() {
+        reconnectionJob?.cancel()
+        reconnectionJob = CoroutineScope(Dispatchers.IO).launch {
+            delay((reconnectionTimeoutSeconds * 1000).toLong())
+            if (connectionState == ConnectionState.RECONNECTING) {
+                // Twilio never recovered — treat as disconnect
+                disconnect()
+            }
+        }
+    }
+
+    private fun cancelReconnectionWatchdog() {
+        reconnectionJob?.cancel()
+        reconnectionJob = null
     }
 
     fun disconnect() {

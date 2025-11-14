@@ -9,6 +9,8 @@ enum class FilterOption(val displayName: String) {
 enum class ConnectionState(val displayName: String){
     CONNECTING("Connecting..."),
     CONNECTED("Connected"),
+    RECONNECTING("Reconnecting..."),
+    RECONNECTED("Reconnected"),
     DISCONNECTED("Disconnected"),
     FAILED("Failed")
 }
