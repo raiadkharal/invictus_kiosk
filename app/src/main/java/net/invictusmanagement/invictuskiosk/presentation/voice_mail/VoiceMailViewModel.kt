@@ -164,8 +164,6 @@ class VoicemailViewModel @Inject constructor(
     fun stopRecording() {
         recording?.stop()
         recording = null
-
-        resumeScreenSaver()
     }
 
     fun pauseScreenSaver() {

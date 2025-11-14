@@ -63,12 +63,8 @@ fun VacancyScreen(
         )
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.getUnits()
-    }
-
-    LaunchedEffect(isConnected) {
-        if (vacanciesState.vacancies.isEmpty()) {
+    LaunchedEffect(Unit,isConnected) {
+        if (isConnected) {
             viewModel.getUnits()
         }
     }

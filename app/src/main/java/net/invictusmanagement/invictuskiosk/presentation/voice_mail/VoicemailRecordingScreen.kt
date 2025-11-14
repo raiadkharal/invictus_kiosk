@@ -82,6 +82,17 @@ fun VoicemailRecordingScreen(
         }
     }
 
+    if (isRecordingStarted) {
+        LaunchedEffect(Unit) {
+            viewModel.startRecording(context) { file ->
+                val fileSizeInMB = file.length() / (1024 * 1024)
+                Log.d("FileSize", "Size: $fileSizeInMB MB")
+                viewModel.uploadVoicemail(file, residentId.toLong())
+                viewModel.resetState()
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -106,80 +117,100 @@ fun VoicemailRecordingScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            if (uploadState.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Uploading voicemail...",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineLarge.copy(color = colorResource(R.color.btn_text))
-                    )
-                }
-            } else {
-                if (countdown > 0) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Recording start in $countdown seconds...",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineSmall
-                            .copy(
-                                color = colorResource(R.color.btn_text)
-                            )
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.7f)
-                        .padding(vertical = 16.dp, horizontal = 48.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // Local video small preview
-                    AndroidView(
-                        factory = { ctx ->
-                            val previewView = PreviewView(ctx)
-                            viewModel.setupCamera(previewView, context, lifecycleOwner)
-                            previewView
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(16.dp))
-                    )
-                }
-                CustomTextButton(
-                    modifier = Modifier
-                        .width(300.dp)
-                        .padding(16.dp),
-                    text = stringResource(R.string.finish_recording).uppercase(),
-                    isGradient = true,
-                    enabled = countdown == 0,
-                    onClick = {
-                        viewModel.stopRecording()
-                    },
+            when {
+                uploadState.isLoading -> UploadingMessage(modifier = Modifier.weight(1f))
+                else -> RecordingContent(
+                    modifier = Modifier.weight(1f),
+                    countdown = countdown,
+                    viewModel = viewModel,
+                    context = context,
+                    lifecycleOwner = lifecycleOwner
                 )
             }
-
         }
+    }
+}
 
-        if (isRecordingStarted) {
-            LaunchedEffect(Unit) {
-                viewModel.startRecording(context) { file ->
-                    val fileSizeInMB = file.length() / (1024 * 1024)
-                    Log.d("FileSize", "Size: $fileSizeInMB MB")
-                    viewModel.uploadVoicemail(file, residentId.toLong())
-                    viewModel.resetState()
-                }
-            }
-        }
 
+@Composable
+private fun UploadingMessage(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Uploading voicemail...",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineLarge.copy(color = colorResource(R.color.btn_text))
+        )
+    }
+}
+
+@Composable
+private fun RecordingContent(
+    modifier: Modifier = Modifier,
+    countdown: Int,
+    viewModel: VoicemailViewModel,
+    context: android.content.Context,
+    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+) {
+    if (countdown > 0) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Recording start in $countdown seconds...",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall
+                .copy(
+                    color = colorResource(R.color.btn_text)
+                )
+        )
     }
 
+    CameraPreview(modifier,viewModel, context, lifecycleOwner)
+
+    CustomTextButton(
+        modifier = Modifier
+            .width(300.dp)
+            .padding(16.dp),
+        text = stringResource(R.string.finish_recording).uppercase(),
+        isGradient = true,
+        enabled = countdown == 0,
+        onClick = {
+            viewModel.stopRecording()
+        },
+    )
+}
+
+@Composable
+private fun CameraPreview(
+    modifier: Modifier = Modifier,
+    viewModel: VoicemailViewModel,
+    context: android.content.Context,
+    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(0.7f)
+            .padding(vertical = 16.dp, horizontal = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        // Local video small preview
+        AndroidView(
+            factory = { ctx ->
+                val previewView = PreviewView(ctx)
+                viewModel.setupCamera(previewView, context, lifecycleOwner)
+                previewView
+            },
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(16.dp))
+        )
+    }
 }
 
 
