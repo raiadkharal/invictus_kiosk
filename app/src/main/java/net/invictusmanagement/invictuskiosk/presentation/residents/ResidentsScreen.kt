@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
@@ -98,6 +99,18 @@ fun ResidentsScreen(
         } else {
             viewModel.getResidentsByName(filter, byName)
         }
+
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
     }
 
     LaunchedEffect(keyValidationState) {
@@ -116,17 +129,6 @@ fun ResidentsScreen(
             isError = true
             delay(2000)
             isError = false
-        }
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is UiEvent.ShowError -> {
-                    navController.navigate(
-                        ErrorScreenRoute(
-                            errorMessage = event.errorMessage
-                        )
-                    ) { popUpTo(HomeScreen) }
-                }
-            }
         }
     }
     LaunchedEffect(residentState) {

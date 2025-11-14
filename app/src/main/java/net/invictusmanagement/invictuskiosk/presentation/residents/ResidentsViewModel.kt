@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -33,7 +34,7 @@ class ResidentsViewModel @Inject constructor(
 ):ViewModel() {
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
-    val eventFlow = _eventFlow
+    val eventFlow = _eventFlow.asSharedFlow()
 
     private val _residentsState = MutableStateFlow(ResidentState())
     val residentsState: StateFlow<ResidentState> = _residentsState

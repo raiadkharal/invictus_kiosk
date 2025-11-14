@@ -31,14 +31,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
+import net.invictusmanagement.invictuskiosk.util.UiEvent
 
 @Composable
 fun ServiceKeyScreen(
@@ -61,6 +64,20 @@ fun ServiceKeyScreen(
         listOf("7", "8", "9"),
         listOf("0", "X", "clear")
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
+    }
 
     LaunchedEffect(state) {
         if (state.digitalKey?.isValid == true) {

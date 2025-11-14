@@ -14,6 +14,7 @@ object Constants {
     const val SELECTED_COUNTRY = "app_country"
     const val SCAN_RESULT = "scan_result"
     const val DIGITAL_KEY_GENERIC_ERROR = "We were unable to check this guest key at this time. Please try again later or contact your administrator."
+    const val SERVICE_KEY_GENERIC_ERROR = "We were unable to check this service key at this time. Please try again later or contact your administrator."
     const val CONNECTION_ERROR = "Unable to connect to the server. Please check your internet connection and try again."
 
 
