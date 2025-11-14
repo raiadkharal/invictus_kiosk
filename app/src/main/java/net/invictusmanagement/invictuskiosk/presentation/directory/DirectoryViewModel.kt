@@ -22,6 +22,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerReposi
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import javax.inject.Inject
 
@@ -29,9 +30,11 @@ import javax.inject.Inject
 class DirectoryViewModel @Inject constructor(
     private val repository: DirectoryRepository,
     private val dataStoreManager: DataStoreManager,
-    private val relayRepository: RelayManagerRepository
-    ) : ViewModel() {
+    private val relayRepository: RelayManagerRepository,
+    private val networkMonitor: NetworkMonitor
+) : ViewModel() {
 
+    val isConnected = networkMonitor.isConnected
     private val _accessPoint = MutableStateFlow<AccessPoint?>(null)
     val accessPoint: StateFlow<AccessPoint?> = _accessPoint
 
@@ -54,16 +57,15 @@ class DirectoryViewModel @Inject constructor(
     val eventFlow = _eventFlow
 
 
-    fun loadInitialData(){
+    fun loadInitialData() {
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
             }
         }
-
-        getUnitList()
     }
-    private fun getUnitList() {
+
+    fun getUnitList() {
         repository.getUnitList().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -122,7 +124,8 @@ class DirectoryViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _residentState.value = ResidentState(error = result.message?:"An unexpected error occurred")
+                    _residentState.value =
+                        ResidentState(error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {

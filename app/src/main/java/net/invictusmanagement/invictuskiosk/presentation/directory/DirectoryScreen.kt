@@ -74,7 +74,7 @@ fun DirectoryScreen(
 
     val alphabets = listOf("Leasing Office / agents") + ('A'..'Z').map { it.toString() }
 
-
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     val unitList by viewModel.unitList.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.keyValidationState.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
@@ -96,9 +96,13 @@ fun DirectoryScreen(
     val filteredResidents =
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
-        viewModel.getAllResidents()
+
+        if (isConnected) {
+            viewModel.getUnitList()
+            viewModel.getAllResidents()
+        }
     }
 
     LaunchedEffect(unitList) {
