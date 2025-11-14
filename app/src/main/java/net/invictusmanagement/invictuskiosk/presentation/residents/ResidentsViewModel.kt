@@ -23,6 +23,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerReposi
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import javax.inject.Inject
 
@@ -30,9 +31,11 @@ import javax.inject.Inject
 class ResidentsViewModel @Inject constructor(
     private val repository: ResidentsRepository,
     private val dataStoreManager: DataStoreManager,
-    private val relayRepository: RelayManagerRepository
+    private val relayRepository: RelayManagerRepository,
+    private val networkMonitor: NetworkMonitor
 ):ViewModel() {
 
+    val isConnected = networkMonitor.isConnected
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 

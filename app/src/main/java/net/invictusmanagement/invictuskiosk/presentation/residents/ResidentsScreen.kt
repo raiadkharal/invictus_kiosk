@@ -75,6 +75,8 @@ fun ResidentsScreen(
     viewModel: ResidentsViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+
+    val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     val residentState by viewModel.residentsState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
@@ -89,16 +91,26 @@ fun ResidentsScreen(
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit,isConnected) {
         viewModel.loadInitialData()
 
-        if (isUnitNumberSelected) {
-            viewModel.getResidentByUnitNumber(unitNumber)
-        } else if (isLeasingOffice) {
-            viewModel.getAllLeasingAgents(byName)
-        } else {
-            viewModel.getResidentsByName(filter, byName)
+        if (isConnected) {
+            when {
+                isUnitNumberSelected -> {
+                    viewModel.getResidentByUnitNumber(unitNumber)
+                }
+
+                isLeasingOffice -> {
+                    viewModel.getAllLeasingAgents(byName)
+                }
+
+                else -> {
+                    viewModel.getResidentsByName(filter, byName)
+                }
+            }
         }
+
+
 
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
