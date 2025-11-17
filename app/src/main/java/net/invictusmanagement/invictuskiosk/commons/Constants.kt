@@ -69,4 +69,11 @@ object Constants {
         }
     }
 
+    fun getFriendlyCameraError(e: Exception): String = when (e) {
+        is java.util.concurrent.ExecutionException -> "Camera failed to start. Please try again."
+        is IllegalStateException -> "Camera is not available right now."
+        is SecurityException -> "Camera permission is missing. Please enable it in settings."
+        else -> "Unable to initialize the camera. Please try again."
+    }
+
 }

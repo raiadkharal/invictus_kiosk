@@ -81,6 +81,7 @@ fun VideoCallScreen(
     val sendToVoiceMail = videoCallViewModel.sendToVoiceMail
     val callEndedDueToMissedCall = videoCallViewModel.callEndedDueToMissedCall
     val isAccessGranted = videoCallViewModel.isAccessGranted
+    val errorMessage = videoCallViewModel.errorMessage
     val showVoiceMailDialog by remember { derivedStateOf { videoCallViewModel.showVoiceMailDialog } }
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
@@ -216,32 +217,45 @@ fun VideoCallScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = when (videoCallViewModel.connectionState) {
-                    ConnectionState.CONNECTING -> when (videoCallViewModel.tokenFetchAttemptCount) {
-                        1 -> ConnectionState.CONNECTING.displayName
-                        else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
-                    }
-                    ConnectionState.RECONNECTING -> "Network lost. Trying to reconnect..."
-                    ConnectionState.RECONNECTED -> "Remaining: $remainingSeconds seconds"
-                    ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"
-                    ConnectionState.DISCONNECTED -> ConnectionState.DISCONNECTED.displayName
-                    ConnectionState.FAILED -> "Failed to connect."
-                },
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall
-                    .copy(
-                        color = when (connectionState) {
-                            ConnectionState.CONNECTING -> colorResource(R.color.btn_text)
-                            ConnectionState.CONNECTED -> colorResource(R.color.btn_text)
-                            ConnectionState.RECONNECTING -> colorResource(R.color.btn_text)
-                            ConnectionState.RECONNECTED -> colorResource(R.color.btn_text)
-                            ConnectionState.DISCONNECTED -> colorResource(R.color.red)
-                            ConnectionState.FAILED -> colorResource(R.color.red)
-                        }
+            when{
+                errorMessage != null -> {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = errorMessage,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.red))
                     )
-            )
+                }
+                else ->{
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = when (videoCallViewModel.connectionState) {
+                            ConnectionState.CONNECTING -> when (videoCallViewModel.tokenFetchAttemptCount) {
+                                1 -> ConnectionState.CONNECTING.displayName
+                                else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
+                            }
+                            ConnectionState.RECONNECTING -> "Network lost. Trying to reconnect..."
+                            ConnectionState.RECONNECTED -> "Remaining: $remainingSeconds seconds"
+                            ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"
+                            ConnectionState.DISCONNECTED -> ConnectionState.DISCONNECTED.displayName
+                            ConnectionState.FAILED -> "Failed to connect."
+                        },
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineSmall
+                            .copy(
+                                color = when (connectionState) {
+                                    ConnectionState.CONNECTING -> colorResource(R.color.btn_text)
+                                    ConnectionState.CONNECTED -> colorResource(R.color.btn_text)
+                                    ConnectionState.RECONNECTING -> colorResource(R.color.btn_text)
+                                    ConnectionState.RECONNECTED -> colorResource(R.color.btn_text)
+                                    ConnectionState.DISCONNECTED -> colorResource(R.color.red)
+                                    ConnectionState.FAILED -> colorResource(R.color.red)
+                                }
+                            )
+                    )
+                }
+
+            }
 
             Row(
                 modifier = Modifier

@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
@@ -61,7 +62,9 @@ class VideoCallViewModel @Inject constructor(
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
     private val timeOutSeconds: Int = 45
-    private val reconnectionTimeoutSeconds: Int = 20
+    private val reconnectionTimeoutSeconds: Int = 15
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
     var videoTrack by mutableStateOf<LocalVideoTrack?>(null)
         private set
     var audioTrack by mutableStateOf<LocalAudioTrack?>(null)
@@ -87,7 +90,13 @@ class VideoCallViewModel @Inject constructor(
     var showVoiceMailDialog by mutableStateOf(false)
         private set
     private var missedCallJob: Job? = null
+    private var isMissedCallTimerPaused = false
+    private var missedCallSecondsLeft = timeOutSeconds
     private var reconnectionJob: Job? = null
+    private var disconnectTimerJob: Job? = null
+    private var isTimerPaused = false
+
+
     private var remoteParticipantJoined = false
 
     private var mobileChatHubManager: MobileChatHubManager? = null
@@ -212,7 +221,6 @@ class VideoCallViewModel @Inject constructor(
 
 
     private fun initializeTracks(context: Context) {
-        try {
             cameraCapturer = Camera2Capturer(
                 context,
                 getAvailableCameraId(context),
@@ -227,9 +235,6 @@ class VideoCallViewModel @Inject constructor(
 
             videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
             audioTrack = LocalAudioTrack.create(context, true)
-        } catch (ex: Exception) {
-            Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
-        }
     }
 
     fun connectToRoom(
@@ -240,7 +245,15 @@ class VideoCallViewModel @Inject constructor(
         onDisconnected: () -> Unit,
         onMissedCall: () -> Unit
     ) {
-        initializeTracks(context)
+        try {
+            initializeTracks(context)
+        }catch (e: Exception) {
+            errorMessage = Constants.getFriendlyCameraError(e)
+            viewModelScope.launch {
+                delay(2000)
+                disconnect()
+            }
+        }
         pauseScreenSaver()
 
         val connectOptions = ConnectOptions.Builder(accessToken)
@@ -258,10 +271,10 @@ class VideoCallViewModel @Inject constructor(
                 }
                 onConnected()
 
-                // Start 45-second disconnect timer
-                startDisconnectTimerWithCountdown()
                 // Start 45s timeout for missed call detection
                 startMissedCallTimeout(onMissedCall)
+                // Start 45-second disconnect timer
+                startDisconnectTimerWithCountdown()
 
             }
 
@@ -295,6 +308,8 @@ class VideoCallViewModel @Inject constructor(
             override fun onReconnecting(room: Room, e: TwilioException) {
                 connectionState = ConnectionState.RECONNECTING
                 pauseScreenSaver()
+                pauseMissedCallTimer()
+                pauseDisconnectTimer()
                 startReconnectionWatchdog()  // start reconnect timeout counter
             }
 
@@ -305,6 +320,9 @@ class VideoCallViewModel @Inject constructor(
                 room.remoteParticipants.forEach { participant ->
                     handleRemoteParticipant(participant)
                 }
+
+                resumeMissedCallTimer(onMissedCall)
+                resumeDisconnectTimer()
             }
 
             override fun onRecordingStarted(room: Room) {}
@@ -373,6 +391,7 @@ class VideoCallViewModel @Inject constructor(
             ) {
                 remoteParticipantJoined = true
                 missedCallJob?.cancel() // Cancel missed call timer
+                missedCallJob = null
                 remoteVideoTrack = videoTrack
             }
 
@@ -529,23 +548,44 @@ class VideoCallViewModel @Inject constructor(
     }
 
     private fun startDisconnectTimerWithCountdown() {
-        viewModelScope.launch {
-            for (i in timeOutSeconds - 1 downTo 0) {
+        disconnectTimerJob?.cancel()
+        isTimerPaused = false
+
+        disconnectTimerJob = viewModelScope.launch {
+            var secondsLeft = remainingSeconds
+
+            while (secondsLeft > 0 && !isTimerPaused) {
                 delay(1000)
-                remainingSeconds = i
+                secondsLeft--
+                remainingSeconds = secondsLeft
             }
-            disconnect()
+
+            if (!isTimerPaused && secondsLeft == 0) {
+                disconnect()
+            }
         }
     }
 
-    private fun startMissedCallTimeout(onMissedCall: () -> Unit) {
+    private fun startMissedCallTimeout(
+        onMissedCall: () -> Unit,
+        initialSeconds: Int = timeOutSeconds
+    ) {
         missedCallJob?.cancel()
+        isMissedCallTimerPaused = false
+        missedCallSecondsLeft = initialSeconds
+
         missedCallJob = viewModelScope.launch {
-            delay((timeOutSeconds * 1000).toLong())
-            if (!remoteParticipantJoined) {
-                callEndedDueToMissedCall = true
-                disconnect()
-                onMissedCall()
+            while (missedCallSecondsLeft > 0 && !isMissedCallTimerPaused) {
+                delay(1000)
+                missedCallSecondsLeft--
+            }
+
+            if (!isMissedCallTimerPaused && missedCallSecondsLeft == 0) {
+                if (!remoteParticipantJoined) {
+                    callEndedDueToMissedCall = true
+                    disconnect()
+                    onMissedCall()
+                }
             }
         }
     }
@@ -566,10 +606,50 @@ class VideoCallViewModel @Inject constructor(
         reconnectionJob = null
     }
 
+    private fun pauseDisconnectTimer() {
+        isTimerPaused = true
+        disconnectTimerJob?.cancel()
+    }
+
+    private fun resumeDisconnectTimer() {
+        if (remainingSeconds <= 0) return
+
+        isTimerPaused = false
+        startDisconnectTimerWithCountdown()
+    }
+
+    private fun pauseMissedCallTimer() {
+        isMissedCallTimerPaused = true
+        missedCallJob?.cancel()
+    }
+
+    private fun resumeMissedCallTimer(onMissedCall: () -> Unit) {
+        if (missedCallSecondsLeft <= 0) return
+
+        isMissedCallTimerPaused = false
+
+        startMissedCallTimeout(
+            onMissedCall = onMissedCall,
+            initialSeconds = missedCallSecondsLeft
+        )
+    }
+
+
     fun disconnect() {
         try {
+            // Cancel disconnect countdown timer
+            disconnectTimerJob?.cancel()
+            disconnectTimerJob = null
+            isTimerPaused = false
+
+            // Cancel reconnection watchdog
+            reconnectionJob?.cancel()
+            reconnectionJob = null
+
+            // Cancel missed call timer
             missedCallJob?.cancel()
             missedCallJob = null
+
             remoteParticipantJoined = false
 
             // Cancel ongoing token fetch or retries
@@ -577,11 +657,15 @@ class VideoCallViewModel @Inject constructor(
 
             room?.disconnect()
             room = null
+
             videoTrack?.release()
             videoTrack = null
+
             audioTrack?.release()
             audioTrack = null
+
             connectionState = ConnectionState.DISCONNECTED
+
         } catch (e: Exception) {
             Log.e("TAG", "disconnect: ${e.message}")
             connectionState = ConnectionState.DISCONNECTED

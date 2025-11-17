@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
@@ -101,34 +103,39 @@ class VoicemailViewModel @Inject constructor(
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().apply {
-                surfaceProvider = previewView.surfaceProvider
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().apply {
+                    surfaceProvider = previewView.surfaceProvider
+                }
+
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .build()
+
+                val videoCap = VideoCapture.withOutput(recorder)
+                _videoCapture.value = videoCap
+
+                val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                    frontCameraSelector
+                } else {
+                    backCameraSelector
+                }
+
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    videoCap
+                )
+            } catch (e: Exception) {
+                Log.e("Voicemail", "Camera setup error: ${e.localizedMessage}")
+                Toast.makeText(context, Constants.getFriendlyCameraError(e), Toast.LENGTH_SHORT).show()
             }
-
-            val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.HD))
-                .build()
-
-            val videoCap = VideoCapture.withOutput(recorder)
-            _videoCapture.value = videoCap
-
-            val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-            val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
-                frontCameraSelector
-            } else {
-                backCameraSelector
-            }
-
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                videoCap
-            )
         }, ContextCompat.getMainExecutor(context))
     }
 
@@ -137,28 +144,33 @@ class VoicemailViewModel @Inject constructor(
         context: Context,
         onFinish: (File) -> Unit
     ) {
-        val capture = videoCapture.value ?: return
+        try {
+            val capture = videoCapture.value ?: return
 
-        videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
-        val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
-        onFinishCallback = onFinish
+            videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
+            val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
+            onFinishCallback = onFinish
 
-        recording = capture.output
-            .prepareRecording(context, outputOptions)
-            .withAudioEnabled()
-            .start(ContextCompat.getMainExecutor(context)) { event ->
-                if (event is VideoRecordEvent.Finalize) {
-                    if (!event.hasError()) {
-                        onFinishCallback?.invoke(videoFile!!)
-                    } else {
-                        Log.e("Voicemail", "Recording error: ${event.error}")
+            recording = capture.output
+                .prepareRecording(context, outputOptions)
+                .withAudioEnabled()
+                .start(ContextCompat.getMainExecutor(context)) { event ->
+                    if (event is VideoRecordEvent.Finalize) {
+                        if (!event.hasError()) {
+                            onFinishCallback?.invoke(videoFile!!)
+                        } else {
+                            Log.e("Voicemail", "Recording error: ${event.error}")
+                        }
                     }
                 }
-            }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            recording?.stop()
-        }, 30_000)
+            Handler(Looper.getMainLooper()).postDelayed({
+                recording?.stop()
+            }, 30_000)
+        } catch (e: Exception) {
+            Log.e("Voicemail", "Recording error: ${e.message}")
+            Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun stopRecording() {

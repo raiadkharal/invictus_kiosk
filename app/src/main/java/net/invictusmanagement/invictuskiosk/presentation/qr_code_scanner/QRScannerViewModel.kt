@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
@@ -156,16 +157,9 @@ class QRScannerViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
-                reportError(getFriendlyCameraError(e))
+                reportError(Constants.getFriendlyCameraError(e))
             }
         }, ContextCompat.getMainExecutor(context))
-    }
-
-    fun getFriendlyCameraError(e: Exception): String = when (e) {
-        is java.util.concurrent.ExecutionException -> "Camera failed to start. Please try again."
-        is IllegalStateException -> "Camera is not available right now."
-        is SecurityException -> "Camera permission is missing. Please enable it in settings."
-        else -> "Unable to initialize the camera. Please try again."
     }
 
     fun onPermissionResult(granted: Boolean) {
