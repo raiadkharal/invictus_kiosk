@@ -45,7 +45,11 @@ fun VoiceMailConfirmationDialog(
             resetSleepTimer?.invoke()
             navController.popBackStack()
         },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
     ) {
         Surface(
             modifier = Modifier

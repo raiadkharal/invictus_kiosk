@@ -80,13 +80,13 @@ class VoicemailViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     resumeScreenSaver()
-                    _uploadState.value = UploadState(data = result.data ?: 1)
+                    _uploadState.value = UploadState(isLoading = true,data = result.data ?: 1)
                 }
 
                 is Resource.Error -> {
                     resumeScreenSaver()
                     _uploadState.value =
-                        UploadState(error = result.message ?: "An unexpected error occurred")
+                        UploadState(isLoading = true,error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {

@@ -48,7 +48,11 @@ fun ResponseDialog(
             resetSleepTimer?.invoke()
             onDismiss()
         },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
         Surface(
             modifier = Modifier
