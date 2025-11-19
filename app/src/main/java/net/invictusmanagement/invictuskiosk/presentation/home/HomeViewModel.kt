@@ -24,8 +24,6 @@ import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
-import net.invictusmanagement.relaymanager.RelayManager
-import net.invictusmanagement.relaymanager.models.OpenRelayModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +35,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
+    val isInternetStable = networkMonitor.isInternetStable
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
     val digitalKeyValidationState: StateFlow<DigitalKeyState> = _digitalKeyValidationState
 

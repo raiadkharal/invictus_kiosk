@@ -22,7 +22,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
@@ -278,6 +277,7 @@ class MainActivity : ComponentActivity() {
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val tokenState by viewModel.accessToken.collectAsState(initial = null)
         val isConnected by homeViewModel.isConnected.collectAsState(initial = true)
+        val isInternetStable by homeViewModel.isInternetStable.collectAsState()
         var startDestination by remember { mutableStateOf<Any?>(null) }
 
         LaunchedEffect(tokenState) {
@@ -302,7 +302,8 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .statusBarsPadding(),
-                        isConnected = isConnected
+                        isConnected = isConnected,
+                        isInternetStable = isInternetStable
                     )
                 }
             }

@@ -15,35 +15,50 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import net.invictusmanagement.invictuskiosk.R
 
 @Composable
 fun NetworkStatusBar(
     modifier: Modifier = Modifier,
-    isConnected: Boolean
+    isConnected: Boolean,
+    isInternetStable: Boolean,
 ) {
+    // Determine visibility + message + color
+    val (show, message, color) = when {
+        !isConnected -> Triple(
+            true,
+            "No Internet Connection",
+            Color(0xFFFF3B30) // Red
+        )
+
+        isConnected && !isInternetStable -> Triple(
+            true,
+            "Unstable Internet Connection",
+            Color(0xFFFF3B30) // Red
+        )
+
+        else -> Triple(false, "", Color.Transparent)
+    }
+
     AnimatedVisibility(
-        visible = !isConnected,
+        visible = show,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
     ) {
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .background(colorResource(R.color.red))
+                .background(color)
                 .padding(vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No Internet Connection",
-                color = colorResource(R.color.white),
+                text = message,
+                color = Color.White,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
         }
     }
 }
-
