@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,8 +31,8 @@ import net.invictusmanagement.invictuskiosk.R
 @Composable
 fun QRCodePanel(
     modifier: Modifier = Modifier,
-    imageWidth: Dp = 300.dp,
-    imageHeight: Dp = 300.dp,
+    imageWidth: Dp = 250.dp,
+    imageHeight: Dp = 250.dp,
     onScanClick: () -> Unit = {}
 ) {
     Column(
@@ -46,15 +48,26 @@ fun QRCodePanel(
             modifier = Modifier
                 .width(imageWidth)
                 .height(imageHeight),
-            painter = painterResource(R.drawable.qr_code_image),
+            painter = painterResource(R.drawable.qr_code_mobile),
             contentDescription = "QR Code"
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "1. Open QR Code on your phone\n" +
+                    "2. Tap “Scan QR Code” below\n" +
+                    "3. Hold your phone up to the scanner",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = colorResource(R.color.btn_text)),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(32.dp))
         OTPButton(
             modifier = Modifier.width(172.dp),
+            backgroundColor = R.color.btn_text,
             text = stringResource(R.string.scan_qr_code),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                color = colorResource(R.color.btn_text)
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = colorResource(R.color.btn_pin_code)
             ),
             onClick = onScanClick
         )

@@ -298,8 +298,8 @@ fun ResidentsScreen(
                     QRCodePanel(
                         modifier = Modifier
                             .fillMaxSize(),
-                        imageWidth = 350.dp,
-                        imageHeight = 350.dp,
+                        imageWidth = 300.dp,
+                        imageHeight = 300.dp,
                         onScanClick = { navController.navigate(QRScannerScreen) }
                     )
                 }
