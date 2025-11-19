@@ -21,6 +21,18 @@ class MobileChatHubManager(
     private val reconnecting = AtomicBoolean(false)
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+
+    companion object {
+        private var lastInstance: MobileChatHubManager? = null
+    }
+
+    init {
+        // Stop previous instance before this new one becomes active
+        lastInstance?.cleanupInternal()
+        lastInstance = this
+        Log.d(TAG, "New SignalR manager instance created, old instance cleaned.")
+    }
+
     /**
      * Initializes and connects to SignalR in the background
      */
@@ -133,6 +145,17 @@ class MobileChatHubManager(
             } catch (e: Exception) {
                 Log.e(TAG, "disconnect: Error stopping SignalR: ${e.message}")
             }
+        }
+    }
+
+    /**
+     * Internal cleanup used by companion object (non-cancelled scope)
+     */
+    private fun cleanupInternal() {
+        try {
+            Log.d(TAG, "cleanupInternal: Cleaning previous SignalR instance")
+            hubConnection?.stop()
+        } catch (_: Exception) {
         }
     }
 

@@ -21,11 +21,12 @@ import net.invictusmanagement.invictuskiosk.domain.model.LeasingOffice
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
+import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
+import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
-import net.invictusmanagement.relaymanager.RelayManager
-import net.invictusmanagement.relaymanager.models.OpenRelayModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,8 +34,9 @@ class HomeViewModel @Inject constructor(
     private val repository: HomeRepository,
     private val dataStoreManager: DataStoreManager,
     private val relayRepository: RelayManagerRepository,
-    private val networkMonitor: NetworkMonitor
-) : ViewModel() {
+    private val networkMonitor: NetworkMonitor,
+    private val relayManagerRepository: RelayManagerRepository
+) : ViewModel(), MobileChatHubEventListener{
 
     val isConnected = networkMonitor.isConnected
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
@@ -63,6 +65,23 @@ class HomeViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000L),
         null
     )
+
+    private var mobileChatHubManager: MobileChatHubManager? = null
+
+    fun initializeSignalR(kioskId: Int) {
+        if (mobileChatHubManager != null) return
+
+        mobileChatHubManager = MobileChatHubManager(
+            kioskId = kioskId,
+            listener = this,
+            connectionListener = object : SignalRConnectionListener {
+                override fun onConnected() {
+                }
+            }
+        )
+
+        mobileChatHubManager?.connect()
+    }
 
     fun loadInitialData(){
         viewModelScope.launch {
@@ -231,8 +250,26 @@ class HomeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    override fun onSendToVoiceMail() {
+
+    }
 
 
+    override fun onOpenAccessPoint(
+        relayPort: Int,
+        relayOpenTimer: Int,
+        relayDelayTimer: Int,
+        silent: Boolean
+    ) {
+        viewModelScope.launch {
+            //send open AccessPoint request to the relay manager when get the access granted via video call
+            relayManagerRepository.openAccessPoint(
+                relayPort,
+                relayOpenTimer,
+                relayDelayTimer
+            )
+        }
+    }
 
     fun resetState() {
         _digitalKeyValidationState.value = DigitalKeyState()

@@ -102,6 +102,8 @@ class VideoCallViewModel @Inject constructor(
     private var mobileChatHubManager: MobileChatHubManager? = null
 
     fun initializeSignalR(kioskId: Int) {
+        if (mobileChatHubManager != null) return
+
         signalRConnectionState = SignalRConnectionState.CONNECTING
 
         mobileChatHubManager = MobileChatHubManager(

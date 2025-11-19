@@ -97,6 +97,7 @@ fun HomeScreen(
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
     val leasingOfficeDetails by viewModel.leasingOfficeDetails.collectAsStateWithLifecycle()
     val introButtons by viewModel.introButtons.collectAsStateWithLifecycle()
+    val kioskId by mainViewModel.kioskId.collectAsStateWithLifecycle()
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
 
@@ -105,6 +106,12 @@ fun HomeScreen(
 
         if(isConnected){
             viewModel.loadInitialData()
+        }
+    }
+
+    LaunchedEffect(currentAccessPoint) {
+        currentAccessPoint?.let { accessPoint ->
+            viewModel.initializeSignalR(kioskId)
         }
     }
 
