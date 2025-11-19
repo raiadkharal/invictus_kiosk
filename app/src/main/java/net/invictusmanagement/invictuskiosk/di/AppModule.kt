@@ -7,6 +7,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.BuildConfig
+import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileRestClient
@@ -98,8 +100,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideHomeRepository(api: ApiInterface): HomeRepository {
-        return HomeRepositoryImpl(api)
+    fun provideHomeRepository(api: ApiInterface,homeDao: HomeDao): HomeRepository {
+        return HomeRepositoryImpl(api,homeDao)
     }
 
     @Provides
@@ -116,8 +118,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDirectoryRepository(api: ApiInterface): DirectoryRepository {
-        return DirectoryRepositoryImpl(api)
+    fun provideDirectoryRepository(api: ApiInterface,directoryDao: DirectoryDao): DirectoryRepository {
+        return DirectoryRepositoryImpl(api,directoryDao)
     }
 
     @Provides

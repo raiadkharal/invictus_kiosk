@@ -11,6 +11,4 @@ import net.invictusmanagement.invictuskiosk.domain.model.UnitList
 interface DirectoryRepository {
     fun getUnitList(): Flow<Resource<List<UnitList>>>
     fun validateDigitalKey(digitalKeyDto: DigitalKeyDto): Flow<Resource<DigitalKey>>
-
-    fun getAllResidents(): Flow<Resource<List<Resident>>>
 }

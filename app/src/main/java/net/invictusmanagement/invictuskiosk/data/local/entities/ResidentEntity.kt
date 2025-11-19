@@ -1,12 +1,14 @@
-package net.invictusmanagement.invictuskiosk.data.remote.dto
+package net.invictusmanagement.invictuskiosk.data.local.entities
 
-import net.invictusmanagement.invictuskiosk.data.local.entities.ResidentEntity
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 
-data class ResidentDto(
+@Entity(tableName = "residents")
+data class ResidentEntity(
+    @PrimaryKey val id: Int,
     val activationCode: String?,
     val displayName: String,
-    val id: Int,
     val isDoNotDisturb: Boolean?,
     val isSmartPhone: Boolean?,
     val mapId: Int?,
@@ -16,26 +18,12 @@ data class ResidentDto(
     val unitNbr: String?
 )
 
-fun ResidentDto.toResident(): Resident {
+
+fun ResidentEntity.toResident(): Resident {
     return Resident(
         activationCode = activationCode,
         displayName = displayName,
         id = id,
-        isDoNotDisturb = isDoNotDisturb,
-        isSmartPhone = isSmartPhone,
-        mapId = mapId,
-        phoneNumber = phoneNumber,
-        role = role,
-        unitId = unitId,
-        unitNbr = unitNbr
-    )
-}
-
-fun ResidentDto.toResidentEntity(): ResidentEntity {
-    return ResidentEntity(
-        id = id,
-        activationCode = activationCode,
-        displayName = displayName,
         isDoNotDisturb = isDoNotDisturb,
         isSmartPhone = isSmartPhone,
         mapId = mapId,

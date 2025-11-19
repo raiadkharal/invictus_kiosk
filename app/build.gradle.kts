@@ -157,4 +157,9 @@ dependencies {
 
     // SignalR
     implementation(libs.signalr)
+
+    //room database
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
 }
