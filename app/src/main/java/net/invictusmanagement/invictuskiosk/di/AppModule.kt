@@ -7,8 +7,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.BuildConfig
+import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileRestClient
@@ -124,14 +126,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCouponsRepository(api: ApiInterface): CouponsRepository {
-        return CouponsRepositoryImpl(api)
+    fun provideCouponsRepository(api: ApiInterface,couponsDao: CouponsDao): CouponsRepository {
+        return CouponsRepositoryImpl(api,couponsDao)
     }
 
     @Provides
     @Singleton
-    fun provideVacancyRepository(api: ApiInterface): VacancyRepository {
-        return VacancyRepositoryImpl(api)
+    fun provideVacancyRepository(api: ApiInterface,vacanciesDao: VacanciesDao): VacancyRepository {
+        return VacancyRepositoryImpl(api,vacanciesDao)
     }
 
     @Provides

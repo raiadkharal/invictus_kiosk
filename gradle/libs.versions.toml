@@ -31,6 +31,7 @@ signalr = "9.0.10"
 videoAndroid = "7.5.1"
 appcompat = "1.7.1"
 material = "1.13.0"
+workRuntimeKtx = "2.11.0"
 
 [libraries]
 accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayout" }
@@ -84,6 +85,7 @@ signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
 video-android = { module = "com.twilio:video-android", version.ref = "videoAndroid" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

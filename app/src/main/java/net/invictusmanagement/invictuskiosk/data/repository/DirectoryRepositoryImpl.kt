@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -30,7 +31,7 @@ class DirectoryRepositoryImpl @Inject constructor(
         try {
             fetchUnitList()
         } catch (e: Exception) {
-            emit(Resource.Error(mapError(e)))
+            Log.d("getUnitList", mapError(e))
         }
 
         emitAll(

@@ -8,4 +8,5 @@ import net.invictusmanagement.invictuskiosk.domain.model.Unit
 interface VacancyRepository {
     fun getUnits(): Flow<Resource<List<Unit>>>
     fun sendContactRequest(contactRequest: ContactRequest): Flow<Resource<ContactRequest>>
+    suspend fun syncPendingRequests()
 }

@@ -1,12 +1,17 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
+import net.invictusmanagement.invictuskiosk.data.local.entities.toBusinessPromotion
+import net.invictusmanagement.invictuskiosk.data.local.entities.toPromotionsCategory
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
-import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toBusinessPromotion
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toPromotionsCategory
+import net.invictusmanagement.invictuskiosk.data.remote.dto.toEntity
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
@@ -15,29 +20,63 @@ import java.io.IOException
 import javax.inject.Inject
 
 class CouponsRepositoryImpl @Inject constructor(
-    private val api: ApiInterface
+    private val api: ApiInterface,
+    private val couponsDao: CouponsDao
 ) : CouponsRepository {
-    override fun getPromotionsCategories(): Flow<Resource<List<PromotionsCategory>>> = flow {
+
+    override fun getCouponsCategories(): Flow<Resource<List<PromotionsCategory>>> = flow {
+        emit(Resource.Loading())
+
         try {
-            emit(Resource.Loading())
-            val response = api.getPromotionCategories().map { it.toPromotionsCategory() }
-            emit(Resource.Success(response))
-        } catch (e: HttpException) {
-            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
+            fetchCouponsCategories()
+        } catch (e: Exception) {
+            Log.d("getPromotionsCategories", mapError(e))
         }
+
+        emitAll(
+            couponsDao.getPromotionCategories().map { list ->
+                Resource.Success(list.map { it.toPromotionsCategory() })
+            }
+        )
     }
 
-    override fun getPromotionsByCategory(id: String): Flow<Resource<List<BusinessPromotion>>> = flow {
+    override fun getCouponsByCategory(
+        id: String
+    ): Flow<Resource<List<BusinessPromotion>>> = flow {
+
+        emit(Resource.Loading())
+
         try {
-            emit(Resource.Loading())
-            val response = api.getPromotionsByCategory(id).map { it.toBusinessPromotion() }
-            emit(Resource.Success(response))
-        } catch (e: HttpException) {
-            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
+            fetchCouponsByCategory(id)   // ⬅ fetch API and update DB inside this function
+        } catch (e: Exception) {
+            Log.d("getCouponsByCategory", mapError(e))
         }
+
+        emitAll(
+            couponsDao.getPromotions().map { list ->
+                Resource.Success(list.map { it.toBusinessPromotion() })
+            }
+        )
+    }
+
+
+    private suspend fun fetchCouponsCategories() {
+        val remote = api.getPromotionCategories()
+        couponsDao.clearPromotionCategories()
+        couponsDao.insertPromotionCategories(remote.map { it.toEntity() })
+    }
+
+    private suspend fun fetchCouponsByCategory(id: String) {
+        val remote = api.getPromotionsByCategory(id)
+
+        couponsDao.insertPromotions(
+            remote.map { it.toEntity() }
+        )
+    }
+
+    private fun mapError(e: Exception): String = when (e) {
+        is IOException -> "Couldn't reach server. Check your internet connection."
+        is HttpException -> e.localizedMessage ?: "Unexpected error"
+        else -> "Something went wrong"
     }
 }

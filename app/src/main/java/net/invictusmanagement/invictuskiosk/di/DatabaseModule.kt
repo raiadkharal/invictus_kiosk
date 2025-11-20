@@ -8,8 +8,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.data.local.AppDatabase
+import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import javax.inject.Singleton
 
 @Module
@@ -32,4 +34,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDirectoryDao(db: AppDatabase): DirectoryDao = db.directoryDao()
+
+    @Provides
+    @Singleton
+    fun provideCouponsDao(db: AppDatabase): CouponsDao = db.couponDao()
+
+    @Provides
+    @Singleton
+    fun provideVacanciesDao(db: AppDatabase): VacanciesDao = db.vacanciesDao()
 }

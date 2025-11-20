@@ -50,10 +50,8 @@ fun CouponsScreen(
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit,isConnected) {
-        if (isConnected) {
-            viewModel.getPromotionsCategory()
-        }
+    LaunchedEffect(Unit, isConnected) {
+        viewModel.getPromotionsCategory()
     }
 
     Column(

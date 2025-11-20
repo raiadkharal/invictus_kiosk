@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.data.sync.ContactSyncScheduler
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
@@ -26,7 +27,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val unitMapRepository: UnitMapRepository,
-    private val networkMonitor: NetworkMonitor
+    private val networkMonitor: NetworkMonitor,
+    private val syncScheduler: ContactSyncScheduler
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
@@ -59,6 +61,7 @@ class MainViewModel @Inject constructor(
         private set
 
     init {
+        observeNetwork()
         viewModelScope.launch {
             dataStoreManager.kioskDataFlow.collect {
                 _locationName.value = it?.kiosk?.location?.name ?: ""
@@ -130,6 +133,15 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun observeNetwork() {
+        viewModelScope.launch {
+            networkMonitor.isConnected.collect { isOnline ->
+                if (isOnline) {
+                    syncScheduler.enqueueContactSyncWork()
+                }
+            }
+        }
+    }
 
     fun showNextImage() {
         if (unitImages.isNotEmpty()) {

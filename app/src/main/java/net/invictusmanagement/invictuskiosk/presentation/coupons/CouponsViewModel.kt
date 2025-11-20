@@ -8,9 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
-import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
-import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 import net.invictusmanagement.invictuskiosk.presentation.coupons_business_list.CouponsBusinessState
 import javax.inject.Inject
@@ -27,7 +24,7 @@ class CouponsViewModel @Inject constructor(
     val businessPromotions: StateFlow<CouponsBusinessState> = _businessPromotions
 
     fun getPromotionsCategory() {
-        repository.getPromotionsCategories().onEach { result ->
+        repository.getCouponsCategories().onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = CouponsCategoryState(couponsCategories = result.data ?: emptyList())
@@ -45,7 +42,7 @@ class CouponsViewModel @Inject constructor(
     }
 
     fun getPromotionsByCategory(id: String) {
-        repository.getPromotionsByCategory(id).onEach { result ->
+        repository.getCouponsByCategory(id).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _businessPromotions.value = CouponsBusinessState(businessPromotions =result.data ?: emptyList())

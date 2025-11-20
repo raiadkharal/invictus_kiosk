@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.data.local.entities.CouponsCategoryEntity
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 
 data class PromotionsCategoryDto(
@@ -13,3 +14,8 @@ fun PromotionsCategoryDto.toPromotionsCategory(): PromotionsCategory{
         name = name
     )
 }
+
+fun PromotionsCategoryDto.toEntity() = CouponsCategoryEntity(
+    id = id,
+    name = name
+)
