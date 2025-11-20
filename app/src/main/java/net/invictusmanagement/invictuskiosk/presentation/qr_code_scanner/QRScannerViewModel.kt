@@ -35,6 +35,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerReposi
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.BarcodeAnalyzer
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUiState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -42,7 +43,8 @@ import javax.inject.Inject
 class QRScannerViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
     private val dataStoreManager: DataStoreManager,
-    private val relayRepository: RelayManagerRepository
+    private val relayRepository: RelayManagerRepository,
+    private val logger: GlobalLogger
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QRScannerUiState())
@@ -156,7 +158,7 @@ class QRScannerViewModel @Inject constructor(
                     imageAnalysis
                 )
             } catch (e: Exception) {
-                e.printStackTrace()
+                logger.logError("QrCodeScanner/StartCamera", "Error binding camera ${e.localizedMessage}", e)
                 reportError(Constants.getFriendlyCameraError(e))
             }
         }, ContextCompat.getMainExecutor(context))
@@ -201,7 +203,6 @@ class QRScannerViewModel @Inject constructor(
             }
         }
     }
-
 
     override fun onCleared() {
         scanner.close()

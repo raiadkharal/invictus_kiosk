@@ -10,12 +10,14 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.toPromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class CouponsRepositoryImpl @Inject constructor(
-    private val api: ApiInterface
+    private val api: ApiInterface,
+    private val logger: GlobalLogger
 ) : CouponsRepository {
     override fun getPromotionsCategories(): Flow<Resource<List<PromotionsCategory>>> = flow {
         try {
@@ -23,6 +25,7 @@ class CouponsRepositoryImpl @Inject constructor(
             val response = api.getPromotionCategories().map { it.toPromotionsCategory() }
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getPromotionsCategories", "Error fetching promotion categories: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -35,6 +38,7 @@ class CouponsRepositoryImpl @Inject constructor(
             val response = api.getPromotionsByCategory(id).map { it.toBusinessPromotion() }
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getPromotionsByCategory", "Error fetching promotions by category: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))

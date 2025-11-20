@@ -4,6 +4,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.AccessPointDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ContactRequestDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
+import net.invictusmanagement.invictuskiosk.data.remote.dto.ErrorLogRequestDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LeasingOfficeDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LoginDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
@@ -19,6 +20,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -117,4 +119,8 @@ interface ApiInterface {
         @Path("unitId") unitId: Long,
         @Path("unitImageId") unitMapId: Long
     ): ResponseBody
+
+    @POST("logs/add")
+    suspend fun addErrorLog(@Body request: ErrorLogRequestDto): Response<Unit>
+
 }

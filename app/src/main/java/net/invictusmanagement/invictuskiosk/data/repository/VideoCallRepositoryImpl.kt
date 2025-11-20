@@ -15,12 +15,14 @@ import net.invictusmanagement.invictuskiosk.domain.model.MissedCall
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCall
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class VideoCallRepositoryImpl @Inject constructor(
-    private val api: ApiInterface
+    private val api: ApiInterface,
+    private val logger: GlobalLogger
 ):VideoCallRepository {
     override fun getVideoCallToken(room: String): Flow<Resource<VideoCallToken>> = flow {
         try {
@@ -28,6 +30,7 @@ class VideoCallRepositoryImpl @Inject constructor(
             val response = api.getVideoCallToken(room).toVideoCallToken()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getvideocalltoken", "Error fetching video call token ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -40,6 +43,7 @@ class VideoCallRepositoryImpl @Inject constructor(
             val response = api.connectToVideoCall(videoCallDto).toVideoCall()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("connectToVideoCall", "Error connecting to video call ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -52,6 +56,7 @@ class VideoCallRepositoryImpl @Inject constructor(
             val response = api.postMissedCall(missedCallDto).toMissedCall()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("postMissedCall", "Error posting missed call ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))

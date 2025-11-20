@@ -49,6 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.Signa
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
 
@@ -56,7 +57,8 @@ import javax.inject.Inject
 class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository,
     private val screenSaverRepository: ScreenSaverRepository,
-    private val relayManagerRepository: RelayManagerRepository
+    private val relayManagerRepository: RelayManagerRepository,
+    private val logger: GlobalLogger
 ) : ViewModel(), MobileChatHubEventListener {
 
     private var room: Room? = null
@@ -114,6 +116,9 @@ class VideoCallViewModel @Inject constructor(
                     if (connectionState == ConnectionState.CONNECTING) {
                         signalRConnectionState = SignalRConnectionState.CONNECTED
                     }
+                }
+                override fun onConnectionError(method: String, e: Exception) {
+                    logger.logError("SignalRConnectionError/VideoCallViewModel/${method}", "Error connecting to SignalR: ${e.localizedMessage}", e)
                 }
             }
         )
@@ -202,6 +207,7 @@ class VideoCallViewModel @Inject constructor(
                     }
 
                 } catch (e: Exception) {
+                    logger.logError("connectToVideoCall", "Error connecting to video call ${e.localizedMessage}", e)
                     Log.e(
                         "VideoCall",
                         "Attempt $tokenFetchAttemptCount failed with exception: ${e.message}"
@@ -250,6 +256,7 @@ class VideoCallViewModel @Inject constructor(
         try {
             initializeTracks(context)
         }catch (e: Exception) {
+            logger.logError("initializeTracks", "Failed to initialize tracks ${e.localizedMessage}", e)
             errorMessage = Constants.getFriendlyCameraError(e)
             viewModelScope.launch {
                 delay(2000)
@@ -295,6 +302,7 @@ class VideoCallViewModel @Inject constructor(
             }
 
             override fun onConnectFailure(room: Room, e: TwilioException) {
+                logger.logError("twilio/onConnectFailure", "Failed to connect to Twilio room ${e.localizedMessage}", e)
                 connectionState = ConnectionState.FAILED
                 resumeScreenSaver()
                 onDisconnected()

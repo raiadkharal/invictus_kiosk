@@ -37,6 +37,7 @@ import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.truncate
@@ -44,7 +45,8 @@ import kotlin.math.truncate
 @HiltViewModel
 class VoicemailViewModel @Inject constructor(
     private val repository: VoicemailRepository,
-    private val screenSaverRepository: ScreenSaverRepository
+    private val screenSaverRepository: ScreenSaverRepository,
+    private val logger: GlobalLogger
 ) : ViewModel() {
 
     private var onFinishCallback: ((File) -> Unit)? = null
@@ -133,7 +135,7 @@ class VoicemailViewModel @Inject constructor(
                     videoCap
                 )
             } catch (e: Exception) {
-                Log.e("Voicemail", "Camera setup error: ${e.localizedMessage}")
+                logger.logError("Voicemail/CameraSetup", "Camera setup error: ${e.localizedMessage}", e)
                 Toast.makeText(context, Constants.getFriendlyCameraError(e), Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(context))
@@ -168,7 +170,7 @@ class VoicemailViewModel @Inject constructor(
                 recording?.stop()
             }, 30_000)
         } catch (e: Exception) {
-            Log.e("Voicemail", "Recording error: ${e.message}")
+            logger.logError("Voicemail/Recording", "Recording error: ${e.message}", e)
             Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
         }
     }

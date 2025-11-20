@@ -58,6 +58,7 @@ class MobileChatHubManager(
                 connectionListener.onConnected()
                 Log.d(TAG, "connect: SignalR connected and registered (Kiosk $kioskId)")
             } catch (e: Exception) {
+                connectionListener.onConnectionError("connect",e)
                 Log.e(TAG, "Error connecting to SignalR: ${e.message}")
                 scheduleReconnect()
             }
@@ -73,6 +74,7 @@ class MobileChatHubManager(
                 hubConnection?.invoke("Register", kioskId.toLong())
                 Log.d(TAG, "registerToHub: Kiosk registered successfully")
             } catch (e: Exception) {
+                connectionListener.onConnectionError("registerToHub",e)
                 Log.e(TAG, "registerToHub: Failed to register kiosk: ${e.message}")
             }
         }

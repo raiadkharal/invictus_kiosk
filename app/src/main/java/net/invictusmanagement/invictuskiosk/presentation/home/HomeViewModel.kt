@@ -25,6 +25,7 @@ import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubMa
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import javax.inject.Inject
@@ -35,7 +36,8 @@ class HomeViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val relayRepository: RelayManagerRepository,
     private val networkMonitor: NetworkMonitor,
-    private val relayManagerRepository: RelayManagerRepository
+    private val relayManagerRepository: RelayManagerRepository,
+    private val logger: GlobalLogger
 ) : ViewModel(), MobileChatHubEventListener{
 
     val isConnected = networkMonitor.isConnected
@@ -76,6 +78,10 @@ class HomeViewModel @Inject constructor(
             listener = this,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
+                }
+
+                override fun onConnectionError(method: String, e: Exception) {
+                    logger.logError("SignalRConnectionError/HomeViewModel/${method}", "Error connecting to SignalR: ${e.localizedMessage}", e)
                 }
             }
         )

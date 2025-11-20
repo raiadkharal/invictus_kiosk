@@ -17,12 +17,14 @@ import net.invictusmanagement.invictuskiosk.domain.model.LeasingOffice
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.domain.model.home.Main
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class HomeRepositoryImpl @Inject constructor(
-    private val api: ApiInterface
+    private val api: ApiInterface,
+    private val logger: GlobalLogger
 ) : HomeRepository {
 
     override fun validateDigitalKey(digitalKeyDto: DigitalKeyDto): Flow<Resource<DigitalKey>> =
@@ -32,6 +34,7 @@ class HomeRepositoryImpl @Inject constructor(
                 val response = api.validateDigitalKey(digitalKeyDto).toDigitalKey()
                 emit(Resource.Success(response))
             } catch (e: HttpException) {
+                logger.logError("validateDigitalKey", "Error validating digital key: ${e.localizedMessage}", e)
                 emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
             } catch (e: IOException) {
                 emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -44,6 +47,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getAccessPoints().map { it.toAccessPoint() }
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getAccessPoints", "Error fetching access points: ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -56,6 +60,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getAllResidents().map { it.toResident() }
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getAllResidents", "Error fetching residents: ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -68,6 +73,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getKioskData().toMain()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getKioskData", "Error fetching kiosk data: ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -80,6 +86,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getLeasingOfficeDetails().toLeasingOffice()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getLeasingOfficeDetails", "Error fetching leasing office details: ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -92,6 +99,7 @@ class HomeRepositoryImpl @Inject constructor(
             val response = api.getIntroButtons()
             emit(Resource.Success(response))
         } catch (e: HttpException) {
+            logger.logError("getIntroButtons", "Error fetching intro buttons: ${e.localizedMessage}", e)
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
