@@ -17,7 +17,7 @@ class GlobalLogger @Inject constructor(
 ): ILogger {
 
     override fun log(logger: String, message: String, exception: Throwable?) {
-        Log.e(logger, message, exception)
+        Log.d(logger, message, exception)
 
         CoroutineScope(Dispatchers.IO).launch {
             val activationCode = dataStoreManager.activationCodeFlow.firstOrNull()
@@ -32,7 +32,7 @@ class GlobalLogger @Inject constructor(
     }
 
     override fun logError(logger: String, message: String, exception: Throwable?) {
-        Log.e("ERROR-$logger", message, exception)
+        Log.d("ERROR-$logger", message, exception)
 
         CoroutineScope(Dispatchers.IO).launch {
             val activationCode = dataStoreManager.activationCodeFlow.firstOrNull()

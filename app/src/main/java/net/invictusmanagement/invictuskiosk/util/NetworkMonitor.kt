@@ -97,8 +97,10 @@ class NetworkMonitor(
 
         return try {
             val response = client.newCall(request).execute()
+            if(response.code != 204 && response.code != 200) logger.logError("NetworkMonitor", "Ping returned Status Code:${response.code} message:${response.message}")
             response.code == 204 || response.code == 200
         } catch (e: Exception) {
+            logger.logError("NetworkMonitor", "Ping failed ${e.localizedMessage}", e)
             false
         }
     }
