@@ -69,7 +69,11 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
-        logger.logError("networkStatus/HomeViewModel", "Network connected: ${networkMonitor.isConnected.value}")
+        viewModelScope.launch {
+            networkMonitor.isConnected.collect {isConnected ->
+                logger.logError("networkStatus/HomeViewModel", "Network connected: $isConnected")
+            }
+        }
     }
     private var mobileChatHubManager: MobileChatHubManager? = null
 
