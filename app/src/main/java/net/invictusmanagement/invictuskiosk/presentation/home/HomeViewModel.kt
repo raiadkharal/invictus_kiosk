@@ -68,6 +68,9 @@ class HomeViewModel @Inject constructor(
         null
     )
 
+    init {
+        logger.logError("networkStatus/HomeViewModel", "Network connected: ${networkMonitor.isConnected.value}")
+    }
     private var mobileChatHubManager: MobileChatHubManager? = null
 
     fun initializeSignalR(kioskId: Int) {
