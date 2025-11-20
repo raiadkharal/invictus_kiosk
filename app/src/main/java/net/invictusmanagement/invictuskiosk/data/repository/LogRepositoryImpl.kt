@@ -5,20 +5,17 @@ import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ErrorLogRequestDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.RelayManagerLogDto
 import net.invictusmanagement.invictuskiosk.domain.repository.LogRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import javax.inject.Inject
 
 class LogRepositoryImpl @Inject constructor(
     private val mobileApi: MobileApiInterface,
-    private val api: ApiInterface,
-    private val logger: GlobalLogger
+    private val api: ApiInterface
 ) : LogRepository {
 
     override suspend fun postRelayManagerLog(log: RelayManagerLogDto) {
         try {
             mobileApi.postLog(log)
         } catch (e: Exception) {
-            logger.logError("postRelayManagerLog", "Error posting relay manager log ${e.localizedMessage}", e)
             e.printStackTrace()
         }
     }
@@ -28,7 +25,6 @@ class LogRepositoryImpl @Inject constructor(
         try {
             api.addErrorLog(log)
         } catch (e: Exception) {
-            logger.logError("postErrorLog", "Error posting error log ${e.localizedMessage}", e)
             e.printStackTrace()
         }
     }
