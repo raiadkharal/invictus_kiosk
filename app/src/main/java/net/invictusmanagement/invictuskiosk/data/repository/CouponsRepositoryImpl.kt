@@ -79,4 +79,24 @@ class CouponsRepositoryImpl @Inject constructor(
         is HttpException -> e.localizedMessage ?: "Unexpected error"
         else -> "Something went wrong"
     }
+
+
+    override suspend fun syncAllCoupons() {
+        // --- Sync categories ---
+        runCatching {
+            val categoriesRemote = api.getPromotionCategories()
+            couponsDao.clearPromotionCategories()
+            couponsDao.insertPromotionCategories(categoriesRemote.map { it.toEntity() })
+        }.onFailure { e ->
+            Log.w("CouponsRepository", "Failed to fetch categories: ${e.message}")
+        }
+
+        // --- Sync promotions ---
+        runCatching {
+            val promotions = api.getAllPromotions()
+            couponsDao.insertPromotions(promotions.map { it.toEntity() })
+        }.onFailure { e ->
+            Log.w("CouponsRepository", "Failed to fetch promotions: ${e.message}")
+        }
+    }
 }

@@ -8,4 +8,5 @@ import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 interface CouponsRepository {
     fun getCouponsCategories(): Flow<Resource<List<PromotionsCategory>>>
     fun getCouponsByCategory(id: String): Flow<Resource<List<BusinessPromotion>>>
+    suspend fun syncAllCoupons()
 }

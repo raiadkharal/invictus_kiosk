@@ -4,6 +4,7 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.BusinessPromotio
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 
 data class BusinessPromotionDto(
+    val type: Int?,
     val address1: String?,
     val address2: String?,
     val city: String?,
@@ -16,6 +17,7 @@ data class BusinessPromotionDto(
 
 fun BusinessPromotionDto.toBusinessPromotion(): BusinessPromotion {
     return BusinessPromotion(
+        type = type ?: 0,
         address1 = address1 ?: "",
         address2 = address2 ?: "",
         city = city ?: "",
@@ -29,6 +31,7 @@ fun BusinessPromotionDto.toBusinessPromotion(): BusinessPromotion {
 
 fun BusinessPromotionDto.toEntity(): BusinessPromotionEntity =
     BusinessPromotionEntity(
+        type = type ?: 0,
         name = name ?: "",
         address1 = address1 ?: "",
         address2 = address2 ?: "",

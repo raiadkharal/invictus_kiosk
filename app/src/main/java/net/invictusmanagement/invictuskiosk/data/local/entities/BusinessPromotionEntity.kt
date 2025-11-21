@@ -9,6 +9,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.Promotion
 data class BusinessPromotionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    val type: Int,
     val name: String,
     val address1: String,
     val address2: String,

@@ -6,21 +6,21 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
 
 @HiltWorker
-class ContactRequestSyncWorker @AssistedInject constructor(
+class SyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
-    private val repository: VacancyRepository
+    private val couponsRepository: CouponsRepository
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        return try {
-            repository.syncPendingRequests()
-            Result.success()
-        } catch (e: Exception) {
-            Result.retry()
-        }
+
+        // Sync everything independently
+        couponsRepository.syncAllCoupons()
+
+        return Result.success()
     }
+
 }

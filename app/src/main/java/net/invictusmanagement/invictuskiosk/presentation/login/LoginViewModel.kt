@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.login
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,10 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LoginDto
-import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
+import net.invictusmanagement.invictuskiosk.data.sync.SyncScheduler
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import javax.inject.Inject
@@ -20,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val repository: LoginRepository,
-    private val datastoreManager: DataStoreManager
+    private val datastoreManager: DataStoreManager,
+    private val syncScheduler: SyncScheduler
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -32,6 +30,8 @@ class LoginViewModel @Inject constructor(
                 is Resource.Success -> {
                     _state.value = LoginState(login = result.data)
                     datastoreManager.saveAccessToken(result.data?.token ?: "")
+                    // schedule data sync worker
+                    syncScheduler.schedulePeriodicSync()
                 }
 
                 is Resource.Error -> {

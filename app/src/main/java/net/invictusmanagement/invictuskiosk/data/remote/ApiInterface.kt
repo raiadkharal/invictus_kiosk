@@ -81,6 +81,9 @@ interface ApiInterface {
         @Path("id") id: String
     ): List<BusinessPromotionDto>
 
+    @GET("promotions/all")
+    suspend fun getAllPromotions(): List<BusinessPromotionDto>
+
     @POST("units")
     suspend fun sendContactRequest(@Body contactRequest: ContactRequest): ContactRequestDto
 
