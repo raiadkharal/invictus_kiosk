@@ -21,6 +21,18 @@ class MobileChatHubManager(
     private val reconnecting = AtomicBoolean(false)
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+
+    companion object {
+        private var lastInstance: MobileChatHubManager? = null
+    }
+
+    init {
+        // Stop previous instance before this new one becomes active
+        lastInstance?.cleanupInternal()
+        lastInstance = this
+        Log.d(TAG, "New SignalR manager instance created, old instance cleaned.")
+    }
+
     /**
      * Initializes and connects to SignalR in the background
      */
@@ -46,6 +58,7 @@ class MobileChatHubManager(
                 connectionListener.onConnected()
                 Log.d(TAG, "connect: SignalR connected and registered (Kiosk $kioskId)")
             } catch (e: Exception) {
+                connectionListener.onConnectionError("connect",e)
                 Log.e(TAG, "Error connecting to SignalR: ${e.message}")
                 scheduleReconnect()
             }
@@ -61,6 +74,7 @@ class MobileChatHubManager(
                 hubConnection?.invoke("Register", kioskId.toLong())
                 Log.d(TAG, "registerToHub: Kiosk registered successfully")
             } catch (e: Exception) {
+                connectionListener.onConnectionError("registerToHub",e)
                 Log.e(TAG, "registerToHub: Failed to register kiosk: ${e.message}")
             }
         }
@@ -128,11 +142,22 @@ class MobileChatHubManager(
         coroutineScope.launch {
             try {
                 Log.d(TAG, "disconnect: Stopping SignalR connection...")
-                hubConnection?.stop()
+                safeStop()
                 hubConnection = null
             } catch (e: Exception) {
                 Log.e(TAG, "disconnect: Error stopping SignalR: ${e.message}")
             }
+        }
+    }
+
+    /**
+     * Internal cleanup used by companion object (non-cancelled scope)
+     */
+    private fun cleanupInternal() {
+        try {
+            Log.d(TAG, "cleanupInternal: Cleaning previous SignalR instance")
+            safeStop()
+        } catch (_: Exception) {
         }
     }
 
@@ -143,4 +168,21 @@ class MobileChatHubManager(
         coroutineScope.cancel()
         disconnect()
     }
+
+    private fun safeStop() {
+        try {
+            val conn = hubConnection ?: return
+
+            if (conn.connectionState.name == "CONNECTED") {
+                conn.stop()
+            } else {
+                // connection never fully started → don't call stop()
+                Log.w(TAG, "safeStop: Ignored stop() because connection never completed init")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "safeStop: SignalR stop() crashed internally → ignored: ${e.message}")
+        }
+    }
+
 }

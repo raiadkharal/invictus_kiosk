@@ -16,13 +16,15 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.toUnitEntity
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKey
 import net.invictusmanagement.invictuskiosk.domain.model.UnitList
 import net.invictusmanagement.invictuskiosk.domain.repository.DirectoryRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class DirectoryRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val dao: DirectoryDao
+    private val dao: DirectoryDao,
+    private val logger: GlobalLogger
 ) : DirectoryRepository {
 
     override fun getUnitList(): Flow<Resource<List<UnitList>>> = flow {

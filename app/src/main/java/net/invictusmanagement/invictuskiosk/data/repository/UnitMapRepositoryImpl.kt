@@ -5,12 +5,15 @@ import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.math.log
 
 class UnitMapRepositoryImpl @Inject constructor(
-    private val api: ApiInterface
+    private val api: ApiInterface,
+    private val logger: GlobalLogger
 ) : UnitMapRepository {
     override fun getMapImage(
         unitId: Long,
@@ -24,6 +27,7 @@ class UnitMapRepositoryImpl @Inject constructor(
             val bytes = response.bytes() // Convert response to ByteArray
             emit(Resource.Success(bytes))
         } catch (e: HttpException) {
+            logger.logError("getMapImage", "Error fetching map image: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "An error occurred"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
@@ -41,6 +45,7 @@ class UnitMapRepositoryImpl @Inject constructor(
             val bytes = response.bytes() // Convert response to ByteArray
             emit(Resource.Success(bytes))
         } catch (e: HttpException) {
+            logger.logError("getUnitImage", "Error fetching unit image: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "An error occurred"))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))

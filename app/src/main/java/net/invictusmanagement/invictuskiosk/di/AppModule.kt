@@ -96,8 +96,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideLoginRepository(api: ApiInterface): LoginRepository {
-        return LoginRepositoryImpl(api)
+    fun provideLoginRepository(api: ApiInterface, logger: GlobalLogger): LoginRepository {
+        return LoginRepositoryImpl(api, logger)
     }
 
     @Provides
@@ -108,50 +108,50 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideServiceKeyRepository(api: ApiInterface): ServiceKeyRepository {
-        return ServiceKeyRepositoryImpl(api)
+    fun provideServiceKeyRepository(api: ApiInterface,logger: GlobalLogger): ServiceKeyRepository {
+        return ServiceKeyRepositoryImpl(api,logger)
     }
 
     @Provides
     @Singleton
-    fun provideResidentsRepository(api: ApiInterface): ResidentsRepository {
-        return ResidentsRepositoryImpl(api)
+    fun provideResidentsRepository(api: ApiInterface,logger: GlobalLogger): ResidentsRepository {
+        return ResidentsRepositoryImpl(api,logger)
     }
 
     @Provides
     @Singleton
-    fun provideDirectoryRepository(api: ApiInterface,directoryDao: DirectoryDao): DirectoryRepository {
-        return DirectoryRepositoryImpl(api,directoryDao)
+    fun provideDirectoryRepository(api: ApiInterface): DirectoryRepository {
+        return DirectoryRepositoryImpl(api)
     }
 
     @Provides
     @Singleton
-    fun provideCouponsRepository(api: ApiInterface,couponsDao: CouponsDao): CouponsRepository {
-        return CouponsRepositoryImpl(api,couponsDao)
+    fun provideCouponsRepository(api: ApiInterface): CouponsRepository {
+        return CouponsRepositoryImpl(api)
     }
 
     @Provides
     @Singleton
-    fun provideVacancyRepository(api: ApiInterface,vacanciesDao: VacanciesDao): VacancyRepository {
-        return VacancyRepositoryImpl(api,vacanciesDao)
+    fun provideVacancyRepository(api: ApiInterface): VacancyRepository {
+        return VacancyRepositoryImpl(api)
     }
 
     @Provides
     @Singleton
-    fun provideVideoCallRepository(api: ApiInterface): VideoCallRepository {
-        return VideoCallRepositoryImpl(api)
+    fun provideVideoCallRepository(api: ApiInterface,logger: GlobalLogger): VideoCallRepository {
+        return VideoCallRepositoryImpl(api,logger)
     }
 
     @Provides
     @Singleton
-    fun provideVoiceMailRepository(api: ApiInterface): VoicemailRepository {
-        return VoicemailRepositoryImpl(api)
+    fun provideVoiceMailRepository(api: ApiInterface,logger: GlobalLogger): VoicemailRepository {
+        return VoicemailRepositoryImpl(api,logger)
     }
 
     @Provides
     @Singleton
-    fun provideUnitMapRepository(api: ApiInterface): UnitMapRepository {
-        return UnitMapRepositoryImpl(api)
+    fun provideUnitMapRepository(api: ApiInterface,logger: GlobalLogger): UnitMapRepository {
+        return UnitMapRepositoryImpl(api,logger)
     }
 
     @Provides
@@ -163,9 +163,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideLogRepository(
-        api: MobileApiInterface,
+        mobileApi: MobileApiInterface,
+        api: ApiInterface
     ): LogRepository {
-        return LogRepositoryImpl(api)
+        return LogRepositoryImpl(mobileApi,api)
     }
 
     @Provides
@@ -191,8 +192,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNetworkMonitor(@ApplicationContext context: Context): NetworkMonitor {
-        return NetworkMonitor(context)
+    fun provideNetworkMonitor(@ApplicationContext context: Context,globalLogger: GlobalLogger): NetworkMonitor {
+        return NetworkMonitor(context,globalLogger)
     }
 
 }

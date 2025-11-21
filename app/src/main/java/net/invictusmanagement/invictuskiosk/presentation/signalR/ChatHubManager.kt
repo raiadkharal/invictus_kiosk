@@ -121,7 +121,7 @@ class ChatHubManager(
         coroutineScope.launch {
             try {
                 Log.d(TAG, "disconnect: Stopping SignalR connection...")
-                hubConnection?.stop()
+                safeStop()
                 hubConnection = null
             } catch (e: Exception) {
                 Log.e(TAG, "disconnect: Error stopping SignalR: ${e.message}")
@@ -135,5 +135,21 @@ class ChatHubManager(
     fun cleanup() {
         coroutineScope.cancel()
         disconnect()
+    }
+
+    private fun safeStop() {
+        try {
+            val conn = hubConnection ?: return
+
+            if (conn.connectionState.name == "CONNECTED") {
+                conn.stop()
+            } else {
+                // connection never fully started → don't call stop()
+                Log.w(TAG, "safeStop: Ignored stop() because connection never completed init")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "safeStop: SignalR stop() crashed internally → ignored: ${e.message}")
+        }
     }
 }

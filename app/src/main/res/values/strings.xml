@@ -19,7 +19,7 @@
     <string name="end_call">END CALL</string>
     <string name="send">SEND</string>
     <string name="pin_title_text">Input the PIN code to enter</string>
-    <string name="qr_code_title_text">Scan the QR code to enter</string>
+    <string name="qr_code_title_text">Scan your QR code to enter</string>
     <string name="video_call_message">Please stand at an arm’s length away for a quality experience</string>
     <string name="prospect_key">Prospect Key</string>
     <string name="service_key">Service Key</string>

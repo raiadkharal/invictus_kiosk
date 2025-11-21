@@ -15,13 +15,15 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.toEntity
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.PromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.CouponsRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class CouponsRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val couponsDao: CouponsDao
+    private val couponsDao: CouponsDao,
+    private val logger: GlobalLogger
 ) : CouponsRepository {
 
     override fun getCouponsCategories(): Flow<Resource<List<PromotionsCategory>>> = flow {

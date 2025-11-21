@@ -21,6 +21,7 @@ import net.invictusmanagement.invictuskiosk.R
 fun OTPButton(
     modifier: Modifier = Modifier,
     text: String,
+    backgroundColor: Int = R.color.btn_pin_code,
     textStyle: TextStyle=MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text)),
     onClick: () -> Unit
 ) {
@@ -29,7 +30,7 @@ fun OTPButton(
         modifier = modifier
             .height(72.dp)
             .background(
-                color = colorResource(R.color.btn_pin_code),
+                color = colorResource(backgroundColor),
                 shape = RoundedCornerShape(20.dp)
             )
             .clickable { onClick() }

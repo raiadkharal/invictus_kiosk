@@ -63,11 +63,6 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
-
-
     private lateinit var usbManager: UsbManager
     @Inject
     lateinit var globalLogger: GlobalLogger
@@ -92,11 +87,6 @@ class MainActivity : ComponentActivity() {
         usbManager = getSystemService(USB_SERVICE) as UsbManager
         relayManager = RelayManager(this@MainActivity,globalLogger)
 
-//        detectRelayOnStartup()
-
-        //Start network monitoring once here
-        networkMonitor.startMonitoring()
-
         enableEdgeToEdge()
         setContent {
             val viewModel = hiltViewModel<ScreenSaverViewModel>()
@@ -111,91 +101,6 @@ class MainActivity : ComponentActivity() {
 
         }
     }
-
-//    private fun detectRelayOnStartup() {
-//        for (device in usbManager.deviceList.values) {
-//            if (device.vendorId == 0x2A19) { // Numato Vendor ID (adjust if different)
-//                if (!usbManager.hasPermission(device)) {
-//                    val permissionIntent = PendingIntent.getBroadcast(
-//                        this,
-//                        0,
-//                        Intent(UsbPermissionReceiver.ACTION_USB_PERMISSION),
-//                        PendingIntent.FLAG_IMMUTABLE
-//                    )
-//                    usbManager.requestPermission(device, permissionIntent)
-//                } else {
-//                    // Permission already granted — directly initialize
-//                    lifecycleScope.launch {
-//                        NumatoRelayManager.getInstance(this@MainActivity)
-//                            .initializeDevice(device)
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-//    private fun detectRelayOnStartup() {
-//        lifecycleScope.launch {
-//            try {
-//                val delayMillis = 1000
-//                val relayManager = NumatoRelayManager.getInstance(this@MainActivity)
-//                val devices = relayManager.getDevices()
-//
-//                if (devices.isEmpty()) {
-//                    Log.w(TAG, "WARNING: No relay devices detected.")
-//                    return@launch
-//                }
-//
-//                val targetDevice = devices.first()
-//                Log.i(TAG, "Initializing relay device: ${targetDevice.name}")
-//
-//                relayManager.initializeDevice(targetDevice)
-//
-//                // Step 1: Open/close each relay one by one
-//                for (i in 1..relayManager.relayCount) {
-//                    Log.i(TAG, "Opening relay $i.")
-//                    relayManager.openRelays(listOf(i))
-//
-//                    if (relayManager.isRelayOpen(i)) {
-//                        Log.i(TAG, "Delaying for $delayMillis milliseconds.")
-//                        delay(delayMillis.toLong())
-//                        Log.i(TAG, "Closing relay $i.")
-//                        relayManager.closeRelays(listOf(i))
-//                    }
-//                }
-//
-//                // Step 2: Open/close relay 1 & 3
-//                Log.i(TAG, "Opening relay 1 & 3.")
-//                relayManager.openRelays(listOf(1, 3))
-//                if (relayManager.isRelayOpen(1) && relayManager.isRelayOpen(3)) {
-//                    delay(delayMillis.toLong())
-//                    Log.i(TAG, "Closing relay 1 & 3.")
-//                    relayManager.closeRelays(listOf(1, 3))
-//                }
-//
-//                // Step 3: Open/close relay 2 & 4
-//                Log.i(TAG, "Opening relay 2 & 4.")
-//                relayManager.openRelays(listOf(2, 4))
-//                if (relayManager.isRelayOpen(2) && relayManager.isRelayOpen(4)) {
-//                    delay(delayMillis.toLong())
-//                    Log.i(TAG, "Closing relay 2 & 4.")
-//                    relayManager.closeRelays(listOf(2, 4))
-//                }
-//
-//                // Step 4: Open/close all relays
-//                Log.i(TAG, "Opening all relays.")
-//                relayManager.openAllRelays()
-//                delay(delayMillis.toLong())
-//                Log.i(TAG, "Closing all relays.")
-//                relayManager.closeAllRelays()
-//
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Error while detecting or testing relay: ${e.message}", e)
-//            }
-//        }
-//    }
-
-
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
@@ -352,8 +257,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        relayManager.disconnect()
-        networkMonitor.stopMonitoring()
         unregisterReceiver(usbPermissionReceiver)
     }
 

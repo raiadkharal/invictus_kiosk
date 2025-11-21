@@ -16,13 +16,15 @@ import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.domain.model.Unit
 import net.invictusmanagement.invictuskiosk.domain.model.toEntity
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
+import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
 class VacancyRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val vacanciesDao: VacanciesDao
+    private val vacanciesDao: VacanciesDao,
+    private val logger: GlobalLogger
 ):VacancyRepository {
 
     override fun getUnits(): Flow<Resource<List<Unit>>> = flow {
