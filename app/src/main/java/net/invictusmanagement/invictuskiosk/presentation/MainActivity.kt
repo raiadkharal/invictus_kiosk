@@ -63,11 +63,6 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
-
-
     private lateinit var usbManager: UsbManager
     @Inject
     lateinit var globalLogger: GlobalLogger
@@ -91,9 +86,6 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         usbManager = getSystemService(USB_SERVICE) as UsbManager
         relayManager = RelayManager(this@MainActivity,globalLogger)
-
-        //Start network monitoring once here
-        networkMonitor.startMonitoring()
 
         enableEdgeToEdge()
         setContent {
@@ -265,8 +257,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        relayManager.disconnect()
-        networkMonitor.stopMonitoring()
         unregisterReceiver(usbPermissionReceiver)
     }
 
