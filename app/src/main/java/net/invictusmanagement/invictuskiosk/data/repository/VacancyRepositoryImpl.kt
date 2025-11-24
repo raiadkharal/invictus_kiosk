@@ -11,6 +11,8 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.toContactRequest
 import net.invictusmanagement.invictuskiosk.data.local.entities.toUnit
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toContactRequest
+import net.invictusmanagement.invictuskiosk.data.remote.dto.toEntity
+import net.invictusmanagement.invictuskiosk.data.remote.dto.toUnit
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toVacantUnitEntity
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.domain.model.Unit
@@ -28,44 +30,17 @@ class VacancyRepositoryImpl @Inject constructor(
 ):VacancyRepository {
 
     override fun getUnits(): Flow<Resource<List<Unit>>> = flow {
-        emit(Resource.Loading())
-
         try {
-            // Try fetching from remote
-            fetchUnits()
+            emit(Resource.Loading())
+            val remote = api.getUnits().map { it.toUnit() }
+            emit(Resource.Success(remote))
         } catch (e: Exception) {
-            // Log but never block local data
             Log.d("getUnits", mapError(e))
+            val localData = vacanciesDao.getUnits().map {it.toUnit()}
+            emit(Resource.Error(data = localData, message = mapError(e)))
         }
-
-        // Always return the local cached database list
-        emitAll(
-            vacanciesDao.getUnits().map { list ->
-                Resource.Success(list.map { it.toUnit() })
-            }
-        )
     }
 
-    private suspend fun fetchUnits() {
-        val remote = api.getUnits()
-
-        vacanciesDao.clearUnits()
-        vacanciesDao.insertUnits(remote.map { it.toVacantUnitEntity() })
-    }
-
-
-
-//    override fun sendContactRequest(contactRequest: ContactRequest): Flow<Resource<ContactRequest>> = flow{
-//        try {
-//            emit(Resource.Loading())
-//            val response = api.sendContactRequest(contactRequest).toContactRequest()
-//            emit(Resource.Success(response))
-//        } catch(e: HttpException) {
-//            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-//        } catch(e: IOException) {
-//            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
-//        }
-//    }
 
     override fun sendContactRequest(contactRequest: ContactRequest): Flow<Resource<ContactRequest>> = flow {
         emit(Resource.Loading())
@@ -73,7 +48,6 @@ class VacancyRepositoryImpl @Inject constructor(
         try {
             val response = api.sendContactRequest(contactRequest).toContactRequest()
             emit(Resource.Success(response))
-
         } catch (e: IOException) {
             // NETWORK or CONNECTIVITY ERROR → Save locally
             try {
@@ -128,5 +102,16 @@ class VacancyRepositoryImpl @Inject constructor(
         is IOException -> "Couldn't reach server. Check your internet connection."
         is HttpException -> e.localizedMessage ?: "Unexpected error"
         else -> "Something went wrong"
+    }
+
+    override suspend fun sync() {
+        // --- Sync Vacant Units ---
+        runCatching {
+            val categoriesRemote = api.getUnits()
+            vacanciesDao.clearUnits()
+            vacanciesDao.insertUnits(categoriesRemote.map { it.toVacantUnitEntity() })
+        }.onFailure { e ->
+            logger.logError("syncAllUnits", "Failed to sync units: ${e.localizedMessage}", e)
+        }
     }
 }

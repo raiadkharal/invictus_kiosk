@@ -13,7 +13,7 @@ interface VacanciesDao {
 
     // Offline-first: observe unit list
     @Query("SELECT * FROM vacant_units ORDER BY unitNbr ASC")
-    fun getUnits(): Flow<List<VacantUnitEntity>>
+    suspend fun getUnits(): List<VacantUnitEntity>
 
     // Insert or replace all units
     @Insert(onConflict = OnConflictStrategy.REPLACE)

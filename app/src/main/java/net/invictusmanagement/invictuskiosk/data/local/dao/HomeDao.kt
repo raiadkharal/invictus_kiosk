@@ -9,13 +9,13 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.ResidentEntity
 interface HomeDao {
 
     @Query("SELECT * FROM intro_buttons")
-    fun getButtons(): Flow<List<IntroButtonEntity>>
+    suspend fun getButtons(): List<IntroButtonEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertButtons(buttons: List<IntroButtonEntity>)
 
     @Query("SELECT * FROM residents")
-    fun getAllResidents(): Flow<List<ResidentEntity>>
+    suspend fun getAllResidents(): List<ResidentEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertResidents(list: List<ResidentEntity>)

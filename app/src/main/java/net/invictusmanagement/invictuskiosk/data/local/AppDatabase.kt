@@ -8,6 +8,7 @@ import net.invictusmanagement.invictuskiosk.data.local.converters.PromotionListC
 import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.BusinessPromotionEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.ContactRequestEntity
@@ -28,4 +29,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun directoryDao(): DirectoryDao
     abstract fun couponDao(): CouponsDao
     abstract fun vacanciesDao(): VacanciesDao
+    abstract fun residentsDao(): ResidentsDao
 }

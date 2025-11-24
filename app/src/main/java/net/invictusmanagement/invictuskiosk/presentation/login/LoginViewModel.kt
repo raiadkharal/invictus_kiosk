@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
                     _state.value = LoginState(login = result.data)
                     datastoreManager.saveAccessToken(result.data?.token ?: "")
                     // schedule data sync worker
-                    syncScheduler.schedulePeriodicSync()
+//                    syncScheduler.schedulePeriodicSync()
                 }
 
                 is Resource.Error -> {

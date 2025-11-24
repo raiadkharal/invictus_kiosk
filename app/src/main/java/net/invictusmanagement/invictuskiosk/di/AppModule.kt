@@ -10,6 +10,7 @@ import net.invictusmanagement.invictuskiosk.BuildConfig
 import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
@@ -102,8 +103,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideHomeRepository(api: ApiInterface,homeDao: HomeDao): HomeRepository {
-        return HomeRepositoryImpl(api,homeDao)
+    fun provideHomeRepository(api: ApiInterface,homeDao: HomeDao,logger: GlobalLogger): HomeRepository {
+        return HomeRepositoryImpl(api,homeDao,logger)
     }
 
     @Provides
@@ -114,26 +115,26 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideResidentsRepository(api: ApiInterface,logger: GlobalLogger): ResidentsRepository {
-        return ResidentsRepositoryImpl(api,logger)
+    fun provideResidentsRepository(api: ApiInterface,logger: GlobalLogger,residentsDao: ResidentsDao,directoryDao: DirectoryDao): ResidentsRepository {
+        return ResidentsRepositoryImpl(api,logger,residentsDao,directoryDao)
     }
 
     @Provides
     @Singleton
-    fun provideDirectoryRepository(api: ApiInterface): DirectoryRepository {
-        return DirectoryRepositoryImpl(api)
+    fun provideDirectoryRepository(api: ApiInterface,dao: DirectoryDao,logger: GlobalLogger): DirectoryRepository {
+        return DirectoryRepositoryImpl(api,dao,logger)
     }
 
     @Provides
     @Singleton
-    fun provideCouponsRepository(api: ApiInterface): CouponsRepository {
-        return CouponsRepositoryImpl(api)
+    fun provideCouponsRepository(api: ApiInterface,dao: CouponsDao,logger: GlobalLogger): CouponsRepository {
+        return CouponsRepositoryImpl(api,dao,logger)
     }
 
     @Provides
     @Singleton
-    fun provideVacancyRepository(api: ApiInterface): VacancyRepository {
-        return VacancyRepositoryImpl(api)
+    fun provideVacancyRepository(api: ApiInterface,dao: VacanciesDao,logger: GlobalLogger): VacancyRepository {
+        return VacancyRepositoryImpl(api,dao,logger)
     }
 
     @Provides

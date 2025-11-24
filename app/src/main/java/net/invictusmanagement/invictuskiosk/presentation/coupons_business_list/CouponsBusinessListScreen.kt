@@ -72,18 +72,17 @@ fun CouponsBusinessListScreen(
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    val filteredCoupons = categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val filteredCoupons =
+        categoryState.couponsCategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
     var selectedCoupon by remember { mutableStateOf<PromotionsCategory?>(null) }
 
     LaunchedEffect(categoryState) {
         selectedCoupon = categoryState.couponsCategories.find { it.id == selectedCouponId }
     }
 
-    LaunchedEffect(Unit,isConnected) {
-        if (isConnected) {
-            viewModel.getPromotionsCategory()
-            viewModel.getPromotionsByCategory(selectedCouponId)
-        }
+    LaunchedEffect(Unit, isConnected) {
+        viewModel.getPromotionsCategory()
+        viewModel.getPromotionsByCategory(selectedCouponId)
     }
 
     Column(

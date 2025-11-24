@@ -1,9 +1,7 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.IntroButtonEntity
@@ -14,6 +12,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.home.toMain
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toAccessPoint
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toDigitalKey
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toLeasingOffice
+import net.invictusmanagement.invictuskiosk.data.remote.dto.toResident
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toResidentEntity
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKey
@@ -57,38 +56,16 @@ class HomeRepositoryImpl @Inject constructor(
         }
     }
 
-//    override fun getAllResidents(): Flow<Resource<List<Resident>>> = flow {
-//        try {
-//            emit(Resource.Loading())
-//            val response = api.getAllResidents().map { it.toResident() }
-//            emit(Resource.Success(response))
-//        } catch (e: HttpException) {
-//            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-//        } catch (e: IOException) {
-//            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
-//        }
-//    }
-
     override fun getAllResidents(): Flow<Resource<List<Resident>>> = flow {
-        emit(Resource.Loading())
-
         try {
-            fetchResidents()
+            emit(Resource.Loading())
+            val response = api.getAllResidents().map { it.toResident() }
+            emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(mapError(e)))
+            logger.logError("getAllResidents", "Error fetching residents: ${e.localizedMessage}", e)
+            val localData = homeDao.getAllResidents().map { it.toResident() }
+            emit(Resource.Error(data = localData, message = mapError(e)))
         }
-
-        emitAll(
-            homeDao.getAllResidents().map { list ->
-                Resource.Success(list.map { it.toResident() })
-            }
-        )
-    }
-
-    private suspend fun fetchResidents() {
-        val remote = api.getAllResidents()
-        homeDao.clearResidents()
-        homeDao.insertResidents(remote.map { it.toResidentEntity() })
     }
 
     override fun getKioskData(): Flow<Resource<Main>> = flow {
@@ -118,27 +95,34 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override fun getIntroButtons(): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading())
-
         try {
-            fetchIntroButtons()
+            emit(Resource.Loading())
+            val response = api.getIntroButtons()
+            emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(mapError(e)))
+            logger.logError("getIntroButtons", "Error fetching intro buttons: ${e.localizedMessage}", e)
+            val localData = homeDao.getButtons().map { it.name }
+            emit(Resource.Error(data = localData, message = mapError(e)))
+        }
+    }
+
+    override suspend fun sync() {
+        runCatching {
+            val remoteResidents = api.getAllResidents()
+            homeDao.clearResidents()
+            homeDao.insertResidents(remoteResidents.map { it.toResidentEntity() })
+        }.onFailure { e ->
+           logger.logError("getAllResidents", "Error fetching all residents: ${e.localizedMessage}", e)
         }
 
-        emitAll(
-            homeDao.getButtons().map { list ->
-                Resource.Success(list.map { it.name })
-            }
-        )
+        runCatching {
+            val remoteIntroButtons = api.getIntroButtons()
+            homeDao.clearIntroButtons()
+            homeDao.insertButtons(remoteIntroButtons.map { IntroButtonEntity(name = it) })
+        }.onFailure { e ->
+            logger.logError("getIntroButtons", "Error fetching intro buttons: ${e.localizedMessage}", e)
+        }
     }
-
-    private suspend fun fetchIntroButtons() {
-        val remote = api.getIntroButtons()
-        homeDao.clearIntroButtons()
-        homeDao.insertButtons(remote.map { IntroButtonEntity(name = it) })
-    }
-
 
     private fun mapError(e: Exception): String = when (e) {
         is IOException -> "Couldn't reach server. Check your internet connection."

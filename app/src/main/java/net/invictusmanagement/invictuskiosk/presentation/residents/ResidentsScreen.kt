@@ -91,22 +91,20 @@ fun ResidentsScreen(
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
 
-    LaunchedEffect(Unit,isConnected) {
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
 
-        if (isConnected) {
-            when {
-                isUnitNumberSelected -> {
-                    viewModel.getResidentByUnitNumber(unitNumber)
-                }
+        when {
+            isUnitNumberSelected -> {
+                viewModel.getResidentByUnitNumber(unitNumber)
+            }
 
-                isLeasingOffice -> {
-                    viewModel.getAllLeasingAgents(byName)
-                }
+            isLeasingOffice -> {
+                viewModel.getAllLeasingAgents(byName)
+            }
 
-                else -> {
-                    viewModel.getResidentsByName(filter, byName)
-                }
+            else -> {
+                viewModel.getResidentsByName(filter, byName)
             }
         }
 
@@ -134,7 +132,7 @@ fun ResidentsScreen(
                     mapId = keyValidationState.digitalKey.mapId,
                     toPackageCenter = keyValidationState.digitalKey.toPackageCenter
                 )
-            ){
+            ) {
                 popUpTo(HomeScreen)
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
@@ -177,7 +175,7 @@ fun ResidentsScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
-                        placeholder = if (isLeasingOffice)"Search Leasing Officer" else "Search Resident",
+                        placeholder = if (isLeasingOffice) "Search Leasing Officer" else "Search Resident",
                         onValueChange = { searchQuery = it }
                     )
                 }
@@ -195,7 +193,9 @@ fun ResidentsScreen(
                             CircularProgressIndicator()
                         } else {
                             Text(
-                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(R.string.no_residents_found),
+                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(
+                                    R.string.no_residents_found
+                                ),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,

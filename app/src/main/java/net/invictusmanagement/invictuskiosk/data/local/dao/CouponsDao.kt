@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 import net.invictusmanagement.invictuskiosk.data.local.entities.BusinessPromotionEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.CouponsCategoryEntity
 
@@ -12,19 +11,19 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.CouponsCategoryE
 interface CouponsDao {
 
     @Query("SELECT * FROM promotion_categories")
-    fun getPromotionCategories(): Flow<List<CouponsCategoryEntity>>
+    suspend fun getPromotionCategories(): List<CouponsCategoryEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPromotionCategories(categories: List<CouponsCategoryEntity>)
 
-    @Query("SELECT * FROM business_promotions")
-    fun getPromotions(): Flow<List<BusinessPromotionEntity>>
+    @Query("SELECT * FROM business_promotions WHERE type = :categoryId")
+    suspend fun getPromotionsByCategory(categoryId: Int): List<BusinessPromotionEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPromotions(promotions: List<BusinessPromotionEntity>)
 
     @Query("DELETE FROM business_promotions")
-    suspend fun clear()
+    suspend fun clearPromotions()
 
     @Query("DELETE FROM promotion_categories")
     suspend fun clearPromotionCategories()

@@ -22,6 +22,7 @@ data class BusinessPromotionEntity(
 
 
 fun BusinessPromotionEntity.toBusinessPromotion() = BusinessPromotion(
+    type = type,
     name = name,
     address1 = address1,
     address2 = address2,

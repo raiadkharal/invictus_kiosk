@@ -31,7 +31,7 @@ class CouponsViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _state.value = CouponsCategoryState(error = result.message ?: "An unexpected error occurred")
+                    _state.value = CouponsCategoryState(couponsCategories = result.data ?: emptyList(),error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {
@@ -49,7 +49,7 @@ class CouponsViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _businessPromotions.value = CouponsBusinessState(error = result.message ?: "An unexpected error occurred")
+                    _businessPromotions.value = CouponsBusinessState(businessPromotions =result.data ?: emptyList(),error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {

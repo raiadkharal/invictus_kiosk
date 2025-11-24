@@ -75,7 +75,7 @@ class DirectoryViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _unitList.value = emptyList()
+                    _unitList.value = result.data
                 }
 
                 is Resource.Loading -> {

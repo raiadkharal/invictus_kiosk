@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -9,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -17,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.sync.ContactSyncScheduler
+import net.invictusmanagement.invictuskiosk.data.sync.SyncScheduler
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
@@ -28,7 +26,8 @@ class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val unitMapRepository: UnitMapRepository,
     private val networkMonitor: NetworkMonitor,
-    private val syncScheduler: ContactSyncScheduler
+    private val contactScheduler: ContactSyncScheduler,
+    private val syncScheduler: SyncScheduler
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
@@ -137,7 +136,8 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             networkMonitor.isConnected.collect { isOnline ->
                 if (isOnline) {
-                    syncScheduler.enqueueContactSyncWork()
+                    contactScheduler.enqueueContactSyncWork()
+                    syncScheduler.runOneTimeNow()
                 }
             }
         }

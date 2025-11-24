@@ -37,7 +37,10 @@ class VacancyViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _unitList.value = VacancyState(error = result.message ?: "An unexpected error occurred")
+                    _unitList.value = VacancyState(
+                        vacancies = result.data ?: emptyList(),
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {
@@ -55,7 +58,9 @@ class VacancyViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _contactRequestState.value = ContactRequestState(error = result.message ?: "An unexpected error occurred")
+                    _contactRequestState.value = ContactRequestState(
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {

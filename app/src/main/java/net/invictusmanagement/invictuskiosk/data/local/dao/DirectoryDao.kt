@@ -11,10 +11,13 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.UnitEntity
 interface DirectoryDao {
 
     @Query("SELECT * FROM units")
-    fun getUnits(): Flow<List<UnitEntity>>
+    suspend fun getUnits(): List<UnitEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUnits(list: List<UnitEntity>)
+
+    @Query("SELECT * FROM units WHERE unitNbr = :number")
+    suspend fun getUnitByNumber(number: String): UnitEntity?
 
     @Query("DELETE FROM units")
     suspend fun clearUnits()

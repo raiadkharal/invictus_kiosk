@@ -141,7 +141,7 @@ class HomeViewModel @Inject constructor(
 //                            result.message?:Constants.CONNECTION_ERROR
 //                        )
 //                    )
-                    Log.d("TAG", "getIntroButtons: ${result.message?: "An unexpected error occurred"}")
+                    _introButtons.value = result.data?: emptyList()
                 }
                 is Resource.Loading->{}
             }

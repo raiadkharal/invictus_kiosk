@@ -28,19 +28,20 @@ class DirectoryRepositoryImpl @Inject constructor(
 ) : DirectoryRepository {
 
     override fun getUnitList(): Flow<Resource<List<UnitList>>> = flow {
-        emit(Resource.Loading())
 
         try {
-            fetchUnitList()
+            emit(Resource.Loading())
+            val response = api.getUnitList().map { it.toUnitList() }
+            emit(Resource.Success(response))
         } catch (e: Exception) {
-            Log.d("getUnitList", mapError(e))
+            logger.logError(
+                "getUnitList",
+                "Error fetching unit list: ${e.localizedMessage}",
+                e
+            )
+            val localData = dao.getUnits().map { it.toUnitList() }
+            emit(Resource.Error(data = localData, message = e.localizedMessage ?: "An unexpected error occurred"))
         }
-
-        emitAll(
-            dao.getUnits().map { list ->
-                Resource.Success(list.map { it.toUnitList() })
-            }
-        )
     }
 
 
@@ -54,15 +55,19 @@ class DirectoryRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun fetchUnitList() {
-        val remote = api.getUnitList() // List<UnitListDto>
-        dao.clearUnits()
-        dao.insertUnits(remote.map { it.toUnitEntity() })
-    }
-
     private fun mapError(e: Exception): String = when (e) {
         is IOException -> "Couldn't reach server. Check your internet connection."
         is HttpException -> e.localizedMessage ?: "Unexpected error"
         else -> "Something went wrong"
+    }
+
+    override suspend fun sync() {
+        runCatching {
+            val remoteUnits = api.getUnitList()
+            dao.clearUnits()
+            dao.insertUnits(remoteUnits.map { it.toUnitEntity() })
+        }.onFailure { e ->
+            logger.logError("syncAllUnits", "Failed to sync units: ${e.localizedMessage}", e)
+        }
     }
 }

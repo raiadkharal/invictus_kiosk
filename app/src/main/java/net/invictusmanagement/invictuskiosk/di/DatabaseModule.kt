@@ -11,6 +11,7 @@ import net.invictusmanagement.invictuskiosk.data.local.AppDatabase
 import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import javax.inject.Singleton
 
@@ -42,4 +43,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideVacanciesDao(db: AppDatabase): VacanciesDao = db.vacanciesDao()
+
+    @Provides
+    @Singleton
+    fun provideResidentsDao(db: AppDatabase): ResidentsDao = db.residentsDao()
 }

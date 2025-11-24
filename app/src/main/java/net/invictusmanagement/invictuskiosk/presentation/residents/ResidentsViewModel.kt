@@ -33,7 +33,7 @@ class ResidentsViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val relayRepository: RelayManagerRepository,
     private val networkMonitor: NetworkMonitor
-):ViewModel() {
+) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
     private val _eventFlow = MutableSharedFlow<UiEvent>()
@@ -54,7 +54,7 @@ class ResidentsViewModel @Inject constructor(
     private val _keyValidationState = mutableStateOf(DigitalKeyState())
     val keyValidationState: State<DigitalKeyState> = _keyValidationState
 
-    fun loadInitialData(){
+    fun loadInitialData() {
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
@@ -66,11 +66,14 @@ class ResidentsViewModel @Inject constructor(
         repository.getResidentsByName(filter, byName).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _residentsState.value =ResidentState(residents = result.data?: emptyList())
+                    _residentsState.value = ResidentState(residents = result.data ?: emptyList())
                 }
 
                 is Resource.Error -> {
-                    _residentsState.value = ResidentState(error = result.message ?: "An unexpected error occurred")
+                    _residentsState.value = ResidentState(
+                        residents = result.data ?: emptyList(),
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {
@@ -85,11 +88,14 @@ class ResidentsViewModel @Inject constructor(
         repository.getResidentsByUnitNumber(unitNumber).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _residentsState.value =ResidentState(residents = result.data?: emptyList())
+                    _residentsState.value = ResidentState(residents = result.data ?: emptyList())
                 }
 
                 is Resource.Error -> {
-                    _residentsState.value = ResidentState(error = result.message ?: "An unexpected error occurred")
+                    _residentsState.value = ResidentState(
+                        residents = result.data ?: emptyList(),
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {
@@ -134,11 +140,14 @@ class ResidentsViewModel @Inject constructor(
         repository.getAllLeasingAgents(byName).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _residentsState.value =ResidentState(residents = result.data?: emptyList())
+                    _residentsState.value = ResidentState(residents = result.data ?: emptyList())
                 }
 
                 is Resource.Error -> {
-                    _residentsState.value = ResidentState(error = result.message ?: "An unexpected error occurred")
+                    _residentsState.value = ResidentState(
+                        residents = result.data ?: emptyList(),
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {

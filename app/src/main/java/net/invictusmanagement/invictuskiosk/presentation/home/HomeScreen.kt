@@ -101,12 +101,8 @@ fun HomeScreen(
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit,isConnected) {
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
-
-        if(isConnected){
-            viewModel.loadInitialData()
-        }
     }
 
     LaunchedEffect(currentAccessPoint) {
