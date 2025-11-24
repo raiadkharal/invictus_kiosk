@@ -9,11 +9,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
-import net.invictusmanagement.invictuskiosk.data.workers.SyncWorker
+import net.invictusmanagement.invictuskiosk.data.workers.FetchFromServerWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class SyncScheduler @Inject constructor(
+class FetchFromServerScheduler @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
@@ -34,7 +34,7 @@ class SyncScheduler @Inject constructor(
             .setRequiresBatteryNotLow(false)
             .build()
 
-        val periodic = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
+        val periodic = PeriodicWorkRequestBuilder<FetchFromServerWorker>(1, TimeUnit.HOURS)
             .setConstraints(constraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
@@ -54,7 +54,7 @@ class SyncScheduler @Inject constructor(
      * Optional: Immediately perform a manual one-time sync.
      */
     fun runOneTimeNow() {
-        val oneTime = OneTimeWorkRequestBuilder<SyncWorker>()
+        val oneTime = OneTimeWorkRequestBuilder<FetchFromServerWorker>()
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)

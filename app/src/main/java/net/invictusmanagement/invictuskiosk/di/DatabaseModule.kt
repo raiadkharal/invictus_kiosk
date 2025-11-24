@@ -47,4 +47,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideResidentsDao(db: AppDatabase): ResidentsDao = db.residentsDao()
+
+    @Provides
+    @Singleton
+    fun provideSystemLogDao(db: AppDatabase) = db.systemLogDao()
 }

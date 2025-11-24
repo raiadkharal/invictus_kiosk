@@ -10,7 +10,7 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.UnitEntity
 @Dao
 interface DirectoryDao {
 
-    @Query("SELECT * FROM units")
+    @Query("SELECT * FROM units ORDER BY unitNbr")
     suspend fun getUnits(): List<UnitEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

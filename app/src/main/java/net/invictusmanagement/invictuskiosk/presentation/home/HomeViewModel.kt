@@ -83,6 +83,7 @@ class HomeViewModel @Inject constructor(
         mobileChatHubManager = MobileChatHubManager(
             kioskId = kioskId,
             listener = this,
+            networkMonitor = networkMonitor,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
                 }
@@ -93,7 +94,9 @@ class HomeViewModel @Inject constructor(
             }
         )
 
-        mobileChatHubManager?.connect()
+        viewModelScope.launch {
+            mobileChatHubManager?.connect()
+        }
     }
 
     fun loadInitialData(){
@@ -155,10 +158,7 @@ class HomeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    Log.d(
-                        "TAG",
-                        "getLeasingOfficeDetails: ${result.message ?: "An unexpected error occurred"}"
-                    )
+                    _leasingOfficeDetails.value = result.data
                 }
 
                 is Resource.Loading -> {}
@@ -212,10 +212,10 @@ class HomeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    Log.d(
-                        "TAG",
-                        "getAccessPoints: ${result.message ?: "An unexpected error occurred"}"
-                    )
+                    if(result.data?.isNotEmpty() == true) {
+                        _accessPoint.value = result.data[0]
+                        dataStoreManager.saveAccessPoint(result.data[0])
+                    }
                 }
 
                 is Resource.Loading -> {}
@@ -250,10 +250,7 @@ class HomeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    Log.d(
-                        "TAG",
-                        "loadKioskData: ${result.message ?: "An unexpected error occurred"}"
-                    )
+                    dataStoreManager.saveKioskData(result.data)
                 }
 
                 is Resource.Loading -> {

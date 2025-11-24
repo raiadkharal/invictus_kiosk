@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.data.sync.ContactSyncScheduler
-import net.invictusmanagement.invictuskiosk.data.sync.SyncScheduler
+import net.invictusmanagement.invictuskiosk.data.sync.PushToServerScheduler
+import net.invictusmanagement.invictuskiosk.data.sync.FetchFromServerScheduler
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
@@ -26,8 +26,8 @@ class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val unitMapRepository: UnitMapRepository,
     private val networkMonitor: NetworkMonitor,
-    private val contactScheduler: ContactSyncScheduler,
-    private val syncScheduler: SyncScheduler
+    private val contactScheduler: PushToServerScheduler,
+    private val fetchFromServerScheduler: FetchFromServerScheduler
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
@@ -137,7 +137,7 @@ class MainViewModel @Inject constructor(
             networkMonitor.isConnected.collect { isOnline ->
                 if (isOnline) {
                     contactScheduler.enqueueContactSyncWork()
-                    syncScheduler.runOneTimeNow()
+                    fetchFromServerScheduler.runOneTimeNow()
                 }
             }
         }

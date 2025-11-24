@@ -8,15 +8,15 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
-import net.invictusmanagement.invictuskiosk.data.workers.ContactRequestSyncWorker
+import net.invictusmanagement.invictuskiosk.data.workers.PushToServerWorker
 
-class ContactSyncScheduler @Inject constructor(
+class PushToServerScheduler @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val workManager = WorkManager.getInstance(context)
 
     fun enqueueContactSyncWork() {
-        val request = OneTimeWorkRequestBuilder<ContactRequestSyncWorker>()
+        val request = OneTimeWorkRequestBuilder<PushToServerWorker>()
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -25,7 +25,7 @@ class ContactSyncScheduler @Inject constructor(
             .build()
 
         workManager.enqueueUniqueWork(
-            "contact_request_sync",
+            "PushToServerWorker",
             ExistingWorkPolicy.KEEP,
             request
         )

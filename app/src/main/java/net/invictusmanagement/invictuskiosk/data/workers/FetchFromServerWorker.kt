@@ -12,7 +12,7 @@ import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 
 @HiltWorker
-class SyncWorker @AssistedInject constructor(
+class FetchFromServerWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
     private val couponsRepository: CouponsRepository,

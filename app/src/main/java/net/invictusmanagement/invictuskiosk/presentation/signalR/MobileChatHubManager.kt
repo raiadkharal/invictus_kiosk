@@ -5,15 +5,19 @@ import com.microsoft.signalr.HubConnection
 import com.microsoft.signalr.HubConnectionBuilder
 import com.microsoft.signalr.TransportEnum
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import net.invictusmanagement.invictuskiosk.BuildConfig
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import java.util.concurrent.atomic.AtomicBoolean
 
 class MobileChatHubManager(
     private val kioskId: Int,
     private val listener: MobileChatHubEventListener,
-    private val connectionListener: SignalRConnectionListener
+    private val connectionListener: SignalRConnectionListener,
+    private val networkMonitor: NetworkMonitor
 ) {
 
     private val TAG = "SignalRManager"
@@ -36,7 +40,9 @@ class MobileChatHubManager(
     /**
      * Initializes and connects to SignalR in the background
      */
-    fun connect() {
+    suspend fun connect() {
+        if(networkMonitor.isConnected.firstOrNull() == false) return
+
         if (hubConnection != null && hubConnection?.connectionState?.name == "CONNECTED") {
             Log.d(TAG, "connect: Already connected")
             connectionListener.onConnected()
@@ -128,8 +134,8 @@ class MobileChatHubManager(
         if (reconnecting.getAndSet(true)) return // prevent multiple reconnections
 
         coroutineScope.launch {
-            Log.d(TAG, "Attempting to reconnect in 5 seconds...")
-            delay(5000)
+            Log.d(TAG, "Attempting to reconnect in 10 seconds...")
+            delay(10000)
             reconnecting.set(false)
             connect()
         }

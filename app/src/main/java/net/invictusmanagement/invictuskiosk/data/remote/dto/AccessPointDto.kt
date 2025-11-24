@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.data.local.entities.AccessPointEntity
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 
 data class AccessPointDto(
@@ -33,3 +34,19 @@ fun AccessPointDto.toAccessPoint(): AccessPoint {
         type = type
     )
 }
+
+fun AccessPointDto.toEntity(): AccessPointEntity =
+    AccessPointEntity(
+        id = id,
+        ledLightOnFrom = ledLightOnFrom,
+        ledLightOnTo = ledLightOnTo,
+        ledLightPort = ledLightPort,
+        lumiLightOnFrom = lumiLightOnFrom,
+        lumiLightOnTo = lumiLightOnTo,
+        lumiLightPort = lumiLightPort,
+        name = name,
+        relayDelayTimer = relayDelayTimer,
+        relayOpenTimer = relayOpenTimer,
+        relayPort = relayPort,
+        type = type
+    )

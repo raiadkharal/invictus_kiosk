@@ -73,6 +73,7 @@ class CouponsRepositoryImpl @Inject constructor(
         // --- Sync promotions ---
         runCatching {
             val promotions = api.getAllPromotions()
+            couponsDao.clearPromotions()
             couponsDao.insertPromotions(promotions.map { it.toEntity() })
         }.onFailure { e ->
             logger.logError("syncAllCoupons", "Failed to sync promotions: ${e.localizedMessage}", e)

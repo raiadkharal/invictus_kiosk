@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.domain.model
 
 import kotlinx.serialization.Serializable
+import net.invictusmanagement.invictuskiosk.data.local.entities.AccessPointEntity
 
 @Serializable
 data class AccessPoint(

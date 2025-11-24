@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LoginDto
-import net.invictusmanagement.invictuskiosk.data.sync.SyncScheduler
+import net.invictusmanagement.invictuskiosk.data.sync.FetchFromServerScheduler
 import net.invictusmanagement.invictuskiosk.domain.repository.LoginRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import javax.inject.Inject
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val repository: LoginRepository,
     private val datastoreManager: DataStoreManager,
-    private val syncScheduler: SyncScheduler
+    private val fetchFromServerScheduler: FetchFromServerScheduler
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
                     _state.value = LoginState(login = result.data)
                     datastoreManager.saveAccessToken(result.data?.token ?: "")
                     // schedule data sync worker
-//                    syncScheduler.schedulePeriodicSync()
+                   // fetchFromServerScheduler.schedulePeriodicSync()
                 }
 
                 is Resource.Error -> {

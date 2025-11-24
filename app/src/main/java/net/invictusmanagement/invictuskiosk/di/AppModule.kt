@@ -11,6 +11,7 @@ import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
+import net.invictusmanagement.invictuskiosk.data.local.dao.SystemLogDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
@@ -165,9 +166,10 @@ object AppModule {
     @Singleton
     fun provideLogRepository(
         mobileApi: MobileApiInterface,
-        api: ApiInterface
+        api: ApiInterface,
+        systemLogDao: SystemLogDao
     ): LogRepository {
-        return LogRepositoryImpl(mobileApi,api)
+        return LogRepositoryImpl(mobileApi,api,systemLogDao)
     }
 
     @Provides
