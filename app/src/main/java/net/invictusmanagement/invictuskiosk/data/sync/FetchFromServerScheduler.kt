@@ -27,7 +27,7 @@ class FetchFromServerScheduler @Inject constructor(
      * Schedules the hourly sync.
      * Called **after login**, which ensures token exists.
      */
-    fun schedulePeriodicSync() {
+    private fun schedulePeriodicDataFetch() {
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -51,9 +51,21 @@ class FetchFromServerScheduler @Inject constructor(
     }
 
     /**
+     * The ONLY method you call after login.
+     * It performs:
+     * 1. Immediate sync (OneTimeWorker)
+     * 2. Schedules hourly repeating sync
+     */
+    fun initializeDataSync() {
+        performOneTimeSync()
+        schedulePeriodicDataFetch()
+    }
+
+
+    /**
      * Optional: Immediately perform a manual one-time sync.
      */
-    fun runOneTimeNow() {
+    private fun performOneTimeSync() {
         val oneTime = OneTimeWorkRequestBuilder<FetchFromServerWorker>()
             .setConstraints(
                 Constraints.Builder()

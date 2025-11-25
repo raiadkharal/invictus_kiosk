@@ -18,7 +18,7 @@ class UnitMapRepositoryImpl @Inject constructor(
 ) : UnitMapRepository {
     private val logTag = "UnitMapRepository"
 
-    override fun getMapImage(
+    override suspend fun getMapImage(
         unitId: Long,
         unitMapId: Long,
         toPackageCenter: Boolean
@@ -38,7 +38,7 @@ class UnitMapRepositoryImpl @Inject constructor(
         emit(result)
     }
 
-    override fun getUnitImage(
+    override suspend fun getUnitImage(
         unitId: Long,
         unitImageId: Long
     ): Flow<Resource<ByteArray>> = flow {

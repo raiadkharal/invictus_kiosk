@@ -15,7 +15,7 @@ class PushToServerScheduler @Inject constructor(
 ) {
     private val workManager = WorkManager.getInstance(context)
 
-    fun enqueueContactSyncWork() {
+    fun enqueuePushToServerWork() {
         val request = OneTimeWorkRequestBuilder<PushToServerWorker>()
             .setConstraints(
                 Constraints.Builder()

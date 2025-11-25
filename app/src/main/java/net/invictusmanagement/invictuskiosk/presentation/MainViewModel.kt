@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.sync.PushToServerScheduler
-import net.invictusmanagement.invictuskiosk.data.sync.FetchFromServerScheduler
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
@@ -26,8 +25,7 @@ class MainViewModel @Inject constructor(
     private val dataStoreManager: DataStoreManager,
     private val unitMapRepository: UnitMapRepository,
     private val networkMonitor: NetworkMonitor,
-    private val contactScheduler: PushToServerScheduler,
-    private val fetchFromServerScheduler: FetchFromServerScheduler
+    private val contactScheduler: PushToServerScheduler
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
@@ -136,29 +134,15 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             networkMonitor.isConnected.collect { isOnline ->
                 if (isOnline) {
-                    contactScheduler.enqueueContactSyncWork()
-                    fetchFromServerScheduler.runOneTimeNow()
+                    contactScheduler.enqueuePushToServerWork()
                 }
             }
-        }
-    }
-
-    fun showNextImage() {
-        if (unitImages.isNotEmpty()) {
-            currentImageIndex = (currentImageIndex + 1) % unitImages.size
         }
     }
 
     fun updateImageIndex(newIndex: Int) {
         if (unitImages.isNotEmpty()) {
             currentImageIndex = newIndex.coerceIn(0, unitImages.lastIndex)
-        }
-    }
-
-    fun showPreviousImage() {
-        if (unitImages.isNotEmpty()) {
-            currentImageIndex =
-                if (currentImageIndex == 0) unitImages.lastIndex else currentImageIndex - 1
         }
     }
 
