@@ -18,9 +18,9 @@ interface HomeRepository: Repository {
 
      fun getAllResidents(): Flow<Resource<List<Resident>>>
 
-     fun getKioskData(): Flow<Resource<Main>>
+     fun getKioskData(): Flow<Resource<Main?>>
 
-     fun getLeasingOfficeDetails(): Flow<Resource<LeasingOffice>>
+     fun getLeasingOfficeDetails(): Flow<Resource<LeasingOffice?>>
 
      fun getIntroButtons(): Flow<Resource<List<String>>>
 }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.safeApiCall
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.toContactRequest
 import net.invictusmanagement.invictuskiosk.data.local.entities.toUnit
@@ -29,16 +30,20 @@ class VacancyRepositoryImpl @Inject constructor(
     private val logger: GlobalLogger
 ):VacancyRepository {
 
+    private val logTag = "VacancyRepository"
+
     override fun getUnits(): Flow<Resource<List<Unit>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val remote = api.getUnits().map { it.toUnit() }
-            emit(Resource.Success(remote))
-        } catch (e: Exception) {
-            Log.d("getUnits", mapError(e))
-            val localData = vacanciesDao.getUnits().map {it.toUnit()}
-            emit(Resource.Error(data = localData, message = mapError(e)))
-        }
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getUnits",
+                remoteCall = { api.getUnits().map { it.toUnit() } },
+                localFallback = { vacanciesDao.getUnits().map { it.toUnit() } },
+                errorMessage = "Failed to load units"
+            )
+        )
     }
 
 
@@ -105,13 +110,15 @@ class VacancyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync() {
-        // --- Sync Vacant Units ---
-        runCatching {
-            val categoriesRemote = api.getUnits()
-            vacanciesDao.clearUnits()
-            vacanciesDao.insertUnits(categoriesRemote.map { it.toVacantUnitEntity() })
-        }.onFailure { e ->
-            logger.logError("syncAllUnits", "Failed to sync units: ${e.localizedMessage}", e)
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-units",
+            remoteCall = {
+                val remote = api.getUnits()
+                vacanciesDao.clearUnits()
+                vacanciesDao.insertUnits(remote.map { it.toVacantUnitEntity() })
+            },
+            errorMessage = "Failed to sync units"
+        )
     }
 }

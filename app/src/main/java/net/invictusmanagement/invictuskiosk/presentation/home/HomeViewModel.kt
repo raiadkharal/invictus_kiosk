@@ -38,7 +38,7 @@ class HomeViewModel @Inject constructor(
     private val networkMonitor: NetworkMonitor,
     private val relayManagerRepository: RelayManagerRepository,
     private val logger: GlobalLogger
-) : ViewModel(), MobileChatHubEventListener{
+) : ViewModel(), MobileChatHubEventListener {
 
     val isConnected = networkMonitor.isConnected
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
@@ -70,11 +70,12 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            networkMonitor.isConnected.collect {isConnected ->
+            networkMonitor.isConnected.collect { isConnected ->
                 logger.logError("networkStatus/HomeViewModel", "Network connected: $isConnected")
             }
         }
     }
+
     private var mobileChatHubManager: MobileChatHubManager? = null
 
     fun initializeSignalR(kioskId: Int) {
@@ -89,7 +90,11 @@ class HomeViewModel @Inject constructor(
                 }
 
                 override fun onConnectionError(method: String, e: Exception) {
-                    logger.logError("SignalRConnectionError/HomeViewModel/${method}", "Error connecting to SignalR: ${e.localizedMessage}", e)
+                    logger.logError(
+                        "SignalRConnectionError/HomeViewModel/${method}",
+                        "Error connecting to SignalR: ${e.localizedMessage}",
+                        e
+                    )
                 }
             }
         )
@@ -99,7 +104,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun loadInitialData(){
+    fun loadInitialData() {
         viewModelScope.launch {
             dataStoreManager.accessPointFlow.collect {
                 _accessPoint.value = it
@@ -126,30 +131,34 @@ class HomeViewModel @Inject constructor(
             relayRepository.initializeRelayManager()
         }
     }
+
     private suspend fun loadVideoUrl() {
         dataStoreManager.kioskDataFlow.collect {
             _videoUrl.value = it?.ssUrl ?: ""
         }
     }
 
-    private fun loadIntroButtons(){
-        repository.getIntroButtons().onEach { result->
-            when(result){
-                is Resource.Success->{
-                    _introButtons.value = result.data?: emptyList()
+    private fun loadIntroButtons() {
+        repository.getIntroButtons().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _introButtons.value = result.data ?: emptyList()
                 }
-                is Resource.Error->{
+
+                is Resource.Error -> {
 //                    _eventFlow.emit(
 //                        UiEvent.ShowError(
 //                            result.message?:Constants.CONNECTION_ERROR
 //                        )
 //                    )
-                    _introButtons.value = result.data?: emptyList()
+                    _introButtons.value = result.data ?: emptyList()
                 }
-                is Resource.Loading->{}
+
+                is Resource.Loading -> {}
             }
         }.launchIn(viewModelScope)
     }
+
     private fun loadLeasingOfficeDetails() {
         repository.getLeasingOfficeDetails().onEach { result ->
             when (result) {
@@ -205,14 +214,14 @@ class HomeViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     //save data in datastore
-                    if(result.data?.isNotEmpty() == true) {
+                    if (result.data?.isNotEmpty() == true) {
                         _accessPoint.value = result.data[0]
                         dataStoreManager.saveAccessPoint(result.data[0])
                     }
                 }
 
                 is Resource.Error -> {
-                    if(result.data?.isNotEmpty() == true) {
+                    if (result.data?.isNotEmpty() == true) {
                         _accessPoint.value = result.data[0]
                         dataStoreManager.saveAccessPoint(result.data[0])
                     }
@@ -232,7 +241,10 @@ class HomeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _residentState.value = ResidentState(error = result.message?:"An unexpected error occurred")
+                    _residentState.value = ResidentState(
+                        residents = result.data,
+                        error = result.message ?: "An unexpected error occurred"
+                    )
                 }
 
                 is Resource.Loading -> {

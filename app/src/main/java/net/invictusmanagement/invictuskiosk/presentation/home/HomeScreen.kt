@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.R
@@ -103,6 +104,18 @@ fun HomeScreen(
 
     LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
+
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
     }
 
     LaunchedEffect(currentAccessPoint) {
@@ -127,17 +140,6 @@ fun HomeScreen(
             isError = true
             delay(2000)
             isError = false
-        }
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is UiEvent.ShowError -> {
-                    navController.navigate(
-                        ErrorScreenRoute(
-                            errorMessage = event.errorMessage
-                        )
-                    ) { popUpTo(HomeScreen) }
-                }
-            }
         }
     }
 

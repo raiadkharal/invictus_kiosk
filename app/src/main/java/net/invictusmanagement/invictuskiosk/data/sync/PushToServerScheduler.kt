@@ -26,7 +26,7 @@ class PushToServerScheduler @Inject constructor(
 
         workManager.enqueueUniqueWork(
             "PushToServerWorker",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }

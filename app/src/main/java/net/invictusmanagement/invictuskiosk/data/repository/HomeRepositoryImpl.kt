@@ -3,6 +3,7 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.safeApiCall
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.IntroButtonEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.toAccessPoint
@@ -36,157 +37,162 @@ class HomeRepositoryImpl @Inject constructor(
     private val logger: GlobalLogger
 ) : HomeRepository {
 
-    override fun validateDigitalKey(digitalKeyDto: DigitalKeyDto): Flow<Resource<DigitalKey>> =
-        flow {
-            try {
-                emit(Resource.Loading())
-                val response = api.validateDigitalKey(digitalKeyDto).toDigitalKey()
-                emit(Resource.Success(response))
-            } catch (e: HttpException) {
-                emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
-            } catch (e: IOException) {
-                emit(Resource.Error("Couldn't reach server. Check your internet connection."))
-            }
-        }
+    private val logTag = "HomeRepository"
+
+    override fun validateDigitalKey(digitalKeyDto: DigitalKeyDto): Flow<Resource<DigitalKey>> = flow {
+
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-validateDigitalKey",
+                remoteCall = { api.validateDigitalKey(digitalKeyDto).toDigitalKey() },
+                localFallback = null,
+                errorMessage = "Failed to validate digital key: ${digitalKeyDto.key}"
+            )
+        )
+    }
+
+    //    override fun validateDigitalKey(digitalKeyDto: DigitalKeyDto): Flow<Resource<DigitalKey>> =
+//        flow {
+//            try {
+//                emit(Resource.Loading())
+//                val response = api.validateDigitalKey(digitalKeyDto).toDigitalKey()
+//                emit(Resource.Success(response))
+//            } catch (e: HttpException) {
+//                emit(Resource.Error(e.localizedMessage ?: "An unexpected error occured"))
+//            } catch (e: IOException) {
+//                emit(Resource.Error("Couldn't reach server. Check your internet connection."))
+//            }
+//        }
 
     override fun getAccessPoints(): Flow<Resource<List<AccessPoint>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val response = api.getAccessPoints().map { it.toAccessPoint() }
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            logger.logError(
-                "getAccessPoints",
-                "Error fetching access points: ${e.localizedMessage}",
-                e
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getAccessPoints",
+                remoteCall = { api.getAccessPoints().map { it.toAccessPoint() } },
+                localFallback = { homeDao.getAccessPoints().map { it.toAccessPoint() } },
+                errorMessage = "Failed to fetch access points"
             )
-            val localData = homeDao.getAccessPoints().map { it.toAccessPoint() }
-            emit(
-                Resource.Error(
-                    data = localData,
-                    message = e.localizedMessage ?: "An unexpected error occured"
-                )
-            )
-        }
+        )
     }
 
     override fun getAllResidents(): Flow<Resource<List<Resident>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val response = api.getAllResidents().map { it.toResident() }
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            logger.logError("getAllResidents", "Error fetching residents: ${e.localizedMessage}", e)
-            val localData = homeDao.getAllResidents().map { it.toResident() }
-            emit(Resource.Error(data = localData, message = mapError(e)))
-        }
-    }
+        emit(Resource.Loading())
 
-    override fun getKioskData(): Flow<Resource<Main>> = flow {
-        try {
-            emit(Resource.Loading())
-            val response = api.getKioskData().toMain()
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            logger.logError("getKioskData", "Error fetching kiosk data: ${e.localizedMessage}", e)
-            val localData = homeDao.getKioskData()?.toMain()
-            emit(Resource.Error(data = localData, message = e.localizedMessage ?: "An unexpected error occured"))
-        }
-    }
-
-    override fun getLeasingOfficeDetails(): Flow<Resource<LeasingOffice>> = flow {
-        try {
-            emit(Resource.Loading())
-            val response = api.getLeasingOfficeDetails().toLeasingOffice()
-            emit(Resource.Success(response))
-        } catch (e: HttpException) {
-            logger.logError(
-                "getLeasingOfficeDetails",
-                "Error fetching leasing office details: ${e.localizedMessage}",
-                e
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getAllResidents",
+                remoteCall = { api.getAllResidents().map { it.toResident() } },
+                localFallback = { homeDao.getAllResidents().map { it.toResident() } },
+                errorMessage = "Failed to fetch residents"
             )
-            val localData = homeDao.getLeasingOfficeDetail()?.toLeasingOffice()
-            emit(Resource.Error(data = localData, message = e.localizedMessage ?: "An unexpected error occured"))
-        }
+        )
+    }
+
+    override fun getKioskData(): Flow<Resource<Main?>> = flow {
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getKioskData",
+                remoteCall = { api.getKioskData().toMain() },
+                localFallback = { homeDao.getKioskData()?.toMain() },
+                errorMessage = "Failed to fetch leasing office details"
+            )
+        )
+    }
+
+    override fun getLeasingOfficeDetails(): Flow<Resource<LeasingOffice?>> = flow {
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getLeasingOfficeDetails",
+                remoteCall = { api.getLeasingOfficeDetails().toLeasingOffice() },
+                localFallback = { homeDao.getLeasingOfficeDetail()?.toLeasingOffice() },
+                errorMessage = "Failed to fetch leasing office details"
+            )
+        )
     }
 
     override fun getIntroButtons(): Flow<Resource<List<String>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val response = api.getIntroButtons()
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            logger.logError(
-                "getIntroButtons",
-                "Error fetching intro buttons: ${e.localizedMessage}",
-                e
+        emit(Resource.Loading())
+
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getIntroButtons",
+                remoteCall = { api.getIntroButtons() },
+                localFallback = { homeDao.getButtons().map { it.name } },
+                errorMessage = "Failed to fetch intro buttons"
             )
-            val localData = homeDao.getButtons().map { it.name }
-            emit(Resource.Error(data = localData, message = mapError(e)))
-        }
+        )
     }
 
     override suspend fun sync() {
 
-        runCatching {
-            val remoteAccessPoints = api.getAccessPoints()
-            homeDao.clearAllAccessPoints()
-            homeDao.insertAccessPoints(remoteAccessPoints.map { it.toEntity() })
-        }.onFailure { e ->
-            logger.logError(
-                "getAllAccessPoints",
-                "Error fetching all access points: ${e.localizedMessage}",
-                e
-            )
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-accessPoints",
+            remoteCall = {
+                val remote = api.getAccessPoints()
+                homeDao.clearAllAccessPoints()
+                homeDao.insertAccessPoints(remote.map { it.toEntity() })
+            },
+            errorMessage = "Failed to sync access points"
+        )
 
-        runCatching {
-            val remoteKioskData = api.getKioskData()
-            homeDao.clearKioskData()
-            homeDao.insertKioskData(remoteKioskData.toEntity())
-        }.onFailure { e ->
-            logger.logError(
-                "getKioskData",
-                "Error fetching kiosk data: ${e.localizedMessage}",
-                e
-            )
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-kioskData",
+            remoteCall = {
+                val remote = api.getKioskData()
+                homeDao.clearKioskData()
+                homeDao.insertKioskData(remote.toEntity())
+            },
+            errorMessage = "Failed to sync kiosk data"
+        )
 
-        runCatching {
-            val remoteLeasingOfficeDetails = api.getLeasingOfficeDetails()
-            homeDao.clearLeasingOfficeDetail()
-            homeDao.insertLeasingOfficeDetail(remoteLeasingOfficeDetails.toEntity())
-        }.onFailure { e ->
-            logger.logError(
-                "getLeasingOfficeDetails",
-                "Error fetching leasing office details: ${e.localizedMessage}",
-                e
-            )
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-leasingOfficeDetails",
+            remoteCall = {
+                val remote = api.getLeasingOfficeDetails()
+                homeDao.clearLeasingOfficeDetail()
+                homeDao.insertLeasingOfficeDetail(remote.toEntity())
+            },
+            errorMessage = "Failed to sync leasing office data"
+        )
 
-        runCatching {
-            val remoteResidents = api.getAllResidents()
-            homeDao.clearResidents()
-            homeDao.insertResidents(remoteResidents.map { it.toResidentEntity() })
-        }.onFailure { e ->
-            logger.logError(
-                "getAllResidents",
-                "Error fetching all residents: ${e.localizedMessage}",
-                e
-            )
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-residents",
+            remoteCall = {
+                val remote = api.getAllResidents()
+                homeDao.clearResidents()
+                homeDao.insertResidents(remote.map { it.toResidentEntity() })
+            },
+            errorMessage = "Failed to sync residents"
+        )
 
-        runCatching {
-            val remoteIntroButtons = api.getIntroButtons()
-            homeDao.clearIntroButtons()
-            homeDao.insertButtons(remoteIntroButtons.map { IntroButtonEntity(name = it) })
-        }.onFailure { e ->
-            logger.logError(
-                "getIntroButtons",
-                "Error fetching intro buttons: ${e.localizedMessage}",
-                e
-            )
-        }
+        safeApiCall(
+            logger = logger,
+            tag = "$logTag-sync-introButtons",
+            remoteCall = {
+                val remote = api.getIntroButtons()
+                homeDao.clearIntroButtons()
+                homeDao.insertButtons(remote.map { IntroButtonEntity(name = it) })
+            },
+            errorMessage = "Failed to sync intro buttons"
+        )
     }
 
     private fun mapError(e: Exception): String = when (e) {
