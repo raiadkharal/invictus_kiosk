@@ -189,6 +189,7 @@ private fun CouponDetailsScreenPreview() {
         navController = navController,
         promotionId = 28,
         businessPromotion = BusinessPromotion(
+            type = 1,
             name = "Invictus Test Business",
             address1 = "1821 Pacific Coast Hwy",
             address2 = "",

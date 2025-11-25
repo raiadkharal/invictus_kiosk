@@ -63,10 +63,8 @@ fun VacancyScreen(
         )
     }
 
-    LaunchedEffect(Unit,isConnected) {
-        if (isConnected) {
-            viewModel.getUnits()
-        }
+    LaunchedEffect(Unit, isConnected) {
+        viewModel.getUnits()
     }
 
     LaunchedEffect(contactRequestState) {
@@ -75,83 +73,83 @@ fun VacancyScreen(
         }
         contactRequestSuccess = contactRequestState.contactRequest != null
     }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colorResource(R.color.background)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CustomToolbar(
+            title = "$locationName - $kioskName",
+            navController = navController
+        )
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .background(colorResource(R.color.background)),
+            modifier = Modifier
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            CustomToolbar(
-                title = "$locationName - $kioskName",
-                navController = navController
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.vacancies),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
-            Column(
+
+            Spacer(Modifier.height(8.dp))
+
+            TableHeader()
+            HorizontalDivider(
                 modifier = Modifier
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.vacancies),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
-                )
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                color = colorResource(R.color.btn_text),
+                thickness = 2.dp
+            )
 
-                Spacer(Modifier.height(8.dp))
-
-                TableHeader()
-                HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    color = colorResource(R.color.btn_text),
-                    thickness = 2.dp
-                )
-
-                if (vacanciesState.isLoading) {
+            if (vacanciesState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = colorResource(R.color.btn_text))
+                }
+            } else {
+                if (vacanciesState.vacancies.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = colorResource(R.color.btn_text))
-                    }
-                } else {
-                    if (vacanciesState.vacancies.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.no_vacancies),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    color = colorResource(
-                                        R.color.btn_text
-                                    )
+                        Text(
+                            text = stringResource(R.string.no_vacancies),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = colorResource(
+                                    R.color.btn_text
                                 )
                             )
-                        }
-                    } else {
-                        LazyColumn {
-                            itemsIndexed(vacanciesState.vacancies) { index, item ->
-                                TableRow(
-                                    item,
-                                    index % 2 == 0,
-                                    onClick = {
-                                        selectedRow = item
-                                        showVacancyInfoDialog = true
-                                    }
-                                )
-                            }
+                        )
+                    }
+                } else {
+                    LazyColumn {
+                        itemsIndexed(vacanciesState.vacancies) { index, item ->
+                            TableRow(
+                                item,
+                                index % 2 == 0,
+                                onClick = {
+                                    selectedRow = item
+                                    showVacancyInfoDialog = true
+                                }
+                            )
                         }
                     }
                 }
             }
-
         }
 
-    if(contactRequestSuccess){
-        ResponseDialog{
+    }
+
+    if (contactRequestSuccess) {
+        ResponseDialog {
             contactRequestSuccess = false
         }
     }
@@ -180,7 +178,6 @@ fun VacancyScreen(
         }
     }
 }
-
 
 
 @Preview(widthDp = 1400, heightDp = 800)

@@ -18,6 +18,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.model.UnitList
 import net.invictusmanagement.invictuskiosk.domain.repository.DirectoryRepository
+import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.residents.ResidentState
@@ -29,6 +30,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DirectoryViewModel @Inject constructor(
     private val repository: DirectoryRepository,
+    private val homeRepository: HomeRepository,
     private val dataStoreManager: DataStoreManager,
     private val relayRepository: RelayManagerRepository,
     private val networkMonitor: NetworkMonitor
@@ -73,7 +75,7 @@ class DirectoryViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _unitList.value = emptyList()
+                    _unitList.value = result.data
                 }
 
                 is Resource.Loading -> {
@@ -117,7 +119,7 @@ class DirectoryViewModel @Inject constructor(
     }
 
     fun getAllResidents() {
-        repository.getAllResidents().onEach { result ->
+        homeRepository.getAllResidents().onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _residentState.value = ResidentState(residents = result.data)

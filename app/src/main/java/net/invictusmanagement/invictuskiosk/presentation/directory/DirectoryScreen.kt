@@ -98,11 +98,8 @@ fun DirectoryScreen(
 
     LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
-
-        if (isConnected) {
-            viewModel.getUnitList()
-            viewModel.getAllResidents()
-        }
+        viewModel.getUnitList()
+        viewModel.getAllResidents()
     }
 
     LaunchedEffect(unitList) {

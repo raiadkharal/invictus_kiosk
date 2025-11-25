@@ -3,6 +3,7 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.safeApiCall
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
@@ -15,6 +16,8 @@ class UnitMapRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
     private val logger: GlobalLogger
 ) : UnitMapRepository {
+    private val logTag = "UnitMapRepository"
+
     override fun getMapImage(
         unitId: Long,
         unitMapId: Long,
@@ -22,16 +25,17 @@ class UnitMapRepositoryImpl @Inject constructor(
     ): Flow<Resource<ByteArray>> = flow {
         emit(Resource.Loading())
 
-        try {
-            val response = api.getMapImage(unitId, unitMapId, toPackageCenter)
-            val bytes = response.bytes() // Convert response to ByteArray
-            emit(Resource.Success(bytes))
-        } catch (e: HttpException) {
-            logger.logError("getMapImage", "Error fetching map image: ${e.message}", e)
-            emit(Resource.Error(e.localizedMessage ?: "An error occurred"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
-        }
+        val result = safeApiCall(
+            logger = logger,
+            tag = "$logTag-getMapImage",
+            remoteCall = {
+                api.getMapImage(unitId, unitMapId, toPackageCenter).bytes()
+            },
+            localFallback = null,
+            errorMessage = "Failed to load map image"
+        )
+
+        emit(result)
     }
 
     override fun getUnitImage(
@@ -40,16 +44,17 @@ class UnitMapRepositoryImpl @Inject constructor(
     ): Flow<Resource<ByteArray>> = flow {
         emit(Resource.Loading())
 
-        try {
-            val response = api.getUnitImage(unitId, unitImageId)
-            val bytes = response.bytes() // Convert response to ByteArray
-            emit(Resource.Success(bytes))
-        } catch (e: HttpException) {
-            logger.logError("getUnitImage", "Error fetching unit image: ${e.message}", e)
-            emit(Resource.Error(e.localizedMessage ?: "An error occurred"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Couldn't reach server. Check your internet connection."))
-        }
+        emit(
+            safeApiCall(
+                logger = logger,
+                tag = "$logTag-getUnitImage",
+                remoteCall = {
+                    api.getUnitImage(unitId, unitImageId).bytes()
+                },
+                localFallback = null,
+                errorMessage = "Failed to load unit image"
+            )
+        )
     }
 
 }

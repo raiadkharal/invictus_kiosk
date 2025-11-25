@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.data.local.entities.ResidentEntity
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 
 data class ResidentDto(
@@ -20,6 +21,21 @@ fun ResidentDto.toResident(): Resident {
         activationCode = activationCode,
         displayName = displayName,
         id = id,
+        isDoNotDisturb = isDoNotDisturb,
+        isSmartPhone = isSmartPhone,
+        mapId = mapId,
+        phoneNumber = phoneNumber,
+        role = role,
+        unitId = unitId,
+        unitNbr = unitNbr
+    )
+}
+
+fun ResidentDto.toResidentEntity(): ResidentEntity {
+    return ResidentEntity(
+        id = id,
+        activationCode = activationCode,
+        displayName = displayName,
         isDoNotDisturb = isDoNotDisturb,
         isSmartPhone = isSmartPhone,
         mapId = mapId,

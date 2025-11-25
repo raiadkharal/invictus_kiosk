@@ -35,15 +35,11 @@ class GlobalLogger @Inject constructor(
         Log.d("ERROR-$logger", message, exception)
 
         CoroutineScope(Dispatchers.IO).launch {
-            val activationCode = dataStoreManager.activationCodeFlow.firstOrNull()
 
             val errorLog = ErrorLogRequestDto(
                 logger = "AndroidKiosk/$logger",
                 exceptionMessage = message,
-                innerException = exception?.stackTraceToString()?.take(4000) ?: "",
-                userId = 0,
-                locationId = 0,
-                role = activationCode ?: ""
+                innerException = exception?.stackTraceToString()?.take(4000) ?: ""
             )
 
             logRepository.postErrorLog(errorLog)

@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.R
@@ -101,11 +102,19 @@ fun HomeScreen(
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit,isConnected) {
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
 
-        if(isConnected){
-            viewModel.loadInitialData()
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
         }
     }
 
@@ -131,17 +140,6 @@ fun HomeScreen(
             isError = true
             delay(2000)
             isError = false
-        }
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is UiEvent.ShowError -> {
-                    navController.navigate(
-                        ErrorScreenRoute(
-                            errorMessage = event.errorMessage
-                        )
-                    ) { popUpTo(HomeScreen) }
-                }
-            }
         }
     }
 

@@ -50,6 +50,7 @@ import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.Mobil
 import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
 
@@ -58,6 +59,7 @@ class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository,
     private val screenSaverRepository: ScreenSaverRepository,
     private val relayManagerRepository: RelayManagerRepository,
+    private val networkMonitor: NetworkMonitor,
     private val logger: GlobalLogger
 ) : ViewModel(), MobileChatHubEventListener {
 
@@ -111,6 +113,7 @@ class VideoCallViewModel @Inject constructor(
         mobileChatHubManager = MobileChatHubManager(
             kioskId = kioskId,
             listener = this,
+            networkMonitor =  networkMonitor,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
                     if (connectionState == ConnectionState.CONNECTING) {
@@ -123,7 +126,9 @@ class VideoCallViewModel @Inject constructor(
             }
         )
 
-        mobileChatHubManager?.connect()
+        viewModelScope.launch {
+            mobileChatHubManager?.connect()
+        }
     }
 
     fun connectToVideoCallWithRetry(

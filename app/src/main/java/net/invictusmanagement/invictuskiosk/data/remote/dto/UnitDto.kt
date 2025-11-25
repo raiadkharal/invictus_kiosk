@@ -1,5 +1,7 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.data.local.entities.UnitEntity
+import net.invictusmanagement.invictuskiosk.data.local.entities.VacantUnitEntity
 import net.invictusmanagement.invictuskiosk.domain.model.Unit
 
 data class UnitDto(
@@ -29,5 +31,21 @@ fun UnitDto.toUnit(): Unit {
         isUnitsForSale = isUnitsForSale ?: false,
         rent = rent ?: 0.0F,
         unitNbr = unitNbr ?: ""
+    )
+}
+
+fun UnitDto.toVacantUnitEntity(): VacantUnitEntity {
+    return VacantUnitEntity(
+        id = id,
+        area = area,
+        availableDateUtc = availableDateUtc,
+        bathrooms = bathrooms,
+        bedrooms = bedrooms,
+        floor = floor,
+        imageIds = imageIds ?: emptyList(),
+        isRentHide = isRentHide,
+        isUnitsForSale = isUnitsForSale,
+        rent = rent,
+        unitNbr = unitNbr
     )
 }

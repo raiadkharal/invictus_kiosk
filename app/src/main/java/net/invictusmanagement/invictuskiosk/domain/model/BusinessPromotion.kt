@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BusinessPromotion(
+    val type: Int,
     val address1: String,
     val address2: String,
     val city: String,

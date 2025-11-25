@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote.dto
 
+import net.invictusmanagement.invictuskiosk.data.local.entities.LeasingOfficeEntity
 import net.invictusmanagement.invictuskiosk.domain.model.LeasingOffice
 
 data class LeasingOfficeDto(
@@ -13,3 +14,11 @@ fun LeasingOfficeDto.toLeasingOffice(): LeasingOffice{
         leasingOfficer = leasingOfficer
     )
 }
+
+fun LeasingOfficeDto.toEntity(): LeasingOfficeEntity {
+    return LeasingOfficeEntity(
+        allowSinglePushCallToLeasingOffice = allowSinglePushCallToLeasingOffice?:false,
+        leasingOfficer = leasingOfficer
+    )
+}
+
