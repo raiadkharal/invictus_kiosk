@@ -7,12 +7,14 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import net.invictusmanagement.invictuskiosk.BuildConfig
 import net.invictusmanagement.invictuskiosk.data.local.AppDatabase
 import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
+import net.invictusmanagement.invictuskiosk.data.local.migration3to4
 import javax.inject.Singleton
 
 @Module
@@ -21,12 +23,24 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(
+    fun provideDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+
+        val builder = Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "invictus_kiosk.db"
-        ).build()
+        )
+            .addMigrations(migration3to4)
+
+        // Enable destructive migration ONLY in debug
+        if (BuildConfig.DEBUG) {
+            builder.fallbackToDestructiveMigration(true)
+        }
+
+        return builder.build()
+    }
 
     @Provides
     @Singleton

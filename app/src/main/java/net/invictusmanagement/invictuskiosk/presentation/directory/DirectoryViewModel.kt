@@ -127,7 +127,7 @@ class DirectoryViewModel @Inject constructor(
 
                 is Resource.Error -> {
                     _residentState.value =
-                        ResidentState(error = result.message ?: "An unexpected error occurred")
+                        ResidentState(residents = result.data,error = result.message ?: "An unexpected error occurred")
                 }
 
                 is Resource.Loading -> {

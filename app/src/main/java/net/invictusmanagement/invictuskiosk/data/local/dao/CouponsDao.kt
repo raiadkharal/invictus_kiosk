@@ -16,7 +16,7 @@ interface CouponsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPromotionCategories(categories: List<CouponsCategoryEntity>)
 
-    @Query("SELECT * FROM business_promotions WHERE type = :categoryId")
+    @Query("SELECT * FROM business_promotions WHERE type = :categoryId ORDER BY name ASC")
     suspend fun getPromotionsByCategory(categoryId: Int): List<BusinessPromotionEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

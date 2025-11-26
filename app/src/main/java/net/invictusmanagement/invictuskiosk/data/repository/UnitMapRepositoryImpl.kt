@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
@@ -14,7 +15,8 @@ import kotlin.math.log
 
 class UnitMapRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val logger: GlobalLogger
+    private val logger: GlobalLogger,
+    private val vacanciesDao: VacanciesDao
 ) : UnitMapRepository {
     private val logTag = "UnitMapRepository"
 
@@ -51,7 +53,7 @@ class UnitMapRepositoryImpl @Inject constructor(
                 remoteCall = {
                     api.getUnitImage(unitId, unitImageId).bytes()
                 },
-                localFallback = null,
+                localFallback = {vacanciesDao.getUnitImage(unitImageId)?.imageBytes ?: byteArrayOf()},
                 errorMessage = "Failed to load unit image"
             )
         )

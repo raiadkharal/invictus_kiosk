@@ -4,30 +4,33 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 import net.invictusmanagement.invictuskiosk.data.local.entities.ContactRequestEntity
+import net.invictusmanagement.invictuskiosk.data.local.entities.UnitImageEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.VacantUnitEntity
 
 @Dao
 interface VacanciesDao {
 
-    // Offline-first: observe unit list
     @Query("SELECT * FROM vacant_units ORDER BY unitNbr ASC")
     suspend fun getUnits(): List<VacantUnitEntity>
 
-    // Insert or replace all units
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUnits(units: List<VacantUnitEntity>)
-
-    // Optional: get single unit by ID
-    @Query("SELECT * FROM vacant_units WHERE id = :unitId LIMIT 1")
-    fun getUnitById(unitId: Int): Flow<VacantUnitEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertContactRequest(request: ContactRequestEntity)
 
     @Query("SELECT * FROM contact_requests")
-    fun getPendingRequests(): List<ContactRequestEntity>
+    suspend fun getContactRequests(): List<ContactRequestEntity>
+
+    @Query("SELECT * FROM unit_images WHERE unitImageId = :unitImageId")
+    suspend fun getUnitImage(unitImageId: Long): UnitImageEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUnitImage(entity: UnitImageEntity)
+
+    @Query("DELETE FROM unit_images")
+    suspend fun clearUnitImages()
 
     @Query("DELETE FROM contact_requests WHERE localId = :localId")
     suspend fun deleteRequest(localId: Int)

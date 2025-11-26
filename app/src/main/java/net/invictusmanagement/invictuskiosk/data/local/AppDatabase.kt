@@ -23,6 +23,7 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.MainEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.ResidentEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.SystemLogEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.UnitEntity
+import net.invictusmanagement.invictuskiosk.data.local.entities.UnitImageEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.VacantUnitEntity
 
 @Database(
@@ -37,13 +38,18 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.VacantUnitEntity
         SystemLogEntity::class,
         MainEntity::class,
         LeasingOfficeEntity::class,
-        AccessPointEntity::class
+        AccessPointEntity::class,
+        UnitImageEntity::class
     ],
-    version = 3,
+    version = 1,
     exportSchema = false
 )
-@TypeConverters(PromotionListConverter::class, LongListConverter::class, KioskConverter::class,
-    LeasingOfficeConverter::class)
+@TypeConverters(
+    PromotionListConverter::class,
+    LongListConverter::class,
+    KioskConverter::class,
+    LeasingOfficeConverter::class
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun homeDao(): HomeDao
     abstract fun directoryDao(): DirectoryDao

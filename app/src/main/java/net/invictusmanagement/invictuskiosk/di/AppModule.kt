@@ -152,8 +152,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUnitMapRepository(api: ApiInterface,logger: GlobalLogger): UnitMapRepository {
-        return UnitMapRepositoryImpl(api,logger)
+    fun provideUnitMapRepository(api: ApiInterface,logger: GlobalLogger,vacanciesDao: VacanciesDao): UnitMapRepository {
+        return UnitMapRepositoryImpl(api,logger,vacanciesDao)
     }
 
     @Provides

@@ -14,9 +14,6 @@ interface SystemLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLog(log: SystemLogEntity)
 
-    @Query("SELECT * FROM system_logs ORDER BY createdAt DESC")
-    suspend fun getAllLogs(): List<SystemLogEntity>
-
     @Query("SELECT * FROM system_logs WHERE logType = :type ORDER BY createdAt DESC")
     fun getLogsByType(type: LogType): List<SystemLogEntity>
 

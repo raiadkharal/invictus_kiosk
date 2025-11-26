@@ -16,7 +16,7 @@ interface HomeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertButtons(buttons: List<IntroButtonEntity>)
 
-    @Query("SELECT * FROM residents")
+    @Query("SELECT * FROM residents ORDER BY role,displayName")
     suspend fun getAllResidents(): List<ResidentEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -25,7 +25,7 @@ interface HomeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAccessPoints(list: List<AccessPointEntity>)
 
-    @Query("SELECT * FROM access_points")
+    @Query("SELECT * FROM access_points ORDER BY relayPort ASC")
     suspend fun getAccessPoints(): List<AccessPointEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
