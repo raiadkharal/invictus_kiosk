@@ -23,13 +23,17 @@ class FetchFromServerWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
 
-        // Sync everything independently
-        couponsRepository.sync()
-        directoryRepository.sync()
-        homeRepository.sync()
-        vacancyRepository.sync()
+        return try {
+            // Sync everything independently
+            couponsRepository.sync()
+            directoryRepository.sync()
+            homeRepository.sync()
+            vacancyRepository.sync()
 
-        return Result.success()
+            Result.success()
+        } catch (e: Exception) {
+            Result.retry()
+        }
     }
 
 }

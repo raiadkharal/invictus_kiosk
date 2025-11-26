@@ -31,7 +31,6 @@ class FetchFromServerScheduler @Inject constructor(
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(false)
             .build()
 
         val periodic = PeriodicWorkRequestBuilder<FetchFromServerWorker>(1, TimeUnit.HOURS)
@@ -63,14 +62,18 @@ class FetchFromServerScheduler @Inject constructor(
 
 
     /**
-     * Optional: Immediately perform a manual one-time sync.
+     * Immediately perform a manual one-time sync.
      */
     private fun performOneTimeSync() {
+        val constraints =  Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         val oneTime = OneTimeWorkRequestBuilder<FetchFromServerWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
+            .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                30, TimeUnit.SECONDS
             )
             .build()
 
