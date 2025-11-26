@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -69,6 +70,18 @@ fun LeasingOfficeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
+
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
     }
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
@@ -86,18 +99,6 @@ fun LeasingOfficeScreen(
             isError = true
             delay(3000)
             isError = false
-        }
-
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is UiEvent.ShowError -> {
-                    navController.navigate(
-                        ErrorScreenRoute(
-                            errorMessage = event.errorMessage
-                        )
-                    ) { popUpTo(HomeScreen) }
-                }
-            }
         }
     }
 
