@@ -11,7 +11,7 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.VacantUnitEntity
 @Dao
 interface VacanciesDao {
 
-    @Query("SELECT * FROM vacant_units ORDER BY unitNbr ASC")
+    @Query("SELECT * FROM vacant_units ORDER BY rent DESC")
     suspend fun getUnits(): List<VacantUnitEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
