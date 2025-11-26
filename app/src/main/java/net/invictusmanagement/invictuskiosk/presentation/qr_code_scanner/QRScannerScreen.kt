@@ -27,12 +27,15 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUI
+import net.invictusmanagement.invictuskiosk.util.UiEvent
 import java.util.concurrent.Executors
 
 @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
@@ -61,6 +64,18 @@ fun QRScannerScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
+
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowError -> {
+                    navController.navigate(
+                        ErrorScreenRoute(
+                            errorMessage = event.errorMessage
+                        )
+                    ) { popUpTo(HomeScreen) }
+                }
+            }
+        }
     }
 
     LaunchedEffect(keyValidationState) {

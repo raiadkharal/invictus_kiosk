@@ -19,8 +19,10 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -36,6 +38,7 @@ import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.compone
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.components.QRScannerUiState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.invictuskiosk.util.UiEvent
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -49,6 +52,9 @@ class QRScannerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(QRScannerUiState())
     val uiState: StateFlow<QRScannerUiState> = _uiState
+
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
     val digitalKeyValidationState: StateFlow<DigitalKeyState> = _digitalKeyValidationState
@@ -88,9 +94,11 @@ class QRScannerViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _digitalKeyValidationState.value =
-                        DigitalKeyState(error = result.message ?: "An unexpected error occurred")
-                    reportError(result.message ?: "An unexpected error occurred")
+                    _eventFlow.emit(
+                        UiEvent.ShowError(
+                            Constants.QR_CODE_GENERIC_ERROR
+                        )
+                    )
                     setLoading(false)
                 }
 
