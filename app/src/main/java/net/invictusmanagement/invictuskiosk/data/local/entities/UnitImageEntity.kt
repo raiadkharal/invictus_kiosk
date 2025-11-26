@@ -8,5 +8,5 @@ data class UnitImageEntity(
     @PrimaryKey(autoGenerate = false)
     val unitImageId: Long,
     val unitId: Int,
-    val imageBytes: ByteArray
+    val imagePath: String
 )

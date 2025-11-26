@@ -1,11 +1,13 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.commons.FileManager
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.commons.safeApiCall
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
@@ -27,6 +29,7 @@ import java.io.IOException
 import javax.inject.Inject
 
 class VacancyRepositoryImpl @Inject constructor(
+    private val context: Context,
     private val api: ApiInterface,
     private val vacanciesDao: VacanciesDao,
     private val logger: GlobalLogger
@@ -134,18 +137,19 @@ class VacancyRepositoryImpl @Inject constructor(
                 unit.imageIds?.forEach { imageId ->
                     launch(Dispatchers.IO) {
                         try {
-                            // skip if the image with same if already exists
+                            // skip if the image with same id already exists
                             if (vacanciesDao.getUnitImage(imageId) != null) return@launch
 
                             // Fetch image bytes from the server
                             val bytes = api.getUnitImage(unit.id.toLong(), imageId).bytes()
+                            val imagePath = FileManager.saveImageToCache(context, bytes, "unit_${unit.id}_${imageId}.jpg")
 
                             // Save Image to the local database
                             vacanciesDao.insertUnitImage(
                                 UnitImageEntity(
                                     unitImageId = imageId,
                                     unitId = unit.id,
-                                    imageBytes = bytes
+                                    imagePath = imagePath
                                 )
                             )
 

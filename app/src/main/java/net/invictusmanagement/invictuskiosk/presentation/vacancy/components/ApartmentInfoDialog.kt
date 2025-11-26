@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.vacancy.components
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,7 +57,7 @@ fun ApartmentInfoDialog(
 
     val resetSleepTimer = LocalUserInteractionReset.current
 
-    val unitImages = mainViewModel.unitImages
+    val unitImagePaths = mainViewModel.unitImagePaths
     val currentImageIndex = mainViewModel.currentImageIndex
 
     LaunchedEffect(isConnected) {
@@ -124,7 +122,7 @@ fun ApartmentInfoDialog(
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.DarkGray),
-                    unitImages = unitImages,
+                    unitImages = unitImagePaths,
                     currentImageIndex = currentImageIndex,
                     mainViewModel = mainViewModel,
                     resetSleepTimer = resetSleepTimer

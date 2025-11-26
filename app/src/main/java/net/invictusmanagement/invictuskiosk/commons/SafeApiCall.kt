@@ -13,17 +13,27 @@ suspend fun <T> safeApiCall(
     } catch (e: Exception) {
         logger.logError(tag, "$errorMessage: ${e.localizedMessage}", e)
 
-        val fallback = localFallback?.invoke()
+        val fallbackResult = runCatching { localFallback?.invoke() }
 
-        if (fallback != null) {
-            Resource.Error(
-                data = fallback,
-                message = e.localizedMessage ?: errorMessage
-            )
-        } else {
-            Resource.Error(
-                message = e.localizedMessage ?: errorMessage
-            )
-        }
+        fallbackResult.fold(
+            onSuccess = { fallback ->
+                if (fallback != null) {
+                    Resource.Error(
+                        data = fallback,
+                        message = e.localizedMessage ?: errorMessage
+                    )
+                } else {
+                    Resource.Error(
+                        message = e.localizedMessage ?: errorMessage
+                    )
+                }
+            },
+            onFailure = { fallbackException ->
+                logger.logError(tag, "Fallback failed: ${fallbackException.localizedMessage}", fallbackException)
+                Resource.Error(
+                    message = e.localizedMessage ?: errorMessage
+                )
+            }
+        )
     }
 }

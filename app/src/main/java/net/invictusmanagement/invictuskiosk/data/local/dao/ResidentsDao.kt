@@ -49,11 +49,4 @@ interface ResidentsDao {
             "Administrator"
         )
     ): List<ResidentEntity>
-
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertResidents(list: List<ResidentEntity>)
-
-    @Query("DELETE FROM residents")
-    suspend fun clearResidents()
 }

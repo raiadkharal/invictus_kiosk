@@ -39,7 +39,7 @@ import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 @Composable
 fun AutoImageSlider(
     modifier: Modifier = Modifier,
-    unitImages: List<ByteArray>,
+    unitImages: List<String>,
     currentImageIndex: Int,
     mainViewModel: MainViewModel,
     resetSleepTimer: (() -> Unit)? = null

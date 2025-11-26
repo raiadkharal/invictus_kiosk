@@ -44,8 +44,8 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VacancyRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
-import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.relaymanager.RelayManager
 import javax.inject.Singleton
 
@@ -104,56 +104,83 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideHomeRepository(api: ApiInterface,homeDao: HomeDao,logger: GlobalLogger): HomeRepository {
-        return HomeRepositoryImpl(api,homeDao,logger)
+    fun provideHomeRepository(
+        api: ApiInterface,
+        homeDao: HomeDao,
+        logger: GlobalLogger
+    ): HomeRepository {
+        return HomeRepositoryImpl(api, homeDao, logger)
     }
 
     @Provides
     @Singleton
-    fun provideServiceKeyRepository(api: ApiInterface,logger: GlobalLogger): ServiceKeyRepository {
-        return ServiceKeyRepositoryImpl(api,logger)
+    fun provideServiceKeyRepository(api: ApiInterface, logger: GlobalLogger): ServiceKeyRepository {
+        return ServiceKeyRepositoryImpl(api, logger)
     }
 
     @Provides
     @Singleton
-    fun provideResidentsRepository(api: ApiInterface,logger: GlobalLogger,residentsDao: ResidentsDao,directoryDao: DirectoryDao): ResidentsRepository {
-        return ResidentsRepositoryImpl(api,logger,residentsDao,directoryDao)
+    fun provideResidentsRepository(
+        api: ApiInterface,
+        logger: GlobalLogger,
+        residentsDao: ResidentsDao,
+        directoryDao: DirectoryDao
+    ): ResidentsRepository {
+        return ResidentsRepositoryImpl(api, logger, residentsDao, directoryDao)
     }
 
     @Provides
     @Singleton
-    fun provideDirectoryRepository(api: ApiInterface,dao: DirectoryDao,logger: GlobalLogger): DirectoryRepository {
-        return DirectoryRepositoryImpl(api,dao,logger)
+    fun provideDirectoryRepository(
+        api: ApiInterface,
+        dao: DirectoryDao,
+        logger: GlobalLogger
+    ): DirectoryRepository {
+        return DirectoryRepositoryImpl(api, dao, logger)
     }
 
     @Provides
     @Singleton
-    fun provideCouponsRepository(api: ApiInterface,dao: CouponsDao,logger: GlobalLogger): CouponsRepository {
-        return CouponsRepositoryImpl(api,dao,logger)
+    fun provideCouponsRepository(
+        api: ApiInterface,
+        dao: CouponsDao,
+        logger: GlobalLogger
+    ): CouponsRepository {
+        return CouponsRepositoryImpl(api, dao, logger)
     }
 
     @Provides
     @Singleton
-    fun provideVacancyRepository(api: ApiInterface,dao: VacanciesDao,logger: GlobalLogger): VacancyRepository {
-        return VacancyRepositoryImpl(api,dao,logger)
+    fun provideVacancyRepository(
+        @ApplicationContext context: Context,
+        api: ApiInterface,
+        dao: VacanciesDao,
+        logger: GlobalLogger
+    ): VacancyRepository {
+        return VacancyRepositoryImpl(context,api, dao, logger)
     }
 
     @Provides
     @Singleton
-    fun provideVideoCallRepository(api: ApiInterface,logger: GlobalLogger): VideoCallRepository {
-        return VideoCallRepositoryImpl(api,logger)
+    fun provideVideoCallRepository(api: ApiInterface, logger: GlobalLogger): VideoCallRepository {
+        return VideoCallRepositoryImpl(api, logger)
     }
 
     @Provides
     @Singleton
-    fun provideVoiceMailRepository(api: ApiInterface,logger: GlobalLogger): VoicemailRepository {
-        return VoicemailRepositoryImpl(api,logger)
+    fun provideVoiceMailRepository(api: ApiInterface, logger: GlobalLogger): VoicemailRepository {
+        return VoicemailRepositoryImpl(api, logger)
     }
 
     @Provides
     @Singleton
-    fun provideUnitMapRepository(api: ApiInterface,logger: GlobalLogger,vacanciesDao: VacanciesDao): UnitMapRepository {
-        return UnitMapRepositoryImpl(api,logger,vacanciesDao)
+    fun provideUnitMapRepository(
+        @ApplicationContext context: Context,
+        api: ApiInterface,
+        logger: GlobalLogger,
+        vacanciesDao: VacanciesDao
+    ): UnitMapRepository {
+        return UnitMapRepositoryImpl(context,api, logger, vacanciesDao)
     }
 
     @Provides
@@ -169,7 +196,7 @@ object AppModule {
         api: ApiInterface,
         systemLogDao: SystemLogDao
     ): LogRepository {
-        return LogRepositoryImpl(mobileApi,api,systemLogDao)
+        return LogRepositoryImpl(mobileApi, api, systemLogDao)
     }
 
     @Provides
@@ -183,20 +210,29 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRelayManager(@ApplicationContext context: Context,globalLogger: GlobalLogger): RelayManager {
-        return RelayManager(context,globalLogger)
+    fun provideRelayManager(
+        @ApplicationContext context: Context,
+        globalLogger: GlobalLogger
+    ): RelayManager {
+        return RelayManager(context, globalLogger)
     }
 
     @Provides
     @Singleton
-    fun provideRelayRepository(relayManager: RelayManager,globalLogger: GlobalLogger): RelayManagerRepository {
-        return RelayManagerRepositoryImpl(relayManager,globalLogger)
+    fun provideRelayRepository(
+        relayManager: RelayManager,
+        globalLogger: GlobalLogger
+    ): RelayManagerRepository {
+        return RelayManagerRepositoryImpl(relayManager, globalLogger)
     }
 
     @Provides
     @Singleton
-    fun provideNetworkMonitor(@ApplicationContext context: Context,globalLogger: GlobalLogger): NetworkMonitor {
-        return NetworkMonitor(context,globalLogger)
+    fun provideNetworkMonitor(
+        @ApplicationContext context: Context,
+        globalLogger: GlobalLogger
+    ): NetworkMonitor {
+        return NetworkMonitor(context, globalLogger)
     }
 
 }

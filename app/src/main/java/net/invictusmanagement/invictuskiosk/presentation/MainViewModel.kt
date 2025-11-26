@@ -48,10 +48,10 @@ class MainViewModel @Inject constructor(
     private val _activationCode = MutableStateFlow("")
     val activationCode: StateFlow<String> = _activationCode
 
-    private val _mapImage = MutableStateFlow<ByteArray?>(null)
-    val mapImage: StateFlow<ByteArray?> = _mapImage
+    private val _mapImagePath = MutableStateFlow<String?>(null)
+    val mapImagePath: StateFlow<String?> = _mapImagePath
 
-    var unitImages by mutableStateOf<List<ByteArray>>(emptyList())
+    var unitImagePaths by mutableStateOf<List<String>>(emptyList())
         private set
 
     var currentImageIndex by mutableIntStateOf(0)
@@ -84,15 +84,15 @@ class MainViewModel @Inject constructor(
             unitMapRepository.getMapImage(unitId, unitMapId, toPackageCenter).onEach { result ->
                 when (result) {
                     is Resource.Success -> {
-                        _mapImage.value = result.data
+                        _mapImagePath.value = result.data
                     }
 
                     is Resource.Error -> {
-                        _mapImage.value = null
+                        _mapImagePath.value = null
                     }
 
                     is Resource.Loading -> {
-                        _mapImage.value = null
+                        _mapImagePath.value = null
                     }
                 }
             }.launchIn(viewModelScope)
@@ -102,15 +102,15 @@ class MainViewModel @Inject constructor(
     fun loadImages(unitId: Long, imageIds: List<Long>) {
         viewModelScope.launch {
             try {
-                val byteArrays = mutableListOf<ByteArray>()
+                val paths = mutableListOf<String>()
 
                 for (id in imageIds) {
                     unitMapRepository.getUnitImage(unitId, id)
                         .collect { result ->
                             when (result) {
-                                is Resource.Success -> result.data?.let { byteArrays.add(it) }
+                                is Resource.Success -> result.data?.let { paths.add(it) }
                                 is Resource.Error -> {
-                                    // Handle error if needed
+                                    result.data?.let { paths.add(it) }
                                 }
                                 is Resource.Loading -> {
                                     // Optional loading logic
@@ -120,12 +120,12 @@ class MainViewModel @Inject constructor(
                 }
 
                 // When all images are collected
-                unitImages = byteArrays
+                unitImagePaths = paths
                 currentImageIndex = 0
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                unitImages = emptyList()
+                unitImagePaths = emptyList()
             }
         }
     }
@@ -141,12 +141,12 @@ class MainViewModel @Inject constructor(
     }
 
     fun updateImageIndex(newIndex: Int) {
-        if (unitImages.isNotEmpty()) {
-            currentImageIndex = newIndex.coerceIn(0, unitImages.lastIndex)
+        if (unitImagePaths.isNotEmpty()) {
+            currentImageIndex = newIndex.coerceIn(0, unitImagePaths.lastIndex)
         }
     }
 
     fun clearImages(){
-        unitImages = emptyList()
+        unitImagePaths = emptyList()
     }
 }
