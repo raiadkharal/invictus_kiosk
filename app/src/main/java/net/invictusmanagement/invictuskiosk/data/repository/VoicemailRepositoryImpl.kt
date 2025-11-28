@@ -3,23 +3,19 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toPromotionsCategory
 import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
 import java.io.File
-import java.io.IOException
 import javax.inject.Inject
 
 class VoicemailRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val logger: GlobalLogger
+    private val safeApiCaller: SafeApiCaller
 ): VoicemailRepository {
 
     private val logTag = "VoicemailRepository"
@@ -28,8 +24,7 @@ class VoicemailRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-uploadVoicemail",
                 errorMessage = "Failed to upload voicemail",
                 remoteCall = {

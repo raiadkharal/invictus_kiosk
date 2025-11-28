@@ -3,7 +3,7 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.toResident
@@ -11,22 +11,16 @@ import net.invictusmanagement.invictuskiosk.data.local.entities.toUnitList
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toDigitalKey
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toLogin
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toResident
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toUnit
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKey
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
-import net.invictusmanagement.invictuskiosk.domain.model.Unit
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
-import retrofit2.HttpException
-import java.io.IOException
 
 class ResidentsRepositoryImpl(
     private val api: ApiInterface,
-    private val logger: GlobalLogger,
     private val residentsDao: ResidentsDao,
-    private val directoryDao: DirectoryDao
+    private val directoryDao: DirectoryDao,
+    private val safeApiCaller: SafeApiCaller
 ) : ResidentsRepository {
 
     private val logTag = "ResidentsRepository"
@@ -38,8 +32,7 @@ class ResidentsRepositoryImpl(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getResidentsByName",
                 remoteCall = {
                     api.getResidentsByName(filter, byName).map { it.toResident() }
@@ -57,8 +50,7 @@ class ResidentsRepositoryImpl(
             emit(Resource.Loading())
 
             emit(
-                safeApiCall(
-                    logger = logger,
+                safeApiCaller.call(
                     tag = "$logTag-getResidentsByUnitNumber",
                     remoteCall = {
                         api.getResidentsByUnitNumber(unitNumber).map { it.toResident() }
@@ -77,8 +69,7 @@ class ResidentsRepositoryImpl(
             emit(Resource.Loading())
 
             emit(
-                safeApiCall(
-                    logger = logger,
+                safeApiCaller.call(
                     tag = "$logTag-validateDigitalKey",
                     remoteCall = {
                         api.validateDigitalKey(digitalKeyDto).toDigitalKey()
@@ -111,8 +102,7 @@ class ResidentsRepositoryImpl(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getAllLeasingAgents",
                 remoteCall = {
                     api.getAllLeasingAgents(byName).map { it.toResident() }

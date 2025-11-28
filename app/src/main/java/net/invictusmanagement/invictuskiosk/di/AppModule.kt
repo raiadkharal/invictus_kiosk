@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.BuildConfig
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.local.dao.CouponsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.DirectoryDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
@@ -62,11 +63,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRestClient(
-        @ApplicationContext context: Context,
         dataStoreManager: DataStoreManager
     ): RestClient {
         return RestClient(
-            context,
             baseUrl = BuildConfig._baseUrl,
             dataStoreManager = dataStoreManager
         )
@@ -104,29 +103,43 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSaferApiCaller(
+        networkMonitor: NetworkMonitor,
+        globalLogger: GlobalLogger
+    ): SafeApiCaller {
+        return SafeApiCaller(networkMonitor, globalLogger)
+    }
+
+
+    @Provides
+    @Singleton
     fun provideHomeRepository(
         api: ApiInterface,
         homeDao: HomeDao,
-        logger: GlobalLogger
+        logger: GlobalLogger,
+        safeApiCaller: SafeApiCaller
     ): HomeRepository {
-        return HomeRepositoryImpl(api, homeDao, logger)
+        return HomeRepositoryImpl(api, homeDao, safeApiCaller)
     }
 
     @Provides
     @Singleton
-    fun provideServiceKeyRepository(api: ApiInterface, logger: GlobalLogger): ServiceKeyRepository {
-        return ServiceKeyRepositoryImpl(api, logger)
+    fun provideServiceKeyRepository(
+        api: ApiInterface,
+        safeApiCaller: SafeApiCaller
+    ): ServiceKeyRepository {
+        return ServiceKeyRepositoryImpl(api, safeApiCaller)
     }
 
     @Provides
     @Singleton
     fun provideResidentsRepository(
         api: ApiInterface,
-        logger: GlobalLogger,
         residentsDao: ResidentsDao,
-        directoryDao: DirectoryDao
+        directoryDao: DirectoryDao,
+        safeApiCaller: SafeApiCaller
     ): ResidentsRepository {
-        return ResidentsRepositoryImpl(api, logger, residentsDao, directoryDao)
+        return ResidentsRepositoryImpl(api, residentsDao, directoryDao, safeApiCaller)
     }
 
     @Provides
@@ -134,9 +147,9 @@ object AppModule {
     fun provideDirectoryRepository(
         api: ApiInterface,
         dao: DirectoryDao,
-        logger: GlobalLogger
+        safeApiCaller: SafeApiCaller
     ): DirectoryRepository {
-        return DirectoryRepositoryImpl(api, dao, logger)
+        return DirectoryRepositoryImpl(api, dao, safeApiCaller)
     }
 
     @Provides
@@ -144,9 +157,9 @@ object AppModule {
     fun provideCouponsRepository(
         api: ApiInterface,
         dao: CouponsDao,
-        logger: GlobalLogger
+        safeApiCaller: SafeApiCaller
     ): CouponsRepository {
-        return CouponsRepositoryImpl(api, dao, logger)
+        return CouponsRepositoryImpl(api, dao, safeApiCaller)
     }
 
     @Provides
@@ -155,21 +168,28 @@ object AppModule {
         @ApplicationContext context: Context,
         api: ApiInterface,
         dao: VacanciesDao,
-        logger: GlobalLogger
+        logger: GlobalLogger,
+        safeApiCaller: SafeApiCaller
     ): VacancyRepository {
-        return VacancyRepositoryImpl(context,api, dao, logger)
+        return VacancyRepositoryImpl(context, api, dao, logger, safeApiCaller)
     }
 
     @Provides
     @Singleton
-    fun provideVideoCallRepository(api: ApiInterface, logger: GlobalLogger): VideoCallRepository {
-        return VideoCallRepositoryImpl(api, logger)
+    fun provideVideoCallRepository(
+        api: ApiInterface,
+        safeApiCaller: SafeApiCaller
+    ): VideoCallRepository {
+        return VideoCallRepositoryImpl(api, safeApiCaller)
     }
 
     @Provides
     @Singleton
-    fun provideVoiceMailRepository(api: ApiInterface, logger: GlobalLogger): VoicemailRepository {
-        return VoicemailRepositoryImpl(api, logger)
+    fun provideVoiceMailRepository(
+        api: ApiInterface,
+        safeApiCaller: SafeApiCaller
+    ): VoicemailRepository {
+        return VoicemailRepositoryImpl(api, safeApiCaller)
     }
 
     @Provides
@@ -177,10 +197,10 @@ object AppModule {
     fun provideUnitMapRepository(
         @ApplicationContext context: Context,
         api: ApiInterface,
-        logger: GlobalLogger,
+        safeApiCaller: SafeApiCaller,
         vacanciesDao: VacanciesDao
     ): UnitMapRepository {
-        return UnitMapRepositoryImpl(context,api, logger, vacanciesDao)
+        return UnitMapRepositoryImpl(context, api, vacanciesDao, safeApiCaller)
     }
 
     @Provides

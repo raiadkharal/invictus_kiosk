@@ -5,18 +5,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.FileManager
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import javax.inject.Inject
 
 class UnitMapRepositoryImpl @Inject constructor(
     private val context: Context,
     private val api: ApiInterface,
-    private val logger: GlobalLogger,
-    private val vacanciesDao: VacanciesDao
+    private val vacanciesDao: VacanciesDao,
+    private val safeApiCaller: SafeApiCaller
 ) : UnitMapRepository {
     private val logTag = "UnitMapRepository"
 
@@ -27,8 +26,7 @@ class UnitMapRepositoryImpl @Inject constructor(
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
 
-        val result = safeApiCall(
-            logger = logger,
+        val result = safeApiCaller.call(
             tag = "$logTag-getMapImage",
             remoteCall = {
                 val bytes = api.getMapImage(unitId, unitMapId, toPackageCenter).bytes()
@@ -48,8 +46,7 @@ class UnitMapRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getUnitImage",
                 remoteCall = {
                    val bytes = api.getUnitImage(unitId, unitImageId).bytes()

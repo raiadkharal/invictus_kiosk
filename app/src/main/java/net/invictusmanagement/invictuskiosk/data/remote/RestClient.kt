@@ -1,9 +1,10 @@
 package net.invictusmanagement.invictuskiosk.data.remote
 
-import android.content.Context
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
-import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -12,46 +13,50 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 class RestClient(
-    private val context: Context,
-    private val baseUrl: String,
-    private val dataStoreManager: DataStoreManager
+    baseUrl: String,
+    dataStoreManager: DataStoreManager
 ) {
 
-    fun createApi(): ApiInterface {
-        val authInterceptor = Interceptor { chain ->
-            val token = runBlocking {
-                dataStoreManager.accessTokenFlow.firstOrNull()
+    // Keep token in memory (interceptor will read instantly)
+    @Volatile
+    private var cachedToken: String? = null
+
+    init {
+        // Sync DataStore token into memory
+        CoroutineScope(Dispatchers.IO).launch {
+            dataStoreManager.accessTokenFlow.collectLatest { token ->
+                cachedToken = token
             }
-
-            val request = chain.request().newBuilder().apply {
-                token?.let {
-                    addHeader("Authorization", "Bearer $it")
-                }
-            }.build()
-
-            chain.proceed(request)
         }
-
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-
-        val client = OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .addInterceptor(logging)
-//            .addInterceptor(RetryInterceptor())
-//            .addInterceptor(NetworkConnectionInterceptor(context))
-            .connectTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
-            .build()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(client)
-            .build()
-
-        return retrofit.create(ApiInterface::class.java)
     }
+
+    private val authInterceptor = Interceptor { chain ->
+        val request = chain.request().newBuilder().apply {
+            cachedToken?.let { token ->
+                addHeader("Authorization", "Bearer $token")
+            }
+        }.build()
+
+        chain.proceed(request)
+    }
+
+    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY // Or NONE for release builds
+    }
+
+    private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .addInterceptor(loggingInterceptor)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
+
+    private val retrofit: Retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .addConverterFactory(GsonConverterFactory.create())
+        .client(okHttpClient)
+        .build()
+
+    fun createApi(): ApiInterface = retrofit.create(ApiInterface::class.java)
 }

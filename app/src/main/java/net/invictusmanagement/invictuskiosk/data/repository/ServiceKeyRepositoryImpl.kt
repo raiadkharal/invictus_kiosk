@@ -3,23 +3,17 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
-import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toDigitalKey
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toServiceKey
-import net.invictusmanagement.invictuskiosk.domain.model.DigitalKey
 import net.invictusmanagement.invictuskiosk.domain.model.ServiceKey
 import net.invictusmanagement.invictuskiosk.domain.repository.ServiceKeyRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 class ServiceKeyRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
-    private val logger: GlobalLogger
+    private val safeApiCaller: SafeApiCaller
 ) : ServiceKeyRepository {
 
     private val logTag = "ServiceKeyRepository"
@@ -29,8 +23,7 @@ class ServiceKeyRepositoryImpl @Inject constructor(
             emit(Resource.Loading())
 
             emit(
-                safeApiCall(
-                    logger = logger,
+                safeApiCaller.call(
                     tag = "$logTag-validateServiceKey",
                     remoteCall = {
                         api.validateServiceKey(serviceKeyDto).toServiceKey()

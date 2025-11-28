@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.FileManager
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.UnitImageEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.toContactRequest
@@ -32,7 +32,8 @@ class VacancyRepositoryImpl @Inject constructor(
     private val context: Context,
     private val api: ApiInterface,
     private val vacanciesDao: VacanciesDao,
-    private val logger: GlobalLogger
+    private val logger: GlobalLogger,
+    private val safeApiCaller: SafeApiCaller
 ) : VacancyRepository {
 
     private val logTag = "VacancyRepository"
@@ -41,8 +42,7 @@ class VacancyRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getUnits",
                 remoteCall = { api.getUnits().map { it.toUnit() } },
                 localFallback = { vacanciesDao.getUnits().map { it.toUnit() } },
@@ -116,8 +116,7 @@ class VacancyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync() {
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-units",
             remoteCall = {
                 val remoteUnits = api.getUnits()

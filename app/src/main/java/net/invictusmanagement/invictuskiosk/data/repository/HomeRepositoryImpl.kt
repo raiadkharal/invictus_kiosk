@@ -3,7 +3,7 @@ package net.invictusmanagement.invictuskiosk.data.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import net.invictusmanagement.invictuskiosk.commons.Resource
-import net.invictusmanagement.invictuskiosk.commons.safeApiCall
+import net.invictusmanagement.invictuskiosk.commons.SafeApiCaller
 import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.IntroButtonEntity
 import net.invictusmanagement.invictuskiosk.data.local.entities.toAccessPoint
@@ -26,7 +26,6 @@ import net.invictusmanagement.invictuskiosk.domain.model.LeasingOffice
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.domain.model.home.Main
 import net.invictusmanagement.invictuskiosk.domain.repository.HomeRepository
-import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -34,7 +33,7 @@ import javax.inject.Inject
 class HomeRepositoryImpl @Inject constructor(
     private val api: ApiInterface,
     private val homeDao: HomeDao,
-    private val logger: GlobalLogger
+    private val safeApiCaller: SafeApiCaller
 ) : HomeRepository {
 
     private val logTag = "HomeRepository"
@@ -44,8 +43,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-validateDigitalKey",
                 remoteCall = { api.validateDigitalKey(digitalKeyDto).toDigitalKey() },
                 localFallback = null,
@@ -71,8 +69,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getAccessPoints",
                 remoteCall = { api.getAccessPoints().map { it.toAccessPoint() } },
                 localFallback = { homeDao.getAccessPoints().map { it.toAccessPoint() } },
@@ -85,8 +82,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getAllResidents",
                 remoteCall = { api.getAllResidents().map { it.toResident() } },
                 localFallback = { homeDao.getAllResidents().map { it.toResident() } },
@@ -99,8 +95,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getKioskData",
                 remoteCall = { api.getKioskData().toMain() },
                 localFallback = { homeDao.getKioskData()?.toMain() },
@@ -113,8 +108,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getLeasingOfficeDetails",
                 remoteCall = { api.getLeasingOfficeDetails().toLeasingOffice() },
                 localFallback = { homeDao.getLeasingOfficeDetail()?.toLeasingOffice() },
@@ -127,8 +121,7 @@ class HomeRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         emit(
-            safeApiCall(
-                logger = logger,
+            safeApiCaller.call(
                 tag = "$logTag-getIntroButtons",
                 remoteCall = { api.getIntroButtons() },
                 localFallback = { homeDao.getButtons().map { it.name } },
@@ -139,8 +132,7 @@ class HomeRepositoryImpl @Inject constructor(
 
     override suspend fun sync() {
 
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-accessPoints",
             remoteCall = {
                 val remote = api.getAccessPoints()
@@ -150,8 +142,7 @@ class HomeRepositoryImpl @Inject constructor(
             errorMessage = "Failed to sync access points"
         )
 
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-kioskData",
             remoteCall = {
                 val remote = api.getKioskData()
@@ -161,8 +152,7 @@ class HomeRepositoryImpl @Inject constructor(
             errorMessage = "Failed to sync kiosk data"
         )
 
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-leasingOfficeDetails",
             remoteCall = {
                 val remote = api.getLeasingOfficeDetails()
@@ -172,8 +162,7 @@ class HomeRepositoryImpl @Inject constructor(
             errorMessage = "Failed to sync leasing office data"
         )
 
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-residents",
             remoteCall = {
                 val remote = api.getAllResidents()
@@ -183,8 +172,7 @@ class HomeRepositoryImpl @Inject constructor(
             errorMessage = "Failed to sync residents"
         )
 
-        safeApiCall(
-            logger = logger,
+        safeApiCaller.call(
             tag = "$logTag-sync-introButtons",
             remoteCall = {
                 val remote = api.getIntroButtons()
