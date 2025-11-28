@@ -4,7 +4,6 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +44,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ScreenSaverRepository
+import net.invictusmanagement.invictuskiosk.presentation.signalR.ChatHubManager
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.SignalRConnectionListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.MobileChatHubEventListener
 import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
@@ -102,8 +102,9 @@ class VideoCallViewModel @Inject constructor(
     private var remoteParticipantJoined = false
 
     private var mobileChatHubManager: MobileChatHubManager? = null
+    private var chatHubManager: ChatHubManager? = null
 
-    fun initializeSignalR(kioskId: Int) {
+    fun initializeMobileChatHub(kioskId: Int) {
         if (mobileChatHubManager != null) return
 
         signalRConnectionState = SignalRConnectionState.CONNECTING
@@ -124,6 +125,19 @@ class VideoCallViewModel @Inject constructor(
         )
 
         mobileChatHubManager?.connect()
+    }
+
+    fun initializeChatHub(id: Int) {
+        if (chatHubManager != null) return
+
+        chatHubManager = ChatHubManager(
+            groupName = id.toString(),
+            networkMonitor =  networkMonitor,
+        )
+
+        viewModelScope.launch {
+            chatHubManager?.connect()
+        }
     }
 
     fun connectToVideoCallWithRetry(
@@ -647,6 +661,8 @@ class VideoCallViewModel @Inject constructor(
 
     fun disconnect() {
         try {
+            chatHubManager?.endVideoCallInMobile()
+
             // Cancel disconnect countdown timer
             disconnectTimerJob?.cancel()
             disconnectTimerJob = null
@@ -674,6 +690,10 @@ class VideoCallViewModel @Inject constructor(
             audioTrack?.release()
             audioTrack = null
 
+            // Clean up SignalR connections
+            mobileChatHubManager?.cleanup()
+            chatHubManager?.cleanup()
+
             connectionState = ConnectionState.DISCONNECTED
 
         } catch (e: Exception) {
@@ -687,7 +707,6 @@ class VideoCallViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
-        mobileChatHubManager?.cleanup()
     }
 
     fun pauseScreenSaver() {
@@ -722,7 +741,6 @@ class VideoCallViewModel @Inject constructor(
         disconnect()
 
     }
-
 
     fun setVoiceMailDialogVisibility(isVisible: Boolean) {
         showVoiceMailDialog = isVisible

@@ -16,7 +16,7 @@ class MobileChatHubManager(
     private val connectionListener: SignalRConnectionListener
 ) {
 
-    private val TAG = "SignalRManager"
+    private val TAG = "MobileChatHubManager"
     private var hubConnection: HubConnection? = null
     private val reconnecting = AtomicBoolean(false)
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

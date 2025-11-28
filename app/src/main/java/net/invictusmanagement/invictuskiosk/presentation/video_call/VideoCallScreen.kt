@@ -22,7 +22,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.twilio.video.VideoView
 import kotlinx.coroutines.delay
@@ -53,7 +51,6 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScre
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
-import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 
 @Composable
 fun VideoCallScreen(
@@ -181,7 +178,8 @@ fun VideoCallScreen(
 
     LaunchedEffect(currentAccessPoint) {
         currentAccessPoint?.let { accessPoint ->
-            videoCallViewModel.initializeSignalR(kioskId)
+            videoCallViewModel.initializeMobileChatHub(kioskId)
+            videoCallViewModel.initializeChatHub(residentId)
         }
     }
 
