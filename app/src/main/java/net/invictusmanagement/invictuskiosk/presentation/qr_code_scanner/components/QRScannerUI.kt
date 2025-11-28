@@ -43,7 +43,7 @@ fun QRScannerUI(
 ) {
 
     // Scan box dimensions
-    val scanBoxSize = 300.dp
+    val scanBoxSize = 500.dp
     val scanBoxCornerRadius = 16.dp
 
     Column(
