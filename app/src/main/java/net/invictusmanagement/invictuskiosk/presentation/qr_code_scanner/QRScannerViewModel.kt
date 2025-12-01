@@ -18,7 +18,6 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,6 +60,8 @@ class QRScannerViewModel @Inject constructor(
 
     private val _accessPoint = MutableStateFlow<AccessPoint?>(null)
     val accessPoint: StateFlow<AccessPoint?> = _accessPoint
+
+    private var cameraProvider: ProcessCameraProvider? = null
 
     val scanner: BarcodeScanner = BarcodeScanning.getClient(
         BarcodeScannerOptions.Builder()
@@ -123,7 +124,7 @@ class QRScannerViewModel @Inject constructor(
 
         cameraProviderFuture.addListener({
             try {
-                val cameraProvider = cameraProviderFuture.get()
+                cameraProvider = cameraProviderFuture.get()
                 val preview = Preview.Builder().build().apply {
                     surfaceProvider = previewView.surfaceProvider
                 }
@@ -148,25 +149,29 @@ class QRScannerViewModel @Inject constructor(
                     .build()
                     .also { it.setAnalyzer(executor, analyzer) }
 
-                cameraProvider.unbindAll()
+                cameraProvider?.unbindAll()
 
                 val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
                 val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                val cameraSelector = if (cameraProvider?.hasCamera(frontCameraSelector) == true) {
                     frontCameraSelector
                 } else {
                     backCameraSelector
                 }
 
                 // Must be on main thread
-                cameraProvider.bindToLifecycle(
+                cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
                     imageAnalysis
                 )
             } catch (e: Exception) {
-                logger.logError("QrCodeScanner/StartCamera", "Error binding camera ${e.localizedMessage}", e)
+                logger.logError(
+                    "QrCodeScanner/StartCamera",
+                    "Error binding camera ${e.localizedMessage}",
+                    e
+                )
                 reportError(Constants.getFriendlyCameraError(e))
             }
         }, ContextCompat.getMainExecutor(context))
@@ -180,32 +185,17 @@ class QRScannerViewModel @Inject constructor(
         }
     }
 
-    private fun setLoading(loading: Boolean) {
-        _uiState.update { it.copy(isLoading = loading) }
-    }
+    private fun setLoading(loading: Boolean) = _uiState.update { it.copy(isLoading = loading) }
+    fun reportError(msg: String) = _uiState.update { it.copy(errorMessage = msg) }
+    fun stopScanning() = _uiState.update { it.copy(isScanning = false) }
+    fun startScanning() = _uiState.update { it.copy(isScanning = true) }
+    fun resetError() = _uiState.update { it.copy(errorMessage = null) }
 
-    fun reportError(msg: String) {
-        _uiState.update { it.copy(errorMessage = msg) }
-    }
-
-    fun stopScanning() {
-        _uiState.update { it.copy(isScanning = false) }
-    }
-
-    fun startScanning() {
-        _uiState.update { it.copy(isScanning = true) }
-    }
-
-    fun resetError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
-    fun releaseCamera(context: Context) {
+    fun releaseCamera() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(150)
-                val provider = ProcessCameraProvider.getInstance(context).get()
-                provider.unbindAll()
+                cameraProvider?.unbindAll()
+                cameraProvider = null
             } catch (e: Exception) {
                 e.printStackTrace()
             }

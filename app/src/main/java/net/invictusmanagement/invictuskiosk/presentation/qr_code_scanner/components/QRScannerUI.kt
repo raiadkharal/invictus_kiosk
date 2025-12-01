@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -40,6 +38,7 @@ fun QRScannerUI(
     previewView: PreviewView,
     isLoading: Boolean,
     errorMessage: String?,
+    previewVisible: Boolean
 ) {
 
     // Scan box dimensions
@@ -80,29 +79,30 @@ fun QRScannerUI(
                 .fillMaxSize()
                 .weight(1f),
         ) {
-            AndroidView(
-                factory = {
-                    previewView.apply {
-                        scaleType = PreviewView.ScaleType.FIT_CENTER // Changed to FIT_CENTER
-                        layoutParams = ViewGroup.LayoutParams(
+            if (previewVisible) {
+                AndroidView(
+                    factory = {
+                        previewView.apply {
+                            scaleType = PreviewView.ScaleType.FIT_CENTER // Changed to FIT_CENTER
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(R.color.background))
+                        .clip(RoundedCornerShape(12.dp)),
+                    update = { view ->
+                        // Ensure the view respects parent bounds
+                        view.layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
                     }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(R.color.background))
-                    .clip(RoundedCornerShape(12.dp)),
-                update = { view ->
-                    // Ensure the view respects parent bounds
-                    view.layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                }
-            )
-
+                )
+            }
             // Blurred overlay with scan box cutout
             Box(
                 modifier = Modifier

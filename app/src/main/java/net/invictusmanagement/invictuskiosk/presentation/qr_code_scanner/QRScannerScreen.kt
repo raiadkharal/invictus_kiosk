@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
 import android.Manifest
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -51,11 +52,12 @@ fun QRScannerScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val previewView = remember { PreviewView(context) }
     val executor = remember { Executors.newSingleThreadExecutor() }
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+
+    var previewVisible by remember { mutableStateOf(true) }
 
     CameraPermission(
         onGranted = { viewModel.onPermissionResult(true) },
@@ -100,6 +102,7 @@ fun QRScannerScreen(
 
     LaunchedEffect(uiState.hasCameraPermission) {
         if (uiState.hasCameraPermission) {
+            previewVisible = true
             viewModel.startCamera(
                 context = context,
                 lifecycleOwner = lifecycleOwner,
@@ -115,7 +118,7 @@ fun QRScannerScreen(
         onDispose {
             viewModel.scanner.close()
             executor.shutdown()
-            viewModel.releaseCamera(context)
+            viewModel.releaseCamera()
         }
     }
 
@@ -128,7 +131,12 @@ fun QRScannerScreen(
         CustomToolbar(
             title = "$locationName - $kioskName",
             showBackArrow = true,
-            navController = navController
+            navController = navController,
+            onBack = {
+                previewVisible = false
+                viewModel.stopScanning()
+                viewModel.releaseCamera()
+            }
         )
         Spacer(Modifier.height(8.dp))
         QRScannerUI(
@@ -137,7 +145,8 @@ fun QRScannerScreen(
                 .weight(1f),
             previewView = previewView,
             isLoading = uiState.isLoading,
-            errorMessage = uiState.errorMessage
+            errorMessage = uiState.errorMessage,
+            previewVisible = previewVisible
         )
     }
 }

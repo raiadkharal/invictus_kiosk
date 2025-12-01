@@ -36,7 +36,8 @@ fun CustomToolbar(
     modifier: Modifier = Modifier,
     title: String,
     navController: NavController,
-    showBackArrow: Boolean = true
+    showBackArrow: Boolean = true,
+    onBack: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -52,6 +53,7 @@ fun CustomToolbar(
                     .height(40.dp)
                     .clickable {
                         if (navController.previousBackStackEntry != null) {
+                            onBack()
                             navController.popBackStack()
                         }
                     },
