@@ -6,6 +6,10 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.invictusmanagement.invictuskiosk.data.sync.FetchFromServerScheduler
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 
 @HiltAndroidApp
@@ -13,6 +17,9 @@ class KioskApplication:Application(), Configuration.Provider {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var fetchFromServerScheduler: FetchFromServerScheduler
 
     override val workManagerConfiguration: Configuration
         get() =  Configuration.Builder()
@@ -24,8 +31,13 @@ class KioskApplication:Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        WorkManager.initialize(this, workManagerConfiguration)
+//        WorkManager.initialize(this, workManagerConfiguration)
         networkMonitor.startMonitoring()
+
+        CoroutineScope(Dispatchers.Default).launch {
+            fetchFromServerScheduler.schedulePeriodicDataFetch()
+            fetchFromServerScheduler.runImmediateSyncIfAppUpdated()
+        }
     }
 
 

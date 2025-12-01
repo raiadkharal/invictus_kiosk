@@ -25,6 +25,7 @@ class DataStoreManager(private val context: Context) {
         private val KIOSK_DATA_KEY = stringPreferencesKey("kiosk_data")
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         private val ACTIVATION_CODE_KEY = stringPreferencesKey("activation_code")
+        private val LAST_SYNCED_VERSION = intPreferencesKey("last_synced_version")
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -89,27 +90,16 @@ class DataStoreManager(private val context: Context) {
     val activationCodeFlow: Flow<String?> = context.dataStore.data
         .map { prefs -> prefs[ACTIVATION_CODE_KEY] }
 
-//    // Save Boolean
-//    suspend fun setLoggedIn(isLoggedIn: Boolean) {
-//        context.dataStore.edit { prefs ->
-//            prefs[LOGGED_IN_KEY] = isLoggedIn
-//        }
-//    }
-//
-//    // Read Boolean
-//    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data
-//        .map { prefs -> prefs[LOGGED_IN_KEY] ?: false }
-//
-//    // Save Int
-//    suspend fun saveUserAge(age: Int) {
-//        context.dataStore.edit { prefs ->
-//            prefs[USER_AGE_KEY] = age
-//        }
-//    }
-//
-//    // Read Int
-//    val userAgeFlow: Flow<Int?> = context.dataStore.data
-//        .map { prefs -> prefs[USER_AGE_KEY] }
+    suspend fun saveLastSyncedVersion(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[LAST_SYNCED_VERSION] = version
+        }
+    }
+
+    val lastSyncedVersion = context.dataStore.data.map { prefs ->
+        prefs[LAST_SYNCED_VERSION] ?: -1
+    }
+
 
     // Clear all preferences
     suspend fun clearAll() {
