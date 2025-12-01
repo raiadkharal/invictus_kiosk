@@ -116,6 +116,7 @@ fun QRScannerScreen(
 
     DisposableEffect(Unit) {
         onDispose {
+            previewVisible = false
             viewModel.scanner.close()
             executor.shutdown()
             viewModel.releaseCamera()
