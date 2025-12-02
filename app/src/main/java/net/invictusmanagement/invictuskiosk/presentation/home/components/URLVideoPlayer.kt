@@ -30,12 +30,12 @@ fun UrlVideoPlayer(
     modifier: Modifier = Modifier,
     url: String
 ) {
-    if (url.isEmpty()) return
-
     val context = LocalContext.current
 
-    // Shared 100 MB LRU cache
+    // Cache initialization
     val cache = remember { VideoCache.getInstance(context) }
+
+    if(url.isEmpty()) return
 
     // DataSource.Factory with Cache
     val dataSourceFactory = remember(url) {
@@ -52,13 +52,12 @@ fun UrlVideoPlayer(
     }
 
 
-    // MediaSourceFactory for this URL
-    val mediaSourceFactory = remember(url) {
+    val mediaSourceFactory = remember {
         ProgressiveMediaSource.Factory(dataSourceFactory)
     }
 
-    // Player — recreated only when url changes
-    val player = remember(url) {
+    // ExoPlayer instance with cache-enabled media source
+    val player = remember {
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
             .build().apply {
@@ -71,29 +70,20 @@ fun UrlVideoPlayer(
 
     DisposableEffect(player) {
         onDispose {
-            player.stop()
-            player.clearMediaItems()
             player.release()
-            cache.release()
         }
     }
 
     Box(modifier = modifier.clip(RoundedCornerShape(20.dp))) {
         AndroidView(
-            modifier = modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(20.dp)),
             factory = { ctx ->
                 PlayerView(ctx).apply {
+                    this.player = player
                     useController = false
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                    this.player = player
                 }
             },
-            update = { view ->
-                // Ensures View reuses existing Player instance
-                view.player = player
-            }
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

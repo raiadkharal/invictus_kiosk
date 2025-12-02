@@ -70,7 +70,9 @@ fun ErrorScreen(
                isGradient = true,
                text = stringResource(R.string.dismiss),
                onClick = {
-                   navController.popBackStack()
+                   if (navController.previousBackStackEntry != null) {
+                       navController.popBackStack()
+                   }
                }
            )
 

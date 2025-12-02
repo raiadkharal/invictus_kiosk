@@ -17,6 +17,15 @@ interface SystemLogDao {
     @Query("SELECT * FROM system_logs WHERE logType = :type ORDER BY createdAt DESC")
     fun getLogsByType(type: LogType): List<SystemLogEntity>
 
+    // Fetch logs in batches (oldest-first)
+    @Query("""
+        SELECT * FROM system_logs
+        WHERE logType = :type
+        ORDER BY createdAt ASC
+        LIMIT :limit
+        """)
+    suspend fun getLogsByTypeBatch(type: LogType, limit: Int): List<SystemLogEntity>
+
     @Query("DELETE FROM system_logs")
     suspend fun clearLogs()
 

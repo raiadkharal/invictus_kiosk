@@ -1,6 +1,8 @@
 package net.invictusmanagement.invictuskiosk.data.repository
 
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.data.local.dao.SystemLogDao
 import net.invictusmanagement.invictuskiosk.data.local.entities.LogType
 import net.invictusmanagement.invictuskiosk.data.local.entities.SystemLogEntity
@@ -46,14 +48,14 @@ class LogRepositoryImpl @Inject constructor(
         syncLogsByType(
             type = LogType.RELAY_MANAGER,
             tag = "RelayManagerLogs",
-            fetchLogs = { systemLogDao.getLogsByType(LogType.RELAY_MANAGER) },
+            fetchBatch = { limit -> systemLogDao.getLogsByTypeBatch(LogType.RELAY_MANAGER, limit) },
             sendLog = { postRelayManagerLog(it.toRelayLog()) }
         )
 
         syncLogsByType(
             type = LogType.ERROR,
             tag = "ErrorLogs",
-            fetchLogs = { systemLogDao.getLogsByType(LogType.ERROR) },
+            fetchBatch = { limit -> systemLogDao.getLogsByTypeBatch(LogType.ERROR, limit) },
             sendLog = { postErrorLog(it.toErrorLog()) }
         )
     }
@@ -61,37 +63,40 @@ class LogRepositoryImpl @Inject constructor(
     private suspend fun syncLogsByType(
         type: LogType,
         tag: String,
-        fetchLogs: suspend () -> List<SystemLogEntity>,
+        fetchBatch: suspend (Int) -> List<SystemLogEntity>,
         sendLog: suspend (SystemLogEntity) -> Unit
     ) {
-        runCatching {
-            val logs = fetchLogs()
+        val batchSize = 100
+        withContext(Dispatchers.IO) {
+            try {
+                Log.d("Sync$type", "Starting sync for $tag")
 
-            if (logs.isEmpty()) {
-                Log.d("Sync$type", "No pending $tag to sync")
-                return
-            }
+                while (true) {
+                    val batch = fetchBatch(batchSize)
+                    if (batch.isEmpty()) {
+                        Log.d("Sync$type", "No more $tag to sync")
+                        break
+                    }
 
-            Log.d("Sync$type", "Found ${logs.size} $tag to sync")
+                    Log.d("Sync$type", "Syncing batch of ${batch.size} $tag")
 
-            for (log in logs) {
-                try {
-                    sendLog(log)
-
-                    // On success, delete from DB
-                    systemLogDao.deleteLogById(log.id)
-                    Log.d("Sync$type", "Synced and removed ID: ${log.id}")
-
-                } catch (e: IOException) {
-                    Log.e("Sync$type", "Network error for ID ${log.id}, stopping sync")
-                    return
-                } catch (e: Exception) {
-                    Log.e("Sync$type", "Failed sending ID ${log.id}: ${e.message}")
+                    for (log in batch) {
+                        try {
+                            sendLog(log)
+                            systemLogDao.deleteLogById(log.id) // on success, remove the row
+                            Log.d("Sync$type", "Synced and removed ID: ${log.id}")
+                        } catch (io: IOException) {
+                            Log.e("Sync$type", "Network error for ID ${log.id}, stopping sync: ${io.message}")
+                            return@withContext
+                        } catch (e: Exception) {
+                            Log.e("Sync$type", "Failed sending ID ${log.id}: ${e.message}")
+                            systemLogDao.deleteLogById(log.id) // we choose to drop to avoid infinite retry storms
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("Sync$type", "Unexpected error syncing $tag: ${e.message}")
             }
-
-        }.onFailure { e ->
-            Log.e("Sync$type", "Unexpected error syncing $tag: ${e.message}")
         }
     }
 
