@@ -53,9 +53,7 @@ fun QRCodePanel(
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            text = "1. Open QR Code on your phone\n" +
-                    "2. Tap “Scan QR Code” below\n" +
-                    "3. Hold your phone up to the scanner",
+            text =stringResource(R.string.qr_code_instructions),
             style = MaterialTheme.typography.bodyLarge.copy(
                 color = colorResource(R.color.btn_text)),
             textAlign = TextAlign.Center,
@@ -63,7 +61,7 @@ fun QRCodePanel(
         )
         Spacer(Modifier.height(32.dp))
         OTPButton(
-            modifier = Modifier.width(172.dp),
+            modifier = Modifier.width(200.dp),
             backgroundColor = R.color.btn_text,
             text = stringResource(R.string.scan_qr_code),
             textStyle = MaterialTheme.typography.bodyLarge.copy(

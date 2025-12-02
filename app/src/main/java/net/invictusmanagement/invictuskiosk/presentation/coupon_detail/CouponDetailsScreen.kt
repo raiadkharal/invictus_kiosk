@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -166,7 +167,7 @@ fun CouponsDetailsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Take a picture of the coupon to show the vendor and let’s keep shopping.",
+                    text = stringResource(id = R.string.coupon_details_description),
                     style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)

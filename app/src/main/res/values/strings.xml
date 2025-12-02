@@ -2,59 +2,61 @@
     <string name="app_name" translatable="false">Invictus Kiosk</string>
     <string name="invictus_lifestyle" translatable="false">Invictus Lifestyle</string>
     <string name="welcome_text" translatable="false">Access Control Systems | Welcome to the Revolution</string>
-    <string name="kisok_version" translatable="false">Kiosk Version: 2.0.0.0</string>
+    <string name="kisok_version" translatable="false">Kiosk Version: 1.0.0.0</string>
     <string name="activation_code" translatable="false">Activation Code</string>
     <string name="activate" translatable="false">ACTIVATE</string>
 
-    <string name="directory">DIRECTORY</string>
-    <string name="service_key_all_caps">SERVICE KEY</string>
-    <string name="check_in">TOUR CHECK-IN</string>
-    <string name="leasing_office">LEASING OFFICE</string>
-    <string name="local_coupons">LOCAL COUPONS</string>
-    <string name="vacancies">VACANCIES</string>
-    <string name="pin">PIN</string>
-    <string name="qr_code">QR CODE</string>
-    <string name="video_call">VIDEO CALL</string>
-    <string name="contact_now">CONTACT NOW</string>
-    <string name="end_call">END CALL</string>
-    <string name="send">SEND</string>
-    <string name="pin_title_text">Input the PIN code to enter</string>
-    <string name="qr_code_title_text">Scan your QR code to enter</string>
-    <string name="video_call_message">Please stand at an arm’s length away for a quality experience</string>
-    <string name="prospect_key">Prospect Key</string>
-    <string name="service_key">Service Key</string>
-    <string name="leasing_agent">Leasing Agent</string>
-    <string name="connecting">Connecting…</string>
-    <string name="coupons">Coupons</string>
-    <string name="category">Category</string>
-    <string name="welcome_prospect">Welcome Prospect</string>
-    <string name="scan_qr_code">Scan QR Code</string>
+    <string name="directory" translatable="true">DIRECTORY</string>
+    <string name="service_key_all_caps" translatable="true">SERVICE KEY</string>
+    <string name="check_in" translatable="true">TOUR CHECK-IN</string>
+    <string name="leasing_office" translatable="true">LEASING OFFICE</string>
+    <string name="local_coupons" translatable="true">LOCAL COUPONS</string>
+    <string name="vacancies" translatable="true">VACANCIES</string>
+    <string name="pin" translatable="true">PIN</string>
+    <string name="qr_code" translatable="true">QR CODE</string>
+    <string name="video_call" translatable="true">VIDEO CALL</string>
+    <string name="contact_now" translatable="true">CONTACT NOW</string>
+    <string name="end_call" translatable="true">END CALL</string>
+    <string name="send" translatable="true">SEND</string>
+    <string name="pin_title_text" translatable="true">Input the PIN code to enter</string>
+    <string name="qr_code_title_text" translatable="true">Scan your QR code to enter</string>
+    <string name="video_call_message" translatable="true">Please stand at an arm’s length away for a quality experience</string>
+    <string name="prospect_key" translatable="true">Prospect Key</string>
+    <string name="service_key" translatable="true">Service Key</string>
+    <string name="leasing_agent" translatable="true">Leasing Agent</string>
+    <string name="connecting" translatable="true">Connecting…</string>
+    <string name="coupons" translatable="true">Coupons</string>
+    <string name="category" translatable="true">Category</string>
+    <string name="welcome_prospect" translatable="true">Welcome Prospect</string>
+    <string name="scan_qr_code" translatable="true">Scan QR Code</string>
     <string name="title_text" translatable="false">Invictus Apartments - Garden Entry</string>
-    <string name="service_key_message_text">I have a 4-digit guest key instead.</string>
-    <string name="unlocked">Unlocked</string>
-    <string name="unlocked_message">Thank you for using Invictus</string>
-    <string name="unit_details">Unit Details</string>
+    <string name="service_key_message_text" translatable="true">I have a 4-digit guest key instead.</string>
+    <string name="unlocked" translatable="true">Unlocked</string>
+    <string name="unlocked_message" translatable="true">Thank you for using Invictus</string>
+    <string name="unit_details" translatable="true">Unit Details</string>
     <string name="placeholder_email" translatable="false">eg: jsmith@invictus.com</string>
     <string name="placeholder_phone" translatable="false">eg: 3108675309</string>
-    <string name="name">Name</string>
-    <string name="email">Email</string>
-    <string name="phone">Phone</string>
-    <string name="contact_request">Contact Request</string>
-    <string name="invalid_service_key" translatable="false">Invalid Service Key</string>
-    <string name="filter" translatable="false">Filter</string>
-    <string name="invalid_key" translatable="false">Invalid Guest Key</string>
-    <string name="no_residents_found" translatable="false">No Residents Found</string>
-    <string name="no_leasing_officers_found" translatable="false">No Leasing Officers Found</string>
-    <string name="no_units_found" translatable="false">No Units Found</string>
-    <string name="no_vacancies" translatable="false">No vacancies found</string>
-    <string name="contact_request_success_message" translatable="false">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
-    <string name="notification" translatable="false">Notification</string>
-    <string name="dismiss" translatable="false">Dismiss</string>
-    <string name="no_coupons_available" translatable="false">No coupons available</string>
-    <string name="video_voice_mail_message" translatable="false">Would you like to leave a video voicemail?</string>
-    <string name="yes" translatable="false">Yes</string>
-    <string name="no" translatable="false">No</string>
-    <string name="finish_recording" translatable="false">Finish Recording</string>
+    <string name="name" translatable="true">Name</string>
+    <string name="email" translatable="true">Email</string>
+    <string name="phone" translatable="true">Phone</string>
+    <string name="contact_request" translatable="true">Contact Request</string>
+    <string name="invalid_service_key" translatable="true">Invalid Service Key</string>
+    <string name="filter" translatable="true">Filter</string>
+    <string name="invalid_key" translatable="true">Invalid Guest Key</string>
+    <string name="no_residents_found" translatable="true">No Residents Found</string>
+    <string name="no_leasing_officers_found" translatable="true">No Leasing Officers Found</string>
+    <string name="no_units_found" translatable="true">No Units Found</string>
+    <string name="no_vacancies" translatable="true">No vacancies found</string>
+    <string name="contact_request_success_message" translatable="true">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
+    <string name="notification" translatable="true">Notification</string>
+    <string name="dismiss" translatable="true">Dismiss</string>
+    <string name="no_coupons_available" translatable="true">No coupons available</string>
+    <string name="video_voice_mail_message" translatable="true">Would you like to leave a video voicemail?</string>
+    <string name="yes" translatable="true">Yes</string>
+    <string name="no" translatable="true">No</string>
+    <string name="finish_recording" translatable="true">Finish Recording</string>
+    <string name="qr_code_instructions" translatable="true">1. Open QR Code on your phone\n2. Tap “Scan QR Code” below\n3. Hold your phone up to the scanner</string>
+    <string name="coupon_details_description" translatable="true">Take a picture of the coupon to show the vendor and let’s keep shopping.</string>
 
 
 </resources>

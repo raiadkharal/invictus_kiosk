@@ -17,6 +17,22 @@
     <string name="video_call_message">Párese a una distancia de un brazo de distancia para disfrutar de una experiencia de calidad.</string>
     <string name="prospect_key">Clave de prospecto</string>
     <string name="service_key">Clave de servicio</string>
+    <string name="invalid_service_key">Clave de servicio inválida</string>
+    <string name="filter">Filtrar</string>
+    <string name="invalid_key">Clave de invitado inválida</string>
+    <string name="no_residents_found">No se encontraron residentes</string>
+    <string name="no_leasing_officers_found">No se encontraron agentes de arrendamiento</string>
+    <string name="no_units_found">No se encontraron unidades</string>
+    <string name="no_vacancies">No se encontraron vacantes</string>
+    <string name="contact_request_success_message">
+        Gracias. Tu solicitud de contacto fue enviada con éxito. Nuestro personal se comunicará lo antes posible.
+    </string>
+    <string name="notification">Notificación</string>
+    <string name="dismiss">Cerrar</string>
+    <string name="no_coupons_available">No hay cupones disponibles</string>
+    <string name="video_voice_mail_message">¿Te gustaría dejar un mensaje de video?</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
     <string name="leasing_agent">Agente de arrendamiento</string>
     <string name="connecting">Conectando…</string>
     <string name="coupons">Cupones</string>
@@ -28,7 +44,12 @@
     <string name="unlocked_message">Gracias por usar Invictus</string>
     <string name="unit_details">Detalles de la unidad</string>
     <string name="name">Nombre</string>
-    <string name="email">" Correo electrónico"</string>
+    <string name="email">"Correo electrónico"</string>
     <string name="phone">Teléfono</string>
     <string name="contact_request">Solicitud de contacto</string>
+    <string name="finish_recording" translatable="true">Finalizar grabación</string>
+    <string name="qr_code_instructions" translatable="true">1. Abre el código QR en tu teléfono\n2. Toca “Escanear código QR” abajo\n3. Acerca tu teléfono al escáner</string>
+    <string name="coupon_details_description">Toma una foto del cupón para mostrárselo al vendedor y sigamos comprando.</string>
+
+
 </resources>
