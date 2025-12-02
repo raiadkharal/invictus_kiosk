@@ -34,13 +34,13 @@ class VideoCallRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<VideoCall>> = flow {
+    override fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
 
         emit(
             safeApiCaller.call(
                 tag = "$logTag-connectToVideoCall",
-                remoteCall = { api.connectToVideoCall(videoCallDto).toVideoCall() },
+                remoteCall = { api.connectToVideoCall(videoCallDto).body() ?: Unit},
                 errorMessage = "Failed to connect to video call"
             )
         )
