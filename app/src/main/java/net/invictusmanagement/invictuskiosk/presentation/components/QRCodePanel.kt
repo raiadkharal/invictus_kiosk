@@ -61,7 +61,7 @@ fun QRCodePanel(
         )
         Spacer(Modifier.height(32.dp))
         OTPButton(
-            modifier = Modifier.width(200.dp),
+            modifier = Modifier.width(230.dp),
             backgroundColor = R.color.btn_text,
             text = stringResource(R.string.scan_qr_code),
             textStyle = MaterialTheme.typography.bodyLarge.copy(
