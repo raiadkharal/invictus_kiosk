@@ -173,6 +173,7 @@ class MobileChatHubManager(
     fun cleanup() {
         coroutineScope.cancel()
         disconnect()
+        if (lastInstance == this) lastInstance = null
     }
 
     private fun safeStop() {
