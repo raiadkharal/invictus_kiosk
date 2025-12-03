@@ -3,6 +3,7 @@ package net.invictusmanagement.invictuskiosk.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +35,7 @@ class NetworkMonitor(
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             logger.logError("NetworkMonitor", "Network available", null)
-            checkRealInternetConnection()
+            scope.launch { checkRealInternetConnection() }
         }
 
         override fun onLost(network: Network) {
@@ -48,8 +49,10 @@ class NetworkMonitor(
         isMonitoring = true
 
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        checkRealInternetConnection()
-
+        scope.launch {
+            delay(500)
+            checkRealInternetConnection()
+        }
         startPeriodicChecks()
     }
 
@@ -58,7 +61,8 @@ class NetworkMonitor(
 
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback)
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
 
         periodicJob?.cancel()
     }
@@ -77,30 +81,44 @@ class NetworkMonitor(
         }
     }
 
-    private fun checkRealInternetConnection() {
-        val activeNetwork = connectivityManager.activeNetwork
-        if (activeNetwork == null) {
+    private suspend fun checkRealInternetConnection() {
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities == null || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
             _isConnected.value = false
             return
         }
 
-        scope.launch {
-            val result = pingGoogle204()
-            _isConnected.value = result
-        }
+
+        val result = pingGoogle204WithRetry()
+        _isConnected.value = result
     }
 
-    private fun pingGoogle204(): Boolean {
+    private suspend fun pingGoogle204WithRetry(
+        retries: Int = 3,
+        delayMs: Long = 300
+    ): Boolean {
+        repeat(retries - 1) {
+            if (pingGoogle204()) return true
+            delay(delayMs)
+        }
+        return pingGoogle204()
+    }
+
+    private suspend fun pingGoogle204(): Boolean = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url("https://connectivitycheck.gstatic.com/generate_204")
             .build()
 
-        return try {
+        try {
             val response = client.newCall(request).execute()
-            if(response.code != 204 && response.code != 200) logger.logError("NetworkMonitor", "Ping returned Status Code:${response.code} message:${response.message}")
+            if (response.code != 204 && response.code != 200) logger.logError(
+                "NetworkMonitor",
+                "Ping returned Status Code:${response.code} message:${response.message}"
+            )
             response.code == 204 || response.code == 200
         } catch (e: Exception) {
-            logger.logError("NetworkMonitor", "Ping failed ${e.localizedMessage}", e)
+            logger.logError("NetworkMonitor", "Ping failed ${e.localizedMessage}", null)
             false
         }
     }
