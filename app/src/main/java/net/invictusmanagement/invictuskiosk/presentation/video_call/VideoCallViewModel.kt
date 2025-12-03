@@ -50,6 +50,7 @@ import net.invictusmanagement.invictuskiosk.presentation.signalR.listeners.Mobil
 import net.invictusmanagement.invictuskiosk.presentation.signalR.MobileChatHubManager
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 import javax.inject.Inject
 
@@ -58,7 +59,8 @@ class VideoCallViewModel @Inject constructor(
     private val repository: VideoCallRepository,
     private val screenSaverRepository: ScreenSaverRepository,
     private val relayManagerRepository: RelayManagerRepository,
-    private val logger: GlobalLogger
+    private val logger: GlobalLogger,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel(), MobileChatHubEventListener {
 
     private var room: Room? = null

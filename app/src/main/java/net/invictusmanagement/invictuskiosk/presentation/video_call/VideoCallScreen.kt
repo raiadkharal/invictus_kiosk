@@ -134,7 +134,14 @@ fun VideoCallScreen(
             videoCallViewModel.setVoiceMailDialogVisibility(true)
         }
     }
+
+    LaunchedEffect(kioskId) {
+        videoCallViewModel.initializeMobileChatHub(kioskId)
+    }
+
     LaunchedEffect(Unit) {
+        videoCallViewModel.initializeChatHub(residentId)
+
         permissionLauncher.launch(
             arrayOf(
                 Manifest.permission.RECORD_AUDIO,
@@ -174,13 +181,6 @@ fun VideoCallScreen(
     // Attach local video when available
     LaunchedEffect(localVideoTrack) {
         localVideoTrack?.addSink(localVideoView)
-    }
-
-    LaunchedEffect(currentAccessPoint) {
-        currentAccessPoint?.let { accessPoint ->
-            videoCallViewModel.initializeMobileChatHub(kioskId)
-            videoCallViewModel.initializeChatHub(residentId)
-        }
     }
 
 

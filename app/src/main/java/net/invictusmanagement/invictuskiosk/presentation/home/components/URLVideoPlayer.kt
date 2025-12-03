@@ -74,7 +74,6 @@ fun UrlVideoPlayer(
             player.stop()
             player.clearMediaItems()
             player.release()
-            cache.release()
         }
     }
 
