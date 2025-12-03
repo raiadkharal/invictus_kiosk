@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
 import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,12 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -67,9 +71,18 @@ fun ServiceKeyScreen(
         listOf("0", "X", "clear")
     )
 
+    val previewView = remember { PreviewView(context) }
+    LaunchedEffect(previewView) { mainViewModel.snapshotManager.startCamera { previewView } }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp) // make it 1 pixel
+            .alpha(0f)  // fully invisible
+    )
 
-    LaunchedEffect(Unit)  {
-//        mainViewModel.snapshotManager.recordStampVideoAndUpload(currentAccessPoint.id ?: 0)
+
+    LaunchedEffect(Unit) {
+        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
 
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -86,16 +99,17 @@ fun ServiceKeyScreen(
 
     LaunchedEffect(state) {
         if (state.digitalKey?.isValid == true) {
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(true)
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
                     unitId = 0,
                     mapId = 0
                 )
-            ){
+            ) {
                 popUpTo(HomeScreen)
             }
-        } else if(state.digitalKey?.isValid == false){
+        } else if (state.digitalKey?.isValid == false) {
             isError = true
             delay(2000)
             isError = false
@@ -160,12 +174,4 @@ fun ServiceKeyScreen(
 
     }
 
-}
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun ServiceScreenPreview() {
-    val navController = rememberNavController()
-    ServiceKeyScreen(navController = navController)
 }
