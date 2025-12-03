@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.data.remote
 
+import net.invictusmanagement.invictuskiosk.commons.ImageUploadRequest
 import net.invictusmanagement.invictuskiosk.data.remote.dto.AccessPointDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.BusinessPromotionDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ContactRequestDto
@@ -123,4 +124,19 @@ interface ApiInterface {
     @POST("logs/add")
     suspend fun addErrorLog(@Body request: ErrorLogRequestDto): Response<Unit>
 
+    @POST("/api/images")
+    suspend fun uploadImage(@Body req: ImageUploadRequest): Response<Long>
+
+    // Example SaveStampVideo signature expects form-data parts; adjust based on server signatures
+    @Multipart
+    @POST("/api/VideoMail/SaveStampVideo")
+    suspend fun saveStampVideo(
+        @Part videoFile: MultipartBody.Part,
+        @Part userId: MultipartBody.Part,
+        @Part image: MultipartBody.Part,
+        @Part recipient: MultipartBody.Part,
+        @Part accessLogId: MultipartBody.Part,
+        @Part serviceKeyUsageId: MultipartBody.Part,
+        @Part isValid: MultipartBody.Part
+    ): Response<Long>
 }
