@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,11 +62,16 @@ fun VoicemailRecordingScreen(
 
     val countdown by viewModel.countdown
     val isRecordingStarted by viewModel.isRecordingStarted
+    val previewView = remember { PreviewView(context) }
 
     LaunchedEffect(Unit) {
         if (!viewModel.isRecordingStarted.value) {
             viewModel.startCountdown()
         }
+    }
+
+    LaunchedEffect(previewView) {
+        viewModel.setupCamera(previewView, context, lifecycleOwner)
     }
 
     LaunchedEffect(uploadState) {
@@ -123,8 +129,7 @@ fun VoicemailRecordingScreen(
                     modifier = Modifier.weight(1f),
                     countdown = countdown,
                     viewModel = viewModel,
-                    context = context,
-                    lifecycleOwner = lifecycleOwner
+                    previewView = previewView
                 )
             }
         }
@@ -154,8 +159,7 @@ private fun RecordingContent(
     modifier: Modifier = Modifier,
     countdown: Int,
     viewModel: VoicemailViewModel,
-    context: android.content.Context,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+    previewView: PreviewView
 ) {
     if (countdown > 0) {
         Text(
@@ -169,7 +173,7 @@ private fun RecordingContent(
         )
     }
 
-    CameraPreview(modifier,viewModel, context, lifecycleOwner)
+    CameraPreview(modifier, previewView)
 
     CustomTextButton(
         modifier = Modifier
@@ -187,9 +191,7 @@ private fun RecordingContent(
 @Composable
 private fun CameraPreview(
     modifier: Modifier = Modifier,
-    viewModel: VoicemailViewModel,
-    context: android.content.Context,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+    previewView: PreviewView
 ) {
     Row(
         modifier = modifier
@@ -200,11 +202,7 @@ private fun CameraPreview(
     ) {
         // Local video small preview
         AndroidView(
-            factory = { ctx ->
-                val previewView = PreviewView(ctx)
-                viewModel.setupCamera(previewView, context, lifecycleOwner)
-                previewView
-            },
+            factory = { previewView },
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()

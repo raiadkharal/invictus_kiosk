@@ -92,7 +92,7 @@ interface ApiInterface {
     ): VideoCallTokenDto
 
     @POST("chat/call")
-    suspend fun connectToVideoCall(@Body videoCallDto: VideoCallDto): VideoCallDto
+    suspend fun connectToVideoCall(@Body videoCallDto: VideoCallDto): Response<Unit>
 
     @POST("chat/missed")
     suspend fun postMissedCall(@Body missedCallDto: MissedCallDto): MissedCallDto

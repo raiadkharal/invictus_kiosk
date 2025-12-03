@@ -81,11 +81,13 @@ class VoicemailViewModel @Inject constructor(
         repository.uploadVoicemail(file, userId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    safeDeleteFile(file)
                     resumeScreenSaver()
                     _uploadState.value = UploadState(isLoading = true,data = result.data ?: 1)
                 }
 
                 is Resource.Error -> {
+                    safeDeleteFile(file)
                     resumeScreenSaver()
                     _uploadState.value =
                         UploadState(isLoading = true,error = result.message ?: "An unexpected error occurred")
@@ -176,7 +178,12 @@ class VoicemailViewModel @Inject constructor(
     }
 
     fun stopRecording() {
-        recording?.stop()
+        if(recording != null) {
+            recording?.stop()
+        }else{
+            _uploadState.value =
+                UploadState(isLoading = true,error = Constants.VIDEO_MAIL_GENERIC_ERROR)
+        }
         recording = null
     }
 
@@ -193,7 +200,15 @@ class VoicemailViewModel @Inject constructor(
         stopRecording()
     }
 
+    private fun safeDeleteFile(file: File?) {
+        file?.let {
+            if (it.exists()) {
+                it.delete()
+            }
+        }
+    }
     fun resetState() {
+        _videoCapture.value = null
         _countdown.intValue = 12
         _isRecordingStarted.value = false
     }
