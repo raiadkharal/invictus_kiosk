@@ -135,13 +135,7 @@ fun VideoCallScreen(
         }
     }
 
-    LaunchedEffect(kioskId) {
-        videoCallViewModel.initializeMobileChatHub(kioskId)
-    }
-
     LaunchedEffect(Unit) {
-        videoCallViewModel.initializeChatHub(residentId)
-
         permissionLauncher.launch(
             arrayOf(
                 Manifest.permission.RECORD_AUDIO,
@@ -149,6 +143,14 @@ fun VideoCallScreen(
             )
         )
     }
+
+    LaunchedEffect(currentAccessPoint) {
+        currentAccessPoint?.let { accessPoint ->
+            videoCallViewModel.initializeMobileChatHub(kioskId)
+            videoCallViewModel.initializeChatHub(residentId)
+        }
+    }
+
 
     LaunchedEffect(hasAllPermissions) {
         if (hasAllPermissions) {
@@ -215,7 +217,7 @@ fun VideoCallScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            when{
+            when {
                 errorMessage != null -> {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -224,7 +226,8 @@ fun VideoCallScreen(
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.red))
                     )
                 }
-                else ->{
+
+                else -> {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = when (videoCallViewModel.connectionState) {
@@ -232,6 +235,7 @@ fun VideoCallScreen(
                                 1 -> ConnectionState.CONNECTING.displayName
                                 else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
                             }
+
                             ConnectionState.RECONNECTING -> "Network lost. Trying to reconnect..."
                             ConnectionState.RECONNECTED -> "Remaining: $remainingSeconds seconds"
                             ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"
