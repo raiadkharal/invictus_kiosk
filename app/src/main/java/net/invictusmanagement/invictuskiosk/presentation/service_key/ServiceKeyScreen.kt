@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +45,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScre
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 
 @Composable
+@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 fun ServiceKeyScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
@@ -65,7 +67,10 @@ fun ServiceKeyScreen(
         listOf("0", "X", "clear")
     )
 
-    LaunchedEffect(Unit) {
+
+    LaunchedEffect(Unit)  {
+//        mainViewModel.snapshotManager.recordStampVideoAndUpload(currentAccessPoint.id ?: 0)
+
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.ShowError -> {

@@ -13,6 +13,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
+import androidx.camera.view.PreviewView
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -30,8 +31,9 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
-class SnapshotManager(
+class SnapshotManager @Inject constructor (
     private val context: Context,
     private val api: ApiInterface
 ) {
@@ -61,7 +63,7 @@ class SnapshotManager(
      * previewViewProvider must supply your PreviewView (from Compose host).
      * This function must be called when you have a LifecycleOwner (e.g. in Activity/Fragment's onCreate/onResume)
      */
-    suspend fun startCamera(previewProvider: () -> androidx.camera.view.PreviewView) = withContext(Dispatchers.Main) {
+    suspend fun startCamera(previewProvider: () -> PreviewView) = withContext(Dispatchers.Main) {
         val previewView = previewProvider()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val cameraProvider = cameraProviderFuture.get()
