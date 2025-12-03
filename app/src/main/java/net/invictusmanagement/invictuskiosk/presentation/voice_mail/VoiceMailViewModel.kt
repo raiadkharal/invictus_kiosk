@@ -149,7 +149,7 @@ class VoicemailViewModel @Inject constructor(
         onFinish: (File) -> Unit
     ) {
         try {
-            val capture = videoCapture.value ?: return
+            val capture = _videoCapture.value ?: return
 
             videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
             val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
@@ -157,7 +157,7 @@ class VoicemailViewModel @Inject constructor(
 
             recording = capture.output
                 .prepareRecording(context, outputOptions)
-                .withAudioEnabled()
+//                .withAudioEnabled()
                 .start(ContextCompat.getMainExecutor(context)) { event ->
                     if (event is VideoRecordEvent.Finalize) {
                         if (!event.hasError()) {
