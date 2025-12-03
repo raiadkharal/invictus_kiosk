@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -20,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,11 +34,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -57,12 +61,15 @@ fun ServiceKeyScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val state by viewModel.serviceKeyState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     var isError by remember { mutableStateOf(false) }
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
+
+    val coroutineScope = rememberCoroutineScope()
 
     val otpButtons: List<List<String>> = listOf(
         listOf("1", "2", "3"),
@@ -72,7 +79,7 @@ fun ServiceKeyScreen(
     )
 
     val previewView = remember { PreviewView(context) }
-    LaunchedEffect(previewView) { mainViewModel.snapshotManager.startCamera { previewView } }
+    LaunchedEffect(previewView) { mainViewModel.snapshotManager.startCamera(previewView, context, lifecycleOwner ) }
     AndroidView(
         factory = { previewView },
         modifier = Modifier
@@ -82,8 +89,6 @@ fun ServiceKeyScreen(
 
 
     LaunchedEffect(Unit) {
-        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
-
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.ShowError -> {
@@ -161,6 +166,10 @@ fun ServiceKeyScreen(
                     navController.navigate(DirectoryScreen)
                 },
                 onCompleted = { pinCode ->
+                    coroutineScope.launch {
+                        delay(500)
+                        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
+                    }
                     viewModel.validateServiceKey(
                         ServiceKeyDto(
                             accessPointId = currentAccessPoint?.id ?: 0,

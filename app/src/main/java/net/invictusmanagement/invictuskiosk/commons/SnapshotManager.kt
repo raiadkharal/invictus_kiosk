@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.*
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -63,49 +64,55 @@ class SnapshotManager @Inject constructor (
      * previewViewProvider must supply your PreviewView (from Compose host).
      * This function must be called when you have a LifecycleOwner (e.g. in Activity/Fragment's onCreate/onResume)
      */
-    suspend fun startCamera(previewProvider: () -> PreviewView) = withContext(Dispatchers.Main) {
-        val previewView = previewProvider()
+    suspend fun startCamera(
+        previewView: PreviewView,
+        context: Context,
+        lifecycleOwner: LifecycleOwner
+    ) = withContext(Dispatchers.Main) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        val cameraProvider = cameraProviderFuture.get()
 
-        val preview = Preview.Builder().build().apply {
-            surfaceProvider = previewView.surfaceProvider
-        }
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = ProcessCameraProvider.getInstance(context).get()
 
+                val preview = Preview.Builder().build().apply {
+                    surfaceProvider = previewView.surfaceProvider
+                }
 
-        imageCapture = ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .build()
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .build()
 
-        // video recorder & capture
-        val recorder = Recorder.Builder()
-            .setExecutor(ContextCompat.getMainExecutor(context))
-            .setQualitySelector(QualitySelector.from(Quality.SD)) // choose quality
-            .build()
+                val videoCap = VideoCapture.withOutput(recorder)
+                val imageCap = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .build()
 
-        videoCapture = VideoCapture.withOutput(recorder)
+                videoCapture = videoCap
+                imageCapture = imageCap
 
-        val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-        val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-        val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
-            frontCameraSelector
-        } else {
-            backCameraSelector
-        }
+                val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+                val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                    frontCameraSelector
+                } else {
+                    backCameraSelector
+                }
 
-        try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                (context as androidx.lifecycle.LifecycleOwner),
-                cameraSelector,
-                preview,
-                imageCapture,
-                videoCapture
-            )
-        } catch (ex: Exception) {
-            Log.e(TAG, "Failed to bind camera use cases", ex)
-            lastError = "Failed to bind camera: ${ex.localizedMessage}"
-        }
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    videoCap,
+                    imageCap
+                )
+
+                Log.d("ServiceKeyVM", "Camera initialized successfully.")
+            } catch (e: Exception) {
+                Log.e("ServiceKeyVM", "Camera initialization failed: ${e.message}")
+            }
+        }, ContextCompat.getMainExecutor(context))
     }
 
     /**
@@ -201,7 +208,7 @@ class SnapshotManager @Inject constructor (
         }
 
         // create file
-        val file = File(context.cacheDir, "stamp_${System.currentTimeMillis()}.mp4")
+        val file = File(context.getExternalFilesDir(null), "stamp_${System.currentTimeMillis()}.mp4")
         currentVideoFile = file
 
         val mediaStoreOutput = FileOutputOptions.Builder(file).build()
@@ -287,7 +294,7 @@ class SnapshotManager @Inject constructor (
      */
     private fun capturePreviewForStampImage() {
         val ic = imageCapture ?: return
-        val tmp = createTempFile("stamp_img_", ".jpg", context.cacheDir)
+        val tmp = createTempFile("stamp_img_", ".jpg", context.getExternalFilesDir(null))
         val outputOptions = ImageCapture.OutputFileOptions.Builder(tmp).build()
         ic.takePicture(outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {

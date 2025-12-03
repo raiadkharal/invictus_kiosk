@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.invictusmanagement.invictuskiosk.BuildConfig
+import net.invictusmanagement.invictuskiosk.commons.SnapshotManager
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileRestClient
@@ -82,6 +83,14 @@ object AppModule {
         )
     }
 
+    @Provides
+    @Singleton
+    fun provideSnapshotManager(
+        @ApplicationContext context: Context,
+        api: ApiInterface
+    ): SnapshotManager{
+        return SnapshotManager(context, api)
+    }
     @Provides
     @Singleton
     fun provideMobileApiInterface(
