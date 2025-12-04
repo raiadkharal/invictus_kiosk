@@ -124,19 +124,20 @@ interface ApiInterface {
     @POST("logs/add")
     suspend fun addErrorLog(@Body request: ErrorLogRequestDto): Response<Unit>
 
-    @POST("/api/images")
+    @POST("images")
     suspend fun uploadImage(@Body req: ImageUploadRequest): Response<Long>
 
     // Example SaveStampVideo signature expects form-data parts; adjust based on server signatures
     @Multipart
-    @POST("/api/VideoMail/SaveStampVideo")
+    @POST("VideoMail/SaveStampVideo")
     suspend fun saveStampVideo(
-        @Part videoFile: MultipartBody.Part,
-        @Part userId: MultipartBody.Part,
-        @Part image: MultipartBody.Part,
-        @Part recipient: MultipartBody.Part,
-        @Part accessLogId: MultipartBody.Part,
-        @Part serviceKeyUsageId: MultipartBody.Part,
-        @Part isValid: MultipartBody.Part
+        @Part VideoFile: MultipartBody.Part,
+
+        @Part("userId") userId: RequestBody,
+        @Part("image") image: RequestBody,
+        @Part("recipient") recipient: RequestBody,
+        @Part("accessLogId") accessLogId: RequestBody,
+        @Part("serviceKeyUsageId") serviceKeyUsageId: RequestBody,
+        @Part("isValid") isValid: RequestBody
     ): Response<Long>
 }

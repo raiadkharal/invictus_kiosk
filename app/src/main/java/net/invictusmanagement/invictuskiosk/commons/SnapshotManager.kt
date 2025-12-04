@@ -25,6 +25,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -50,6 +51,9 @@ class SnapshotManager @Inject constructor (
     private var currentVideoFile: File? = null
     private var stampImageBase64: String? = null
     private var residentUserId: Long = 0L
+    private var accessLogId: Long = 0L
+    private var serviceKeyUsageId: Long = 0L
+    private var isValid: Boolean = false
 
     // simple busy flag
     @Volatile
@@ -208,7 +212,7 @@ class SnapshotManager @Inject constructor (
         }
 
         // create file
-        val file = File(context.getExternalFilesDir(null), "stamp_${System.currentTimeMillis()}.mp4")
+        val file = File(context.cacheDir, "stamp_${System.currentTimeMillis()}.mp4")
         currentVideoFile = file
 
         val mediaStoreOutput = FileOutputOptions.Builder(file).build()
@@ -272,7 +276,10 @@ class SnapshotManager @Inject constructor (
      * Stops current recording and sends the video + metadata to server.
      * If isValid is provided, include in form-data similar to JS.
      */
-    fun stopStampRecordingAndSend(isValid: Boolean? = null) {
+    fun stopStampRecordingAndSend(serviceKeyUsageId: Long?,isValid: Boolean? = null,accessLogId: Long?) {
+        this.accessLogId = accessLogId ?: 0
+        this.isValid = isValid ?: true
+        this.serviceKeyUsageId = serviceKeyUsageId ?: 0
         try {
             val rec = activeRecording
             if (rec != null) {
@@ -322,26 +329,34 @@ class SnapshotManager @Inject constructor (
      */
     private suspend fun uploadStampVideo(formFile: File) = withContext(Dispatchers.IO) {
         try {
+            Log.d("StampVideo", "Video file path = ${formFile.absolutePath}")
+            Log.d("StampVideo", "Video file size = ${formFile.length()} bytes")
             // create multipart body
             val videoReqBody = formFile.asRequestBody("video/mp4".toMediaTypeOrNull())
-            val videoPart = MultipartBody.Part.createFormData("videoFile", formFile.name, videoReqBody)
+            val videoPart = MultipartBody.Part.createFormData("VideoFile", formFile.name, videoReqBody)
 
-            val userIdPart = MultipartBody.Part.createFormData("userId", residentUserId.toString())
-            val imagePart = MultipartBody.Part.createFormData("image", stampImageBase64 ?: "")
+            // Text form fields must use RequestBody!
+            fun String.toRequestBody() =
+                this.toRequestBody("text/plain".toMediaTypeOrNull())
 
-            // optional fields - use placeholders or adapt to real values
-            val recipientPart = MultipartBody.Part.createFormData("recipient", "recipient-placeholder")
-            val accessLogIdPart = MultipartBody.Part.createFormData("accessLogId", "0")
-            val serviceKeyUsagePart = MultipartBody.Part.createFormData("serviceKeyUsageId", "0")
-
-            val isValidPart = MultipartBody.Part.createFormData("isValid", "false")
+            val userIdBody = residentUserId.toString().toRequestBody()
+            val imageBody = (stampImageBase64 ?: "").toRequestBody()
+            val recipientBody = "recipient-placeholder".toRequestBody()
+            val accessLogIdBody = accessLogId.toString().toRequestBody()
+            val serviceKeyUsageBody = serviceKeyUsageId.toString().toRequestBody()
+            val isValidBody = isValid.toString().toRequestBody()
 
             // call API
             val response = api.saveStampVideo(
                 videoPart,
-                userIdPart, imagePart,
-                recipientPart, accessLogIdPart, serviceKeyUsagePart, isValidPart
+                userIdBody,
+                imageBody,
+                recipientBody,
+                accessLogIdBody,
+                serviceKeyUsageBody,
+                isValidBody
             )
+
             // handle response if needed
             Log.d(TAG, "stamp video uploaded, server returned: $response")
         } catch (e: HttpException) {
@@ -369,5 +384,5 @@ class SnapshotManager @Inject constructor (
 
 data class ImageUploadRequest(
     val takenUtc: String,
-    val imageBase64: String
+    val base64ImageBytes: String
 )

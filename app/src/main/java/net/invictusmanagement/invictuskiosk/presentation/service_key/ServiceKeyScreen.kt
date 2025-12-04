@@ -79,7 +79,13 @@ fun ServiceKeyScreen(
     )
 
     val previewView = remember { PreviewView(context) }
-    LaunchedEffect(previewView) { mainViewModel.snapshotManager.startCamera(previewView, context, lifecycleOwner ) }
+    LaunchedEffect(previewView) {
+        mainViewModel.snapshotManager.startCamera(
+            previewView,
+            context,
+            lifecycleOwner
+        )
+    }
     AndroidView(
         factory = { previewView },
         modifier = Modifier
@@ -89,6 +95,8 @@ fun ServiceKeyScreen(
 
 
     LaunchedEffect(Unit) {
+        delay(1000)
+        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.ShowError -> {
@@ -104,7 +112,12 @@ fun ServiceKeyScreen(
 
     LaunchedEffect(state) {
         if (state.digitalKey?.isValid == true) {
-            mainViewModel.snapshotManager.stopStampRecordingAndSend(true)
+            val digitalKey = state.digitalKey
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(
+                serviceKeyUsageId = digitalKey?.serviceKeyUsageId,
+                isValid = true,
+                accessLogId = digitalKey?.accessLogId
+            )
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
@@ -166,13 +179,9 @@ fun ServiceKeyScreen(
                     navController.navigate(DirectoryScreen)
                 },
                 onCompleted = { pinCode ->
-                    coroutineScope.launch {
-                        delay(500)
-                        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
-                    }
                     viewModel.validateServiceKey(
                         ServiceKeyDto(
-                            accessPointId = currentAccessPoint?.id ?: 0,
+                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
                             key = pinCode
                         )
                     )
