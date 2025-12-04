@@ -157,7 +157,7 @@ class VoicemailViewModel @Inject constructor(
 
             recording = capture.output
                 .prepareRecording(context, outputOptions)
-//                .withAudioEnabled()
+                .withAudioEnabled()
                 .start(ContextCompat.getMainExecutor(context)) { event ->
                     if (event is VideoRecordEvent.Finalize) {
                         if (!event.hasError()) {
