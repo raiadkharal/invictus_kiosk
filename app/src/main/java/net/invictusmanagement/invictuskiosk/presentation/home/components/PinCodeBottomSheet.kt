@@ -81,7 +81,7 @@ fun PinCodeBottomSheet(
 
     DisposableEffect(Unit) {
         onDispose {
-            mainViewModel.snapshotManager.stopAll() // always cancel
+            mainViewModel.snapshotManager.releaseCamera()
         }
     }
 

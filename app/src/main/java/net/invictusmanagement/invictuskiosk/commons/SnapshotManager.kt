@@ -386,19 +386,15 @@ class SnapshotManager @Inject constructor (
         } catch (_: Exception) { }
     }
 
-    fun stopAll() {
-        cancelRecording()    // prevent upload
-        releaseCamera()
-    }
-
     fun releaseCamera() {
         cameraProvider?.unbindAll()
+//        clearVideoData()
     }
 
 
     fun cancelRecording() {
         try {
-            activeRecording?.close()   // DOES NOT trigger Finalize
+            activeRecording?.close()
         } catch (_: Exception) { }
         activeRecording = null
 
@@ -408,10 +404,12 @@ class SnapshotManager @Inject constructor (
     }
 
 
-    fun clear() {
+    private fun clearVideoData() {
         residentUserId = 0
         stampImageBase64 = null
-        currentVideoFile?.delete()
+        if(currentVideoFile != null && currentVideoFile!!.exists()) {
+            currentVideoFile!!.delete()
+        }
         currentVideoFile = null
         isBusy = false
     }
