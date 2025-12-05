@@ -1,5 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.residents
 
+import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,14 +36,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -64,6 +72,7 @@ import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 
 @Composable
+@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 fun ResidentsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
@@ -75,6 +84,8 @@ fun ResidentsScreen(
     viewModel: ResidentsViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -90,7 +101,27 @@ fun ResidentsScreen(
     val filteredResidents =
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
+    val previewView = remember { PreviewView(context) }
+    LaunchedEffect(previewView) {
+        mainViewModel.snapshotManager.startCamera(
+            previewView,
+            context,
+            lifecycleOwner
+        )
+    }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp) // make it 1 pixel
+            .alpha(0f)  // fully invisible
+    )
 
+    LaunchedEffect(selectedResident) {
+        if (selectedResident != null) {
+            delay(1000)
+            mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident!!.id.toLong())
+        }
+    }
     LaunchedEffect(Unit,isConnected) {
         viewModel.loadInitialData()
 
@@ -124,9 +155,14 @@ fun ResidentsScreen(
             }
         }
     }
-
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey.recipient,
+                isValid = true,
+                accessLogId = digitalKey.accessLogId
+            )
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
@@ -145,6 +181,13 @@ fun ResidentsScreen(
     }
     LaunchedEffect(residentState) {
         residentList = residentState.residents ?: emptyList()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            isError = false
+            viewModel.resetDigitalKeyState()
+        }
     }
 
     Column(
@@ -280,7 +323,7 @@ fun ResidentsScreen(
                         onCompleted = { pinCode ->
                             viewModel.validateDigitalKey(
                                 DigitalKeyDto(
-                                    accessPointId = currentAccessPoint?.id ?: 0,
+                                    accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
                                     key = pinCode,
                                     activationCode = selectedResident?.activationCode ?: ""
                                 )
@@ -305,21 +348,5 @@ fun ResidentsScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun ResidentsScreenPreview() {
-    InvictusKioskTheme {
-        val navController = rememberNavController()
-        ResidentsScreen(
-            navController = navController,
-            isUnitNumberSelected = false,
-            unitNumber = "",
-            filter = "",
-            byName = "",
-            isLeasingOffice = false
-        )
     }
 }

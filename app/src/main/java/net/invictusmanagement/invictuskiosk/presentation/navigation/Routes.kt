@@ -53,7 +53,7 @@ object VacancyScreen
 object QRScannerScreen
 
 @Serializable
-data class UnlockedScreenRoute(val unitId: Int, val mapId: Int, val toPackageCenter: Boolean = false)
+data class UnlockedScreenRoute(val unitId: Long, val mapId: Long, val toPackageCenter: Boolean = false)
 
 @Serializable
 data class VideoCallScreenRoute(

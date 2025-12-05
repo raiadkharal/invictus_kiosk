@@ -1,6 +1,9 @@
 package net.invictusmanagement.invictuskiosk.presentation.home.components
 
+import android.Manifest
 import android.widget.Toast
+import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,33 +32,64 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
+import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import java.security.Permissions
 
 @Composable
+@RequiresPermission(Manifest.permission.RECORD_AUDIO)
 fun PinCodeBottomSheet(
     modifier: Modifier = Modifier,
     selectedResident: Resident,
     viewModel: HomeViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel = hiltViewModel(),
     isError: Boolean = false,
     onHomeClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onCallBtnClick: (Resident) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val currentAccessPoint by viewModel.accessPoint.collectAsState()
 
+//    val previewView = remember { PreviewView(context) }
+//    LaunchedEffect(previewView) {
+//        mainViewModel.snapshotManager.startCamera(
+//            previewView,
+//            context,
+//            lifecycleOwner
+//        )
+//    }
+//    AndroidView(
+//        factory = { previewView },
+//        modifier = Modifier
+//            .size(1.dp) // make it 1 pixel
+//            .alpha(0f)  // fully invisible
+//    )
+
+
+//    LaunchedEffect(Unit) {
+//        delay(1000)
+//        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
+//    }
 
     Row(
         modifier = modifier
@@ -72,7 +107,7 @@ fun PinCodeBottomSheet(
 
             val buttons: List<List<String>> = listOf(
                 listOf("1", "2", "3", "4", "5", "6"),
-                listOf("7", "8", "9", "0","X", "clear")
+                listOf("7", "8", "9", "0", "X", "clear")
             )
             PinInputPanel(
                 modifier = Modifier.fillMaxSize(),
@@ -81,7 +116,7 @@ fun PinCodeBottomSheet(
                 onCompleted = { pinCode ->
                     viewModel.validateDigitalKey(
                         DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id ?: 0,
+                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
                             key = pinCode,
                             activationCode = selectedResident.activationCode ?: ""
                         )

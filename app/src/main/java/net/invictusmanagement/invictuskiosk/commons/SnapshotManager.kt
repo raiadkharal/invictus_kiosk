@@ -53,6 +53,7 @@ class SnapshotManager @Inject constructor (
     private var residentUserId: Long = 0L
     private var accessLogId: Long = 0L
     private var serviceKeyUsageId: Long = 0L
+    private var recipient: String = ""
     private var isValid: Boolean = false
 
     // simple busy flag
@@ -265,6 +266,7 @@ class SnapshotManager @Inject constructor (
                 delay(durationSec * 1000L)
                 try {
                     activeRecording?.stop()
+                    isBusy = false
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to stop recording", e)
                 }
@@ -276,16 +278,18 @@ class SnapshotManager @Inject constructor (
      * Stops current recording and sends the video + metadata to server.
      * If isValid is provided, include in form-data similar to JS.
      */
-    fun stopStampRecordingAndSend(serviceKeyUsageId: Long?,isValid: Boolean? = null,accessLogId: Long?) {
+    fun stopStampRecordingAndSend(serviceKeyUsageId: Long? = null,isValid: Boolean? = null,accessLogId: Long?,recipient: String? = null) {
         this.accessLogId = accessLogId ?: 0
         this.isValid = isValid ?: true
         this.serviceKeyUsageId = serviceKeyUsageId ?: 0
+        this.recipient = recipient ?: ""
         try {
             val rec = activeRecording
             if (rec != null) {
                 // stop triggers Finalize event -> upload happens in callback
                 rec.stop()
                 activeRecording = null
+                isBusy = false
             } else {
                 // nothing recording
                 isBusy = false
@@ -341,7 +345,7 @@ class SnapshotManager @Inject constructor (
 
             val userIdBody = residentUserId.toString().toRequestBody()
             val imageBody = (stampImageBase64 ?: "").toRequestBody()
-            val recipientBody = "recipient-placeholder".toRequestBody()
+            val recipientBody = recipient.toRequestBody()
             val accessLogIdBody = accessLogId.toString().toRequestBody()
             val serviceKeyUsageBody = serviceKeyUsageId.toString().toRequestBody()
             val isValidBody = isValid.toString().toRequestBody()
@@ -378,6 +382,14 @@ class SnapshotManager @Inject constructor (
         try {
             cameraExecutor.shutdown()
         } catch (_: Exception) { }
+    }
+
+    fun clear() {
+        residentUserId = 0
+        stampImageBase64 = null
+        currentVideoFile?.delete()
+        currentVideoFile = null
+        isBusy = false
     }
 }
 
