@@ -93,7 +93,6 @@ fun HomeScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
@@ -109,26 +108,6 @@ fun HomeScreen(
     val kioskId by mainViewModel.kioskId.collectAsStateWithLifecycle()
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
-
-    val previewView = remember { PreviewView(context) }
-    LaunchedEffect(selectedResident) {
-        if (selectedResident != null) {
-            mainViewModel.snapshotManager.startCamera(
-                previewView,
-                context,
-                lifecycleOwner
-            )
-            delay(2000)
-            mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident!!.id.toLong())
-        }
-    }
-    AndroidView(
-        factory = { previewView },
-        modifier = Modifier
-            .size(1.dp) // make it 1 pixel
-            .alpha(0f)  // fully invisible
-    )
-
 
     LaunchedEffect(Unit,isConnected) {
         viewModel.loadInitialData()
@@ -446,15 +425,5 @@ fun HomeScreen(
                 }
             )
         }
-    }
-}
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun HomeScreenPreview() {
-    InvictusKioskTheme {
-        val navController = rememberNavController()
-        HomeScreen(navController = navController)
     }
 }

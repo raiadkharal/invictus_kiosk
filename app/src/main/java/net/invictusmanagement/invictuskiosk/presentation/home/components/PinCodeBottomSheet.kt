@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.home.components
 
 import android.Manifest
-import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -24,12 +23,11 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
@@ -49,9 +46,6 @@ import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
-import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
-import net.invictusmanagement.invictuskiosk.util.UiEvent
-import java.security.Permissions
 
 @Composable
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -70,26 +64,31 @@ fun PinCodeBottomSheet(
 
     val currentAccessPoint by viewModel.accessPoint.collectAsState()
 
-//    val previewView = remember { PreviewView(context) }
-//    LaunchedEffect(previewView) {
-//        mainViewModel.snapshotManager.startCamera(
-//            previewView,
-//            context,
-//            lifecycleOwner
-//        )
-//    }
-//    AndroidView(
-//        factory = { previewView },
-//        modifier = Modifier
-//            .size(1.dp) // make it 1 pixel
-//            .alpha(0f)  // fully invisible
-//    )
+    val previewView = remember { PreviewView(context) }
+    LaunchedEffect(previewView) {
+        mainViewModel.snapshotManager.startCamera(
+            previewView,
+            context,
+            lifecycleOwner
+        )
+    }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp) // make it 1 pixel
+            .alpha(0f)  // fully invisible
+    )
 
+    DisposableEffect(Unit) {
+        onDispose {
+            mainViewModel.snapshotManager.stopAll() // always cancel
+        }
+    }
 
-//    LaunchedEffect(Unit) {
-//        delay(1000)
-//        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
-//    }
+    LaunchedEffect(Unit) {
+        delay(1000)
+        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
+    }
 
     Row(
         modifier = modifier

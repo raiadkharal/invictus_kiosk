@@ -90,7 +90,7 @@ fun QRScannerScreen(
                 lifecycleOwner = lifecycleOwner,
                 previewView = previewView,
                 executor = executor,
-                currentAccessPointId = currentAccessPoint?.id ?: 0
+                currentAccessPointId = currentAccessPoint?.id?.toLong() ?: 0L
             )
         }
     }

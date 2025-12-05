@@ -46,6 +46,8 @@ class SnapshotManager @Inject constructor (
     private var videoCapture: VideoCapture<Recorder>? = null
     private val cameraExecutor = Executors.newSingleThreadExecutor()
 
+    private var cameraProvider: ProcessCameraProvider? = null
+
     // recording state
     private var activeRecording: Recording? = null
     private var currentVideoFile: File? = null
@@ -78,7 +80,7 @@ class SnapshotManager @Inject constructor (
 
         cameraProviderFuture.addListener({
             try {
-                val cameraProvider = ProcessCameraProvider.getInstance(context).get()
+                cameraProvider = ProcessCameraProvider.getInstance(context).get()
 
                 val preview = Preview.Builder().build().apply {
                     surfaceProvider = previewView.surfaceProvider
@@ -98,14 +100,14 @@ class SnapshotManager @Inject constructor (
 
                 val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
                 val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                val cameraSelector = if (cameraProvider?.hasCamera(frontCameraSelector) == true) {
                     frontCameraSelector
                 } else {
                     backCameraSelector
                 }
 
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                cameraProvider?.unbindAll()
+                cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
@@ -383,6 +385,28 @@ class SnapshotManager @Inject constructor (
             cameraExecutor.shutdown()
         } catch (_: Exception) { }
     }
+
+    fun stopAll() {
+        cancelRecording()    // prevent upload
+        releaseCamera()
+    }
+
+    fun releaseCamera() {
+        cameraProvider?.unbindAll()
+    }
+
+
+    fun cancelRecording() {
+        try {
+            activeRecording?.close()   // DOES NOT trigger Finalize
+        } catch (_: Exception) { }
+        activeRecording = null
+
+        // Also delete the partially created file (if any)
+        currentVideoFile?.delete()
+        currentVideoFile = null
+    }
+
 
     fun clear() {
         residentUserId = 0

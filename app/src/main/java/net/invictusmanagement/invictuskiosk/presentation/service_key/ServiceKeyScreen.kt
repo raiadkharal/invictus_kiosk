@@ -138,6 +138,7 @@ fun ServiceKeyScreen(
         onDispose {
             isError = false
             viewModel.resetServiceKeyState()
+            mainViewModel.snapshotManager.stopAll()
         }
     }
 

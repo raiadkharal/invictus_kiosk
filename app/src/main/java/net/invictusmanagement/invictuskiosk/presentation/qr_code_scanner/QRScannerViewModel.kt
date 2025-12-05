@@ -109,7 +109,7 @@ class QRScannerViewModel @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
         executor: Executor,
-        currentAccessPointId: Int,
+        currentAccessPointId: Long,
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
