@@ -85,11 +85,6 @@ fun PinCodeBottomSheet(
         }
     }
 
-    LaunchedEffect(Unit) {
-        delay(1000)
-        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
-    }
-
     Row(
         modifier = modifier
             .fillMaxSize()

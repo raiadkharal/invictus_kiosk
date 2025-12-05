@@ -102,13 +102,6 @@ fun ResidentsScreen(
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
     val previewView = remember { PreviewView(context) }
-    LaunchedEffect(previewView) {
-        mainViewModel.snapshotManager.startCamera(
-            previewView,
-            context,
-            lifecycleOwner
-        )
-    }
     AndroidView(
         factory = { previewView },
         modifier = Modifier
@@ -118,7 +111,12 @@ fun ResidentsScreen(
 
     LaunchedEffect(selectedResident) {
         if (selectedResident != null) {
-            delay(1000)
+            mainViewModel.snapshotManager.startCamera(
+                previewView,
+                context,
+                lifecycleOwner
+            )
+            delay(2000) // wait for the camera to initialize
             mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident!!.id.toLong())
         }
     }
@@ -187,7 +185,7 @@ fun ResidentsScreen(
         onDispose {
             isError = false
             viewModel.resetDigitalKeyState()
-            mainViewModel.snapshotManager.releaseCamera()
+//            mainViewModel.snapshotManager.releaseCamera()
         }
     }
 

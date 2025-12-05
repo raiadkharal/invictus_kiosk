@@ -2,6 +2,9 @@ package net.invictusmanagement.invictuskiosk.presentation.home
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.annotation.RequiresPermission
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
@@ -23,8 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -76,6 +81,7 @@ import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAudioPermission
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
@@ -94,6 +100,8 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
+    var hasAllPermissions by remember { mutableStateOf(false) }
+
     val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     var currentLocale by remember { mutableStateOf(LocaleHelper.getCurrentLocale(context)) }
@@ -109,10 +117,16 @@ fun HomeScreen(
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit,isConnected) {
+    CameraAndAudioPermission(
+        onGranted = {
+            hasAllPermissions = true
+        }
+    )
+
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
 
-        if(isConnected){
+        if (isConnected) {
             viewModel.loadInitialData()
         }
     }

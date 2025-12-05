@@ -67,6 +67,15 @@ class SnapshotManager @Inject constructor (
     var lastError by mutableStateOf<String?>(null)
 
     /**
+     * Attach (or re-attach) the active ImageCapture and VideoCapture instances from the unified camera session.
+     * owner should call this after binding usecases.
+     */
+    fun attachUseCases(imageCapture: ImageCapture?, videoCapture: VideoCapture<Recorder>?) {
+        this.imageCapture = imageCapture
+        this.videoCapture = videoCapture
+    }
+
+    /**
      * Initialize CameraX preview + capture usecases.
      * previewViewProvider must supply your PreviewView (from Compose host).
      * This function must be called when you have a LifecycleOwner (e.g. in Activity/Fragment's onCreate/onResume)
@@ -244,15 +253,14 @@ class SnapshotManager @Inject constructor (
                                 } finally {
                                     // cleanup
                                     file.delete()
-                                    isBusy = false
                                 }
                             }
                         } else {
                             Log.e(TAG, "Recording error: ${recordEvent.error}")
                             lastError = "Recording error: ${recordEvent.error}"
                             file.delete()
-                            isBusy = false
                         }
+                        isBusy = false
                     }
                     else -> {
                         // ignore other events
@@ -388,11 +396,16 @@ class SnapshotManager @Inject constructor (
 
     fun releaseCamera() {
         cameraProvider?.unbindAll()
-//        clearVideoData()
+        isBusy = false
+    }
+
+    fun stopAll(){
+        releaseCamera()
+        cancelRecording()
     }
 
 
-    fun cancelRecording() {
+   private fun cancelRecording() {
         try {
             activeRecording?.close()
         } catch (_: Exception) { }
@@ -403,16 +416,6 @@ class SnapshotManager @Inject constructor (
         currentVideoFile = null
     }
 
-
-    private fun clearVideoData() {
-        residentUserId = 0
-        stampImageBase64 = null
-        if(currentVideoFile != null && currentVideoFile!!.exists()) {
-            currentVideoFile!!.delete()
-        }
-        currentVideoFile = null
-        isBusy = false
-    }
 }
 
 

@@ -5,8 +5,13 @@ import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -27,6 +32,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.SnapshotManager
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
@@ -47,6 +53,8 @@ class QRScannerViewModel @Inject constructor(
     private val logger: GlobalLogger
 ) : ViewModel() {
 
+    @Inject lateinit var snapshotManager: SnapshotManager
+
     private val _uiState = MutableStateFlow(QRScannerUiState())
     val uiState: StateFlow<QRScannerUiState> = _uiState
 
@@ -55,6 +63,8 @@ class QRScannerViewModel @Inject constructor(
 
     private val _accessPoint = MutableStateFlow<AccessPoint?>(null)
     val accessPoint: StateFlow<AccessPoint?> = _accessPoint
+
+    private var cameraProvider: ProcessCameraProvider? = null
 
     val scanner: BarcodeScanner = BarcodeScanning.getClient(
         BarcodeScannerOptions.Builder()
@@ -109,13 +119,13 @@ class QRScannerViewModel @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
         executor: Executor,
-        currentAccessPointId: Long,
+        onScanSuccess: (String) -> Unit
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
             try {
-                val cameraProvider = cameraProviderFuture.get()
+                cameraProvider = cameraProviderFuture.get()
                 val preview = Preview.Builder().build().apply {
                     surfaceProvider = previewView.surfaceProvider
                 }
@@ -123,15 +133,7 @@ class QRScannerViewModel @Inject constructor(
                 val analyzer = BarcodeAnalyzer(
                     scanner = scanner,
                     isScanning = { uiState.value.isScanning },
-                    onSuccess = { result ->
-                        stopScanning()
-                        validateDigitalKey(
-                            DigitalKeyDto(
-                                accessPointId = currentAccessPointId,
-                                key = result
-                            )
-                        )
-                    },
+                    onSuccess = onScanSuccess,
                     onFailure = { reportError("Scan failed: ${it.localizedMessage}") }
                 )
 
@@ -140,25 +142,44 @@ class QRScannerViewModel @Inject constructor(
                     .build()
                     .also { it.setAnalyzer(executor, analyzer) }
 
-                cameraProvider.unbindAll()
+                // Video Capture
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .build()
+                val videoCapture = VideoCapture.withOutput(recorder)
+
+                // Image Capture for snapshots
+                val imageCapture = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .build()
+
+                snapshotManager.attachUseCases(imageCapture, videoCapture)
+
+                cameraProvider?.unbindAll()
 
                 val frontCameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
                 val backCameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                val cameraSelector = if (cameraProvider.hasCamera(frontCameraSelector)) {
+                val cameraSelector = if (cameraProvider?.hasCamera(frontCameraSelector) == true) {
                     frontCameraSelector
                 } else {
                     backCameraSelector
                 }
 
                 // Must be on main thread
-                cameraProvider.bindToLifecycle(
+                cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
-                    cameraSelector,
+                    backCameraSelector,
                     preview,
-                    imageAnalysis
+                    imageAnalysis,
+                    videoCapture,
+                    imageCapture
                 )
             } catch (e: Exception) {
-                logger.logError("QrCodeScanner/StartCamera", "Error binding camera ${e.localizedMessage}", e)
+                logger.logError(
+                    "QrCodeScanner/StartCamera",
+                    "Error binding camera ${e.localizedMessage}",
+                    e
+                )
                 reportError(Constants.getFriendlyCameraError(e))
             }
         }, ContextCompat.getMainExecutor(context))
@@ -192,12 +213,11 @@ class QRScannerViewModel @Inject constructor(
         _uiState.update { it.copy(errorMessage = null) }
     }
 
-    fun releaseCamera(context: Context) {
+    fun releaseCamera() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 delay(150)
-                val provider = ProcessCameraProvider.getInstance(context).get()
-                provider.unbindAll()
+                cameraProvider?.unbindAll()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

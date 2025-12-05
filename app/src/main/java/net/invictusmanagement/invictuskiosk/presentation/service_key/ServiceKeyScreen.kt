@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.ServiceKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAudioPermission
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
@@ -63,13 +64,13 @@ fun ServiceKeyScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    var hasAllPermissions by remember { mutableStateOf(false) }
+
     val state by viewModel.serviceKeyState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     var isError by remember { mutableStateOf(false) }
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
-
-    val coroutineScope = rememberCoroutineScope()
 
     val otpButtons: List<List<String>> = listOf(
         listOf("1", "2", "3"),
@@ -78,13 +79,22 @@ fun ServiceKeyScreen(
         listOf("0", "X", "clear")
     )
 
+    CameraAndAudioPermission(
+        onGranted = { hasAllPermissions = true },
+    )
+
     val previewView = remember { PreviewView(context) }
-    LaunchedEffect(previewView) {
-        mainViewModel.snapshotManager.startCamera(
-            previewView,
-            context,
-            lifecycleOwner
-        )
+    LaunchedEffect(hasAllPermissions) {
+        if (hasAllPermissions) {
+            mainViewModel.snapshotManager.startCamera(
+                previewView,
+                context,
+                lifecycleOwner
+            )
+
+            delay(2000)  // wait for the camera to initialize
+            mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
+        }
     }
     AndroidView(
         factory = { previewView },
@@ -95,8 +105,6 @@ fun ServiceKeyScreen(
 
 
     LaunchedEffect(Unit) {
-        delay(1000)
-        mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.ShowError -> {

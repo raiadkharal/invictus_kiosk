@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
 import android.Manifest
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAudioPermission
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
@@ -36,6 +37,7 @@ import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.compone
 import java.util.concurrent.Executors
 
 @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
+@androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 @Composable
 fun QRScannerScreen(
     modifier: Modifier = Modifier,
@@ -48,15 +50,14 @@ fun QRScannerScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val previewView = remember { PreviewView(context) }
     val executor = remember { Executors.newSingleThreadExecutor() }
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
     val currentAccessPoint by viewModel.accessPoint.collectAsStateWithLifecycle()
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
-    CameraPermission(
+    CameraAndAudioPermission(
         onGranted = { viewModel.onPermissionResult(true) },
-        onDenied = { viewModel.onPermissionResult(false) }
+//        onDenied = { viewModel.onPermissionResult(false) }
     )
 
     LaunchedEffect(Unit) {
@@ -65,6 +66,12 @@ fun QRScannerScreen(
 
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            viewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey?.recipient,
+                isValid = true,
+                accessLogId = digitalKey?.accessLogId
+            )
             viewModel.stopScanning()
             viewModel.resetError()
             navController.navigate(
@@ -90,8 +97,19 @@ fun QRScannerScreen(
                 lifecycleOwner = lifecycleOwner,
                 previewView = previewView,
                 executor = executor,
-                currentAccessPointId = currentAccessPoint?.id?.toLong() ?: 0L
+                onScanSuccess = { result ->
+                    viewModel.stopScanning()
+                    viewModel.validateDigitalKey(
+                        DigitalKeyDto(
+                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                            key = result
+                        )
+                    )
+                }
             )
+
+            delay(2000)  // wait for the camera to initialize
+            viewModel.snapshotManager.recordStampVideoAndUpload(0L)
         }
     }
 
@@ -99,8 +117,8 @@ fun QRScannerScreen(
     DisposableEffect(Unit) {
         onDispose {
             viewModel.scanner.close()
-            executor.shutdown()
-            viewModel.releaseCamera(context)
+            viewModel.snapshotManager.releaseCamera()
+            viewModel.releaseCamera()
         }
     }
 
@@ -124,31 +142,5 @@ fun QRScannerScreen(
             isLoading = uiState.isLoading,
             errorMessage = uiState.errorMessage
         )
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun CameraPermission(
-    onGranted: () -> Unit,
-    onDenied: () -> Unit
-) {
-    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-
-    // Ask permission when first launched
-    LaunchedEffect(Unit) {
-        when {
-            cameraPermissionState.status.isGranted -> onGranted()
-            cameraPermissionState.status.shouldShowRationale -> onDenied()
-            else -> cameraPermissionState.launchPermissionRequest()
-        }
-    }
-
-    // React to permission state changes
-    LaunchedEffect(cameraPermissionState.status) {
-        when {
-            cameraPermissionState.status.isGranted -> onGranted()
-            cameraPermissionState.status.shouldShowRationale -> onDenied()
-        }
     }
 }
