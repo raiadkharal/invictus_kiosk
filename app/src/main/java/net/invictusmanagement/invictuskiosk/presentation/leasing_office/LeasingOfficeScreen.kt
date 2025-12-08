@@ -167,7 +167,7 @@ fun LeasingOfficeScreen(
                 onCompleted = { pinCode ->
                     viewModel.validateDigitalKey(
                         DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id ?: 0,
+                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
                             key = pinCode,
                             activationCode = residentActivationCode
                         )

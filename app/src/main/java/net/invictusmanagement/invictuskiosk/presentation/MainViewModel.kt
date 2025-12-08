@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.SnapshotManager
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.repository.UnitMapRepository
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
@@ -30,6 +31,9 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val isConnected = networkMonitor.isConnected
+
+    @Inject lateinit var snapshotManager: SnapshotManager
+
 
     private val _locationName = MutableStateFlow<String?>("")
     val locationName: StateFlow<String?> = _locationName

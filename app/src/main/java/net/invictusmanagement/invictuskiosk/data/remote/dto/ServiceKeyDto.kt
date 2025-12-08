@@ -3,16 +3,16 @@ package net.invictusmanagement.invictuskiosk.data.remote.dto
 import net.invictusmanagement.invictuskiosk.domain.model.ServiceKey
 
 data class ServiceKeyDto(
-    val accessLogId: Int=0,
-    val accessPointId: Int,
+    val accessLogId: Long = 0,
+    val accessPointId: Long,
     val isValid: Boolean = false,
     val key: String,
-    val keyId: Int = 0,
-    val serviceKeyUsageId: Int =0,
-    val snapShotImageId: Int=0
+    val keyId: Long = 0,
+    val serviceKeyUsageId: Long = 0,
+    val snapShotImageId: Long = 0
 )
 
-fun ServiceKeyDto.toServiceKey():ServiceKey{
+fun ServiceKeyDto.toServiceKey(): ServiceKey {
     return ServiceKey(
         accessLogId = accessLogId,
         accessPointId = accessPointId,
