@@ -186,7 +186,6 @@ fun ResidentsScreen(
         onDispose {
             isError = false
             viewModel.resetDigitalKeyState()
-//            mainViewModel.snapshotManager.releaseCamera()
         }
     }
 

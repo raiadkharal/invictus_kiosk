@@ -1,5 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.leasing_office
 
+import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,14 +23,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -40,6 +51,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScre
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 
+@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 @Composable
 fun LeasingOfficeScreen(
     modifier: Modifier = Modifier,
@@ -50,6 +62,8 @@ fun LeasingOfficeScreen(
     mainViewModel: MainViewModel = hiltViewModel(),
     viewModel: LeasingOfficeViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val locationName by mainViewModel.locationName.collectAsStateWithLifecycle()
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
@@ -64,11 +78,35 @@ fun LeasingOfficeScreen(
         listOf("0", "X", "clear")
     )
 
+    val previewView = remember { PreviewView(context) }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp) // make it 1 pixel
+            .alpha(0f)  // fully invisible
+    )
+
+    LaunchedEffect(Unit) {
+        mainViewModel.snapshotManager.startCamera(
+            previewView,
+            context,
+            lifecycleOwner
+        )
+        delay(2000) // wait for the camera to initialize
+        mainViewModel.snapshotManager.recordStampVideoAndUpload(residentId.toLong())
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
     }
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey.recipient,
+                isValid = true,
+                accessLogId = digitalKey.accessLogId
+            )
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
@@ -76,7 +114,7 @@ fun LeasingOfficeScreen(
                     mapId = keyValidationState.digitalKey.mapId,
                     toPackageCenter = keyValidationState.digitalKey.toPackageCenter
                 )
-            ){
+            ) {
                 popUpTo(HomeScreen)
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
@@ -95,6 +133,11 @@ fun LeasingOfficeScreen(
                     ) { popUpTo(HomeScreen) }
                 }
             }
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            mainViewModel.snapshotManager.cleanupCameraSession()
         }
     }
 
@@ -151,7 +194,7 @@ fun LeasingOfficeScreen(
                                 residentDisplayName = residentDisplayName,
                                 residentActivationCode = residentActivationCode
                             )
-                        ){
+                        ) {
                             popUpTo(HomeScreen)
                         }
                     }
@@ -165,13 +208,18 @@ fun LeasingOfficeScreen(
                 buttons = buttons,
                 isError = isError,
                 onCompleted = { pinCode ->
-                    viewModel.validateDigitalKey(
-                        DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                            key = pinCode,
-                            activationCode = residentActivationCode
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //wait for screenshot
+                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
+                            delay(500)
+                        viewModel.validateDigitalKey(
+                            DigitalKeyDto(
+                                accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                key = pinCode,
+                                activationCode = residentActivationCode
+                            )
                         )
-                    )
+                    }
                 }
             )
 
