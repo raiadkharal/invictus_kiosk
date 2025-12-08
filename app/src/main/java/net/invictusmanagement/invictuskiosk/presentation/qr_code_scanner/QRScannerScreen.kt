@@ -1,6 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner
 
-import android.Manifest
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -21,11 +20,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -99,12 +97,17 @@ fun QRScannerScreen(
                 executor = executor,
                 onScanSuccess = { result ->
                     viewModel.stopScanning()
-                    viewModel.validateDigitalKey(
-                        DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                            key = result
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //wait for screenshot
+                        while (!viewModel.snapshotManager.isScreenShotTaken)
+                            delay(500)
+                        viewModel.validateDigitalKey(
+                            DigitalKeyDto(
+                                accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                key = result
+                            )
                         )
-                    )
+                    }
                 }
             )
 
@@ -117,7 +120,7 @@ fun QRScannerScreen(
     DisposableEffect(Unit) {
         onDispose {
             viewModel.scanner.close()
-            viewModel.snapshotManager.releaseCamera()
+            viewModel.snapshotManager.cleanupCameraSession()
             viewModel.releaseCamera()
         }
     }

@@ -168,7 +168,7 @@ class QRScannerViewModel @Inject constructor(
                 // Must be on main thread
                 cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
-                    backCameraSelector,
+                    cameraSelector,
                     preview,
                     imageAnalysis,
                     videoCapture,

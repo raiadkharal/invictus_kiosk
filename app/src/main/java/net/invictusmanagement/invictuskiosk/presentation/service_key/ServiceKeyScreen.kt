@@ -1,6 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.service_key
 
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -17,11 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,14 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -146,7 +143,7 @@ fun ServiceKeyScreen(
         onDispose {
             isError = false
             viewModel.resetServiceKeyState()
-            mainViewModel.snapshotManager.releaseCamera()
+            mainViewModel.snapshotManager.cleanupCameraSession()
         }
     }
 
@@ -188,12 +185,18 @@ fun ServiceKeyScreen(
                     navController.navigate(DirectoryScreen)
                 },
                 onCompleted = { pinCode ->
-                    viewModel.validateServiceKey(
-                        ServiceKeyDto(
-                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                            key = pinCode
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //wait for screenshot
+                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
+                            delay(500)
+
+                        viewModel.validateServiceKey(
+                            ServiceKeyDto(
+                                accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                key = pinCode
+                            )
                         )
-                    )
+                    }
                 }
             )
 

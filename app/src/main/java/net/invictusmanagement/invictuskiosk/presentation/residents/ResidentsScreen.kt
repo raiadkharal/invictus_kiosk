@@ -51,8 +51,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
@@ -320,13 +323,19 @@ fun ResidentsScreen(
                             .fillMaxSize(),
                         isError = isError,
                         onCompleted = { pinCode ->
-                            viewModel.validateDigitalKey(
-                                DigitalKeyDto(
-                                    accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                                    key = pinCode,
-                                    activationCode = selectedResident?.activationCode ?: ""
+                            CoroutineScope(Dispatchers.IO).launch {
+                                //wait for screenshot
+                                while (!mainViewModel.snapshotManager.isScreenShotTaken)
+                                    delay(500)
+
+                                viewModel.validateDigitalKey(
+                                    DigitalKeyDto(
+                                        accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                        key = pinCode,
+                                        activationCode = selectedResident?.activationCode ?: ""
+                                    )
                                 )
-                            )
+                            }
                         }
                     )
                 }

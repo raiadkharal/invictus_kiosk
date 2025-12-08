@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,41 +27,49 @@ fun CameraAndAudioPermission(
     onGranted: () -> Unit
 ) {
     val context = LocalContext.current
-    var showRetryDialog by remember { mutableStateOf(false) }
-    var showSettingsDialog by remember { mutableStateOf(false) }
 
-    fun isPermissionPermanentlyDenied(permission: String): Boolean {
-        return !ActivityCompat.shouldShowRequestPermissionRationale(
-            context as Activity,
-            permission
-        ) && ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Re-check permission when user returns from settings
+    fun checkPermissions(): Boolean {
+        val camera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+        val audio = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+        return camera == PackageManager.PERMISSION_GRANTED &&
+                audio == PackageManager.PERMISSION_GRANTED
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
+    // 🔄 1. Check permissions on resume (when returning from Settings)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                if (checkPermissions()) {
+                    showPermissionDialog = false
+                    onGranted()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
 
-        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
-        val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+        val camera = permissions[Manifest.permission.CAMERA] ?: false
+        val audio = permissions[Manifest.permission.RECORD_AUDIO] ?: false
 
-        if (cameraGranted && audioGranted) {
+        if (camera && audio) {
+            showPermissionDialog = false
             onGranted()
         } else {
-            val permanentlyDenied =
-                isPermissionPermanentlyDenied(Manifest.permission.CAMERA) ||
-                        isPermissionPermanentlyDenied(Manifest.permission.RECORD_AUDIO)
-
-            if (permanentlyDenied) {
-                showSettingsDialog = true
-            } else {
-                showRetryDialog = true
-            }
+            showPermissionDialog = true
         }
     }
 
-    // Automatically launch permissions once
+    // Ask permission once
     LaunchedEffect(Unit) {
-        permissionLauncher.launch(
+        launcher.launch(
             arrayOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO
@@ -68,36 +77,14 @@ fun CameraAndAudioPermission(
         )
     }
 
-    // ⛔ Non-cancelable Retry Dialog (first deny)
-    if (showRetryDialog) {
+    if (showPermissionDialog) {
         AlertDialog(
-            onDismissRequest = {}, // non-cancelable
+            onDismissRequest = {}, // cannot dismiss
             title = { Text("Permissions Required") },
-            text = { Text("Camera and Microphone permissions are required to continue.") },
+            text = { Text("Please enable Camera and Microphone permissions to continue.") },
             confirmButton = {
                 TextButton(onClick = {
-                    showRetryDialog = false
-                    permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.CAMERA,
-                            Manifest.permission.RECORD_AUDIO
-                        )
-                    )
-                }) {
-                    Text("Grant Permissions")
-                }
-            }
-        )
-    }
-
-    // ⚠ Settings Dialog (permanent deny)
-    if (showSettingsDialog) {
-        AlertDialog(
-            onDismissRequest = {}, // non-cancelable
-            title = { Text("Permissions Permanently Denied") },
-            text = { Text("Please enable Camera and Microphone permissions from Settings to continue.") },
-            confirmButton = {
-                TextButton(onClick = {
+                    // Open app settings
                     val intent = Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                         Uri.fromParts("package", context.packageName, null)

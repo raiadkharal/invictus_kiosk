@@ -2,8 +2,6 @@ package net.invictusmanagement.invictuskiosk.commons
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -17,7 +15,6 @@ import androidx.camera.view.PreviewView
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.*
@@ -29,7 +26,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
@@ -57,6 +53,8 @@ class SnapshotManager @Inject constructor (
     private var serviceKeyUsageId: Long = 0L
     private var recipient: String = ""
     private var isValid: Boolean = false
+
+    var isScreenShotTaken = false
 
     // simple busy flag
     @Volatile
@@ -95,8 +93,14 @@ class SnapshotManager @Inject constructor (
                     surfaceProvider = previewView.surfaceProvider
                 }
 
+                val qualitySelector = QualitySelector.from(
+                    Quality.SD,
+                    FallbackStrategy.lowerQualityThan(Quality.SD)
+                )
+
                 val recorder = Recorder.Builder()
-                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .setQualitySelector(qualitySelector)
+                    .setTargetVideoEncodingBitRate(1000_000) // 1 Mbps target
                     .build()
 
                 val videoCap = VideoCapture.withOutput(recorder)
@@ -210,6 +214,7 @@ class SnapshotManager @Inject constructor (
     fun recordStampVideoAndUpload(userId: Long, durationSec: Int = 300) {
         if (isBusy) {
             lastError = "SnapshotManager busy"
+            isScreenShotTaken = true
             return
         }
         isBusy = true
@@ -324,14 +329,32 @@ class SnapshotManager @Inject constructor (
                     val compressed = compressJpegToQuality(bytes, 20)
                     val b64 = Base64.encodeToString(compressed, Base64.NO_WRAP)
                     stampImageBase64 = "data:image/jpeg;base64,$b64"
+
+                    val takenUtc = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }.format(Date())
+
+                    val req = ImageUploadRequest(takenUtc, stampImageBase64 ?: "")
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            api.uploadImage(req) // suspend call
+                            isScreenShotTaken = true
+                        } catch (e: Exception) {
+                            isScreenShotTaken = true
+                            Log.e(TAG, "Stamp image upload failed", e)
+                        }
+                    }
+
                 } catch (e: Exception) {
                     Log.e(TAG, "Stamp image capture failed", e)
                 } finally {
+                    isScreenShotTaken = true
                     tmp.delete()
                 }
             }
 
             override fun onError(exception: ImageCaptureException) {
+                isScreenShotTaken = true
                 Log.e(TAG, "Error capturing stamp image: ${exception.message}")
             }
         })
@@ -381,6 +404,7 @@ class SnapshotManager @Inject constructor (
             throw e
         } finally {
             // reset state
+            isScreenShotTaken = false
             residentUserId = 0
             stampImageBase64 = null
             currentVideoFile?.delete()
@@ -394,13 +418,14 @@ class SnapshotManager @Inject constructor (
         } catch (_: Exception) { }
     }
 
-    fun releaseCamera() {
+    fun cleanupCameraSession() {
         cameraProvider?.unbindAll()
         isBusy = false
+        isScreenShotTaken = false
     }
 
     fun stopAll(){
-        releaseCamera()
+        cleanupCameraSession()
         cancelRecording()
     }
 

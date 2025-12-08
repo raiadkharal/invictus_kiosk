@@ -38,7 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
@@ -71,6 +74,9 @@ fun PinCodeBottomSheet(
             context,
             lifecycleOwner
         )
+
+        delay(2000)  // wait for the camera to initialize
+        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
     }
     AndroidView(
         factory = { previewView },
@@ -81,7 +87,7 @@ fun PinCodeBottomSheet(
 
     DisposableEffect(Unit) {
         onDispose {
-            mainViewModel.snapshotManager.releaseCamera()
+            mainViewModel.snapshotManager.cleanupCameraSession()
         }
     }
 
@@ -108,13 +114,19 @@ fun PinCodeBottomSheet(
                 buttons = buttons,
                 isError = isError,
                 onCompleted = { pinCode ->
-                    viewModel.validateDigitalKey(
-                        DigitalKeyDto(
-                            accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                            key = pinCode,
-                            activationCode = selectedResident.activationCode ?: ""
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //wait for screenshot
+                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
+                            delay(500)
+
+                        viewModel.validateDigitalKey(
+                            DigitalKeyDto(
+                                accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                key = pinCode,
+                                activationCode = selectedResident.activationCode ?: ""
+                            )
                         )
-                    )
+                    }
                 }
             )
         }
