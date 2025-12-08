@@ -37,10 +37,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -77,12 +78,12 @@ fun VoicemailRecordingScreen(
     LaunchedEffect(uploadState) {
         //on upload success navigate to home screen
         if (uploadState.data > 0) {
-            navController.navigate(HomeScreen) {
+            navController.navigate(ResponseMessageScreenRoute(errorMessage = Constants.UPLOAD_SUCCESS_MESSAGE)) {
                 popUpTo(HomeScreen)
             }
         } else if (uploadState.error.isNotEmpty()) {
             //on upload error navigate to error screen
-            navController.navigate(ErrorScreenRoute(errorMessage = uploadState.error)) {
+            navController.navigate(ResponseMessageScreenRoute(errorMessage = uploadState.error)) {
                 popUpTo(HomeScreen)
             }
         }
@@ -107,6 +108,7 @@ fun VoicemailRecordingScreen(
     ) {
         CustomToolbar(
             title = "$locationName - $kioskName",
+            showBackArrow = false,
             navController = navController
         )
         Column(

@@ -17,6 +17,7 @@ object Constants {
     const val SERVICE_KEY_GENERIC_ERROR = "We were unable to check this service key at this time. Please try again later or contact your administrator."
     const val VIDEO_MAIL_GENERIC_ERROR = "We were unable to process your voicemail at this time. Please try again later or contact your administrator."
     const val CONNECTION_ERROR = "Unable to connect to the server. Please check your internet connection and try again."
+    const val UPLOAD_SUCCESS_MESSAGE = "Your voicemail has been successfully uploaded."
 
 
     fun formatDateString(

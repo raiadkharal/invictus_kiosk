@@ -53,7 +53,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterDropdownButton
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterListItem
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
@@ -135,7 +135,7 @@ fun DirectoryScreen(
             when (event) {
                 is UiEvent.ShowError -> {
                     navController.navigate(
-                        ErrorScreenRoute(
+                        ResponseMessageScreenRoute(
                             errorMessage = event.errorMessage
                         )
                     ) { popUpTo(HomeScreen) }

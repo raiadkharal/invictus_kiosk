@@ -42,8 +42,8 @@ class RestClient(
 //            .addInterceptor(RetryInterceptor())
 //            .addInterceptor(NetworkConnectionInterceptor(context))
             .connectTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
+            .readTimeout(5, TimeUnit.MINUTES)
+            .writeTimeout(5, TimeUnit.MINUTES)
             .build()
 
         val retrofit = Retrofit.Builder()
