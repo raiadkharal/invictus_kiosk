@@ -93,9 +93,13 @@ class SnapshotManager @Inject constructor (
                     surfaceProvider = previewView.surfaceProvider
                 }
 
-                val qualitySelector = QualitySelector.from(
-                    Quality.SD,
-                    FallbackStrategy.lowerQualityThan(Quality.SD)
+                val qualitySelector = QualitySelector.fromOrderedList(
+                    listOf(
+                        Quality.SD,
+                        Quality.HD,
+                        Quality.FHD
+                    ),
+                    FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
                 )
 
                 val recorder = Recorder.Builder()
