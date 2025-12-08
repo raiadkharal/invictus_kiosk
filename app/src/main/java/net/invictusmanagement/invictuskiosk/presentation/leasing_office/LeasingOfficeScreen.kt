@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,12 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
@@ -37,7 +34,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
@@ -92,7 +89,7 @@ fun LeasingOfficeScreen(
             when (event) {
                 is UiEvent.ShowError -> {
                     navController.navigate(
-                        ErrorScreenRoute(
+                        ResponseMessageScreenRoute(
                             errorMessage = event.errorMessage
                         )
                     ) { popUpTo(HomeScreen) }

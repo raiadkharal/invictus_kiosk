@@ -29,7 +29,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +56,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -65,7 +63,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolba
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
@@ -148,7 +146,7 @@ fun ResidentsScreen(
             when (event) {
                 is UiEvent.ShowError -> {
                     navController.navigate(
-                        ErrorScreenRoute(
+                        ResponseMessageScreenRoute(
                             errorMessage = event.errorMessage
                         )
                     ) { popUpTo(HomeScreen) }

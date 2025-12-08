@@ -15,8 +15,8 @@ android {
         applicationId = "net.invictusmanagement.invictuskiosk"
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = "1.19"
+        versionCode = 23
+        versionName = "1.23"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

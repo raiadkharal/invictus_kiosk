@@ -22,7 +22,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.twilio.video.VideoView
 import kotlinx.coroutines.delay
@@ -53,7 +51,6 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScre
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
-import net.invictusmanagement.invictuskiosk.util.SignalRConnectionState
 
 @Composable
 fun VideoCallScreen(
@@ -137,6 +134,7 @@ fun VideoCallScreen(
             videoCallViewModel.setVoiceMailDialogVisibility(true)
         }
     }
+
     LaunchedEffect(Unit) {
         permissionLauncher.launch(
             arrayOf(
@@ -145,6 +143,14 @@ fun VideoCallScreen(
             )
         )
     }
+
+    LaunchedEffect(currentAccessPoint) {
+        currentAccessPoint?.let { accessPoint ->
+            videoCallViewModel.initializeMobileChatHub(kioskId)
+            videoCallViewModel.initializeChatHub(residentId)
+        }
+    }
+
 
     LaunchedEffect(hasAllPermissions) {
         if (hasAllPermissions) {
@@ -179,12 +185,6 @@ fun VideoCallScreen(
         localVideoTrack?.addSink(localVideoView)
     }
 
-    LaunchedEffect(currentAccessPoint) {
-        currentAccessPoint?.let { accessPoint ->
-            videoCallViewModel.initializeSignalR(kioskId)
-        }
-    }
-
 
     DisposableEffect(Unit) {
         onDispose {
@@ -217,7 +217,7 @@ fun VideoCallScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            when{
+            when {
                 errorMessage != null -> {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -226,7 +226,8 @@ fun VideoCallScreen(
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.red))
                     )
                 }
-                else ->{
+
+                else -> {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = when (videoCallViewModel.connectionState) {
@@ -234,6 +235,7 @@ fun VideoCallScreen(
                                 1 -> ConnectionState.CONNECTING.displayName
                                 else -> "Reconnecting... (Attempt ${videoCallViewModel.tokenFetchAttemptCount})"
                             }
+
                             ConnectionState.RECONNECTING -> "Network lost. Trying to reconnect..."
                             ConnectionState.RECONNECTED -> "Remaining: $remainingSeconds seconds"
                             ConnectionState.CONNECTED -> "Remaining: $remainingSeconds seconds"

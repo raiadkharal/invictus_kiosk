@@ -83,6 +83,7 @@ class HomeViewModel @Inject constructor(
         mobileChatHubManager = MobileChatHubManager(
             kioskId = kioskId,
             listener = this,
+            networkMonitor = networkMonitor,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
                 }
@@ -93,7 +94,9 @@ class HomeViewModel @Inject constructor(
             }
         )
 
-        mobileChatHubManager?.connect()
+        viewModelScope.launch {
+            mobileChatHubManager?.connect()
+        }
     }
 
     fun loadInitialData(){

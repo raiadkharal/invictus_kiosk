@@ -45,7 +45,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAud
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
@@ -106,7 +106,7 @@ fun ServiceKeyScreen(
             when (event) {
                 is UiEvent.ShowError -> {
                     navController.navigate(
-                        ErrorScreenRoute(
+                        ResponseMessageScreenRoute(
                             errorMessage = event.errorMessage
                         )
                     ) { popUpTo(HomeScreen) }

@@ -10,6 +10,7 @@ import androidx.annotation.RequiresPermission
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -25,7 +26,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +40,6 @@ import net.invictusmanagement.invictuskiosk.domain.repository.VoicemailRepositor
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
 import java.io.File
 import javax.inject.Inject
-import kotlin.math.truncate
 
 @HiltViewModel
 class VoicemailViewModel @Inject constructor(
@@ -81,11 +80,13 @@ class VoicemailViewModel @Inject constructor(
         repository.uploadVoicemail(file, userId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    safeDeleteFile(file)
                     resumeScreenSaver()
                     _uploadState.value = UploadState(isLoading = true,data = result.data ?: 1)
                 }
 
                 is Resource.Error -> {
+                    safeDeleteFile(file)
                     resumeScreenSaver()
                     _uploadState.value =
                         UploadState(isLoading = true,error = result.message ?: "An unexpected error occurred")
@@ -111,8 +112,14 @@ class VoicemailViewModel @Inject constructor(
                     surfaceProvider = previewView.surfaceProvider
                 }
 
+                val qualitySelector = QualitySelector.from(
+                    Quality.SD,
+                    FallbackStrategy.lowerQualityThan(Quality.SD)
+                )
+
                 val recorder = Recorder.Builder()
-                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .setTargetVideoEncodingBitRate(700_000) // 0.7 Mbps target
+                    .setQualitySelector(qualitySelector)
                     .build()
 
                 val videoCap = VideoCapture.withOutput(recorder)
@@ -147,7 +154,7 @@ class VoicemailViewModel @Inject constructor(
         onFinish: (File) -> Unit
     ) {
         try {
-            val capture = videoCapture.value ?: return
+            val capture = _videoCapture.value ?: return
 
             videoFile = File(context.cacheDir, "voicemail_${System.currentTimeMillis()}.mp4")
             val outputOptions = FileOutputOptions.Builder(videoFile!!).build()
@@ -176,7 +183,12 @@ class VoicemailViewModel @Inject constructor(
     }
 
     fun stopRecording() {
-        recording?.stop()
+        if(recording != null) {
+            recording?.stop()
+        }else{
+            _uploadState.value =
+                UploadState(isLoading = true,error = Constants.VIDEO_MAIL_GENERIC_ERROR)
+        }
         recording = null
     }
 
@@ -193,7 +205,15 @@ class VoicemailViewModel @Inject constructor(
         stopRecording()
     }
 
+    private fun safeDeleteFile(file: File?) {
+        file?.let {
+            if (it.exists()) {
+                it.delete()
+            }
+        }
+    }
     fun resetState() {
+        _videoCapture.value = null
         _countdown.intValue = 12
         _isRecordingStarted.value = false
     }

@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,10 +37,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
@@ -61,6 +63,7 @@ fun VoicemailRecordingScreen(
 
     val countdown by viewModel.countdown
     val isRecordingStarted by viewModel.isRecordingStarted
+    val previewView = remember { PreviewView(context) }
 
     LaunchedEffect(Unit) {
         if (!viewModel.isRecordingStarted.value) {
@@ -68,15 +71,19 @@ fun VoicemailRecordingScreen(
         }
     }
 
+    LaunchedEffect(previewView) {
+        viewModel.setupCamera(previewView, context, lifecycleOwner)
+    }
+
     LaunchedEffect(uploadState) {
         //on upload success navigate to home screen
         if (uploadState.data > 0) {
-            navController.navigate(HomeScreen) {
+            navController.navigate(ResponseMessageScreenRoute(errorMessage = Constants.UPLOAD_SUCCESS_MESSAGE)) {
                 popUpTo(HomeScreen)
             }
         } else if (uploadState.error.isNotEmpty()) {
             //on upload error navigate to error screen
-            navController.navigate(ErrorScreenRoute(errorMessage = uploadState.error)) {
+            navController.navigate(ResponseMessageScreenRoute(errorMessage = uploadState.error)) {
                 popUpTo(HomeScreen)
             }
         }
@@ -101,6 +108,7 @@ fun VoicemailRecordingScreen(
     ) {
         CustomToolbar(
             title = "$locationName - $kioskName",
+            showBackArrow = false,
             navController = navController
         )
         Column(
@@ -123,8 +131,7 @@ fun VoicemailRecordingScreen(
                     modifier = Modifier.weight(1f),
                     countdown = countdown,
                     viewModel = viewModel,
-                    context = context,
-                    lifecycleOwner = lifecycleOwner
+                    previewView = previewView
                 )
             }
         }
@@ -154,8 +161,7 @@ private fun RecordingContent(
     modifier: Modifier = Modifier,
     countdown: Int,
     viewModel: VoicemailViewModel,
-    context: android.content.Context,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+    previewView: PreviewView
 ) {
     if (countdown > 0) {
         Text(
@@ -169,7 +175,7 @@ private fun RecordingContent(
         )
     }
 
-    CameraPreview(modifier,viewModel, context, lifecycleOwner)
+    CameraPreview(modifier, previewView)
 
     CustomTextButton(
         modifier = Modifier
@@ -187,9 +193,7 @@ private fun RecordingContent(
 @Composable
 private fun CameraPreview(
     modifier: Modifier = Modifier,
-    viewModel: VoicemailViewModel,
-    context: android.content.Context,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+    previewView: PreviewView
 ) {
     Row(
         modifier = modifier
@@ -200,11 +204,7 @@ private fun CameraPreview(
     ) {
         // Local video small preview
         AndroidView(
-            factory = { ctx ->
-                val previewView = PreviewView(ctx)
-                viewModel.setupCamera(previewView, context, lifecycleOwner)
-                previewView
-            },
+            factory = { previewView },
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()

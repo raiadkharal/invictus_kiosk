@@ -1,7 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.navigation
 
 import kotlinx.serialization.Serializable
-import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 
 @Serializable
 object LoginScreen
@@ -63,7 +62,7 @@ data class VideoCallScreenRoute(
 )
 
 @Serializable
-data class ErrorScreenRoute(val errorMessage: String)
+data class ResponseMessageScreenRoute(val errorMessage: String)
 
 @Serializable
 data class VoiceMailRecordingScreenRoute(val residentId: Int, val residentDisplayName: String)

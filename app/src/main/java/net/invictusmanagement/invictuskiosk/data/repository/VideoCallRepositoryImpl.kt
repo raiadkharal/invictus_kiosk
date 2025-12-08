@@ -2,17 +2,13 @@ package net.invictusmanagement.invictuskiosk.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import net.invictusmanagement.invictuskiosk.commons.Resource
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toMissedCall
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toPromotionsCategory
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toVideoCall
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toVideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.model.MissedCall
-import net.invictusmanagement.invictuskiosk.domain.model.VideoCall
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
@@ -37,10 +33,10 @@ class VideoCallRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<VideoCall>> = flow {
+    override fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<Unit>> = flow {
         try {
             emit(Resource.Loading())
-            val response = api.connectToVideoCall(videoCallDto).toVideoCall()
+            val response = api.connectToVideoCall(videoCallDto).body() ?: Unit
             emit(Resource.Success(response))
         } catch (e: HttpException) {
             logger.logError("connectToVideoCall", "Error connecting to video call ${e.localizedMessage}", e)

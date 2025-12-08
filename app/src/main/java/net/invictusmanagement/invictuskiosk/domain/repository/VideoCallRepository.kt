@@ -10,7 +10,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 
 interface VideoCallRepository {
     fun getVideoCallToken(room: String): Flow<Resource<VideoCallToken>>
-    fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<VideoCall>>
+    fun connectToVideoCall(videoCallDto: VideoCallDto): Flow<Resource<Unit>>
     fun postMissedCall(missedCallDto: MissedCallDto): Flow<Resource<MissedCall>>
 
 }
