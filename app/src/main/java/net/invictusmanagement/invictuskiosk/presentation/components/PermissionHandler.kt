@@ -38,7 +38,7 @@ fun CameraAndAudioPermission(
                 audio == PackageManager.PERMISSION_GRANTED
     }
 
-    // 🔄 1. Check permissions on resume (when returning from Settings)
+    // Check permissions on resume (when returning from Settings)
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
