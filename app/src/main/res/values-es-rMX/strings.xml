@@ -31,4 +31,12 @@
     <string name="email">" Correo electrónico"</string>
     <string name="phone">Teléfono</string>
     <string name="contact_request">Solicitud de contacto</string>
+    <string name="search_resident">Buscar residente</string>
+    <string name="search_unit_number">Número de unidad de búsqueda</string>
+    <string name="search_leasing_officer">Buscar oficial de arrendamiento</string>
+    <string name="finish_recording">Finalizar grabación</string>
+    <string name="qr_code_instructions">1. Abre el código QR en tu teléfono\n2. Toca “Escanear código QR” abajo\n3. Acerca tu teléfono al escáner</string>
+    <string name="coupon_details_description">Toma una foto del cupón para mostrárselo al vendedor y sigamos comprando.</string>
+
+
 </resources>

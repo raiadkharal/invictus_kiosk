@@ -39,7 +39,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,6 +70,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScr
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
@@ -219,7 +219,7 @@ fun ResidentsScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
-                        placeholder = if (isLeasingOffice)"Search Leasing Officer" else "Search Resident",
+                        placeholder = if (isLeasingOffice) localizedString(R.string.search_leasing_officer) else localizedString(R.string.search_resident),
                         onValueChange = { searchQuery = it }
                     )
                 }
@@ -237,7 +237,9 @@ fun ResidentsScreen(
                             CircularProgressIndicator()
                         } else {
                             Text(
-                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(R.string.no_residents_found),
+                                if (isLeasingOffice) localizedString(R.string.no_leasing_officers_found) else localizedString(
+                                    R.string.no_residents_found
+                                ),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,
@@ -295,9 +297,9 @@ fun ResidentsScreen(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = if (isError) {
-                        stringResource(R.string.invalid_key)
+                        localizedString(R.string.invalid_key)
                     } else {
-                        if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
+                        if (selectedResident != null) localizedString(R.string.pin_title_text) else localizedString(
                             R.string.qr_code_title_text
                         )
                     },

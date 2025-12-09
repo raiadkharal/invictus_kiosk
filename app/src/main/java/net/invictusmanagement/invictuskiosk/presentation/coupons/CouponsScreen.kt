@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +34,7 @@ import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -74,7 +74,7 @@ fun CouponsScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.coupons),
+                text = localizedString(R.string.coupons),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -83,7 +83,7 @@ fun CouponsScreen(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.category),
+                text = localizedString(R.string.category),
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
             )
@@ -114,7 +114,7 @@ fun CouponsScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.no_coupons_available),
+                            text = localizedString(R.string.no_coupons_available),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 color = colorResource(

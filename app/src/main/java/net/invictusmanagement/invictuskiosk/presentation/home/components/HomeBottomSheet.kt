@@ -33,17 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun HomeBottomSheet(
@@ -92,7 +91,7 @@ fun HomeBottomSheet(
                     ){
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.no_residents_found),
+                            text = localizedString(R.string.no_residents_found),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
                         )
@@ -176,7 +175,7 @@ fun HomeBottomSheet(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     icon = R.drawable.ic_qr_code,
                     iconSize = 100,
-                    text = stringResource(R.string.qr_code),
+                    text = localizedString(R.string.qr_code),
                     onClick = onQrCodeClick
                 )
             }

@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,6 +62,7 @@ import net.invictusmanagement.invictuskiosk.presentation.residents.components.Re
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.FilterOption
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun DirectoryScreen(
@@ -216,7 +216,7 @@ fun DirectoryScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
-                        placeholder = if (isUnitNumberSelected) "Search Unit Number" else "Search Resident",
+                        placeholder = if (isUnitNumberSelected) localizedString(R.string.search_unit_number) else localizedString(R.string.search_resident),
                         onValueChange = { searchQuery = it }
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -242,7 +242,7 @@ fun DirectoryScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                stringResource(R.string.no_residents_found),
+                                localizedString(R.string.no_residents_found),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,
@@ -296,7 +296,7 @@ fun DirectoryScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    stringResource(R.string.no_units_found),
+                                    localizedString(R.string.no_units_found),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontWeight = FontWeight.Bold,
@@ -354,9 +354,9 @@ fun DirectoryScreen(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = if (isError) {
-                        stringResource(R.string.invalid_key)
+                        localizedString(R.string.invalid_key)
                     } else {
-                        if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
+                        if (selectedResident != null) localizedString(R.string.pin_title_text) else localizedString(
                             R.string.qr_code_title_text
                         )
                     },

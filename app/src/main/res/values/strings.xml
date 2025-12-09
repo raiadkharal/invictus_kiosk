@@ -36,25 +36,30 @@
     <string name="unit_details">Unit Details</string>
     <string name="placeholder_email" translatable="false">eg: jsmith@invictus.com</string>
     <string name="placeholder_phone" translatable="false">eg: 3108675309</string>
-    <string name="name">Name</string>
-    <string name="email">Email</string>
-    <string name="phone">Phone</string>
-    <string name="contact_request">Contact Request</string>
-    <string name="invalid_service_key" translatable="false">Invalid Service Key</string>
-    <string name="filter" translatable="false">Filter</string>
-    <string name="invalid_key" translatable="false">Invalid Guest Key</string>
-    <string name="no_residents_found" translatable="false">No Residents Found</string>
-    <string name="no_leasing_officers_found" translatable="false">No Leasing Officers Found</string>
-    <string name="no_units_found" translatable="false">No Units Found</string>
-    <string name="no_vacancies" translatable="false">No vacancies found</string>
-    <string name="contact_request_success_message" translatable="false">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
-    <string name="notification" translatable="false">Notification</string>
-    <string name="dismiss" translatable="false">Dismiss</string>
-    <string name="no_coupons_available" translatable="false">No coupons available</string>
-    <string name="video_voice_mail_message" translatable="false">Would you like to leave a video voicemail?</string>
-    <string name="yes" translatable="false">Yes</string>
-    <string name="no" translatable="false">No</string>
-    <string name="finish_recording" translatable="false">Finish Recording</string>
+    <string name="name" translatable="true">Name</string>
+    <string name="email" translatable="true">Email</string>
+    <string name="phone" translatable="true">Phone</string>
+    <string name="contact_request" translatable="true">Contact Request</string>
+    <string name="invalid_service_key" translatable="true">Invalid Service Key</string>
+    <string name="filter" translatable="true">Filter</string>
+    <string name="invalid_key" translatable="true">Invalid Guest Key</string>
+    <string name="no_residents_found" translatable="true">No Residents Found</string>
+    <string name="no_leasing_officers_found" translatable="true">No Leasing Officers Found</string>
+    <string name="no_units_found" translatable="true">No Units Found</string>
+    <string name="no_vacancies" translatable="true">No vacancies found</string>
+    <string name="contact_request_success_message" translatable="true">Thank you. Your contact request was successfully submitted. You will be contacted as soon as possible by our staff.</string>
+    <string name="notification" translatable="true">Notification</string>
+    <string name="dismiss" translatable="true">Dismiss</string>
+    <string name="no_coupons_available" translatable="true">No coupons available</string>
+    <string name="video_voice_mail_message" translatable="true">Would you like to leave a video voicemail?</string>
+    <string name="yes" translatable="true">Yes</string>
+    <string name="no" translatable="true">No</string>
+    <string name="finish_recording" translatable="true">Finish Recording</string>
+    <string name="search_resident" translatable="true">Search Resident</string>
+    <string name="search_unit_number" translatable="true">Search Unit Number</string>
+    <string name="search_leasing_officer" translatable="true">Search Leasing Officer</string>
+    <string name="qr_code_instructions" translatable="true">1. Open QR Code on your phone\n2. Tap “Scan QR Code” below\n3. Hold your phone up to the scanner</string>
+    <string name="coupon_details_description" translatable="true">Take a picture of the coupon to show the vendor and let’s keep shopping.</string>
 
 
 </resources>

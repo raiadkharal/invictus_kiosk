@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,7 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponListScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -104,7 +102,7 @@ fun CouponsBusinessListScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.coupons),
+                text = localizedString(R.string.coupons),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -130,7 +128,7 @@ fun CouponsBusinessListScreen(
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.category),
+                        text = localizedString(R.string.category),
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
                     )
@@ -211,7 +209,7 @@ fun CouponsBusinessListScreen(
                             ) {
                                 Text(
                                     modifier = Modifier.fillMaxWidth(),
-                                    text = stringResource(R.string.no_coupons_available),
+                                    text = localizedString(R.string.no_coupons_available),
                                     textAlign = TextAlign.Start,
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         color = colorResource(

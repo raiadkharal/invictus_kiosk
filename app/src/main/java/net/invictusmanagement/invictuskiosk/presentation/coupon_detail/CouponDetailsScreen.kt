@@ -1,7 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.coupon_detail
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -22,13 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -39,8 +33,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
 import net.invictusmanagement.invictuskiosk.domain.model.Promotion
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -166,7 +159,7 @@ fun CouponsDetailsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Take a picture of the coupon to show the vendor and let’s keep shopping.",
+                    text = localizedString(id = R.string.coupon_details_description),
                     style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)

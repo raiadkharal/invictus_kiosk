@@ -17,13 +17,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
     searchQuery:String,
-    placeholder:String = "Search Resident",
+    placeholder:String = localizedString(R.string.search_resident),
     onValueChange: (String) -> Unit
 ) {
         // Search Bar

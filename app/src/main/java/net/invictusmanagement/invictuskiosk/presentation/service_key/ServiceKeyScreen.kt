@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -49,6 +48,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMess
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
@@ -165,7 +165,7 @@ fun ServiceKeyScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.service_key),
+                text = localizedString(R.string.service_key),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -178,7 +178,7 @@ fun ServiceKeyScreen(
                     .width(720.dp),
                 buttons = otpButtons,
                 isError = isError,
-                message = if (isError) stringResource(R.string.invalid_service_key) else stringResource(
+                message = if (isError) localizedString(R.string.invalid_service_key) else localizedString(
                     R.string.service_key_message_text
                 ),
                 onMessageClick = {

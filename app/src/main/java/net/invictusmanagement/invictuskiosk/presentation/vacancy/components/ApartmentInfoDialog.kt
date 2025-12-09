@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,7 +43,7 @@ import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.AutoImageSlider
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
-
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @Composable
@@ -138,7 +137,7 @@ fun ApartmentInfoDialog(
                     Text(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        text = stringResource(R.string.unit_details),
+                        text = localizedString(R.string.unit_details),
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.displayMedium.copy(
                             color = colorResource(R.color.btn_text),
@@ -223,7 +222,7 @@ fun ApartmentInfoDialog(
                     CustomTextButton(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        text = stringResource(R.string.contact_now),
+                        text = localizedString(R.string.contact_now),
                         isGradient = true,
                         onClick = {
                             resetSleepTimer?.invoke()

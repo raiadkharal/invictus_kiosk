@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -51,6 +50,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScre
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VoiceMailRecordingScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.video_call.components.VoiceMailConfirmationDialog
 import net.invictusmanagement.invictuskiosk.util.ConnectionState
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun VideoCallScreen(
@@ -303,7 +303,7 @@ fun VideoCallScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    text = stringResource(R.string.video_call_message),
+                    text = localizedString(R.string.video_call_message),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
                 )
@@ -312,7 +312,7 @@ fun VideoCallScreen(
                     modifier = Modifier
                         .width(300.dp)
                         .padding(16.dp),
-                    text = stringResource(R.string.end_call),
+                    text = localizedString(R.string.end_call),
                     isGradient = true,
                     onClick = {
                         videoCallViewModel.disconnect()

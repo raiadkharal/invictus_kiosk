@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -43,6 +42,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @RequiresPermission(Manifest.permission.RECORD_AUDIO)
 @Composable
@@ -181,7 +181,7 @@ private fun RecordingContent(
         modifier = Modifier
             .width(300.dp)
             .padding(16.dp),
-        text = stringResource(R.string.finish_recording).uppercase(),
+        text = localizedString(R.string.finish_recording).uppercase(),
         isGradient = true,
         enabled = countdown == 0,
         onClick = {

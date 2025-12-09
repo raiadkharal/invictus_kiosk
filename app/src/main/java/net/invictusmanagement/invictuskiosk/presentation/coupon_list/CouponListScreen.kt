@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +47,7 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolba
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsBusinessListScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -99,7 +99,7 @@ fun CouponListScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.coupons),
+                text = localizedString(R.string.coupons),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -125,7 +125,7 @@ fun CouponListScreen(
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.category),
+                        text = localizedString(R.string.category),
                         textAlign = TextAlign.Start,
                         style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))
                     )
@@ -194,7 +194,7 @@ fun CouponListScreen(
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.no_coupons_available),
+                                text = localizedString(R.string.no_coupons_available),
                                 textAlign = TextAlign.Start,
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     color = colorResource(

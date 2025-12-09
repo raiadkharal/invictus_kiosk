@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +38,7 @@ import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.Cont
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.ResponseDialog
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.TableHeader
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.TableRow
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun VacancyScreen(
@@ -92,7 +92,7 @@ fun VacancyScreen(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.vacancies),
+                    text = localizedString(R.string.vacancies),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
                 )
@@ -122,7 +122,7 @@ fun VacancyScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = stringResource(R.string.no_vacancies),
+                                text = localizedString(R.string.no_vacancies),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     color = colorResource(

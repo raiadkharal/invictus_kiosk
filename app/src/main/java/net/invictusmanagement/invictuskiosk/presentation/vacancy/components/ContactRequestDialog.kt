@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +48,7 @@ import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.domain.model.ContactRequest
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.ContactRequestState
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 import java.util.Locale
 
 
@@ -121,7 +121,7 @@ fun ContactRequestDialog(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    text = stringResource(R.string.contact_request),
+                    text = localizedString(R.string.contact_request),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.displayMedium.copy(
                         color = colorResource(R.color.btn_text),
@@ -143,7 +143,7 @@ fun ContactRequestDialog(
                     ) {
                         CustomTextButton(
                             modifier = Modifier.weight(1f),
-                            text = stringResource(R.string.email).uppercase(Locale.ROOT),
+                            text = localizedString(R.string.email).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 0,
                             isDarkBackground = true,
                             onClick = {
@@ -154,7 +154,7 @@ fun ContactRequestDialog(
                         Spacer(Modifier.width(16.dp))
                         CustomTextButton(
                             modifier = Modifier.weight(1f),
-                            text = stringResource(R.string.phone).uppercase(Locale.ROOT),
+                            text = localizedString(R.string.phone).uppercase(Locale.ROOT),
                             isGradient = selectedTab == 1,
                             isDarkBackground = true,
                             onClick = {
@@ -180,7 +180,7 @@ fun ContactRequestDialog(
                         modifier = Modifier.fillMaxWidth(),
                         label = {
                             Text(
-                                stringResource(R.string.name),
+                                localizedString(R.string.name),
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = colorResource(
                                         R.color.btn_text
@@ -230,7 +230,7 @@ fun ContactRequestDialog(
                             .padding(top = 8.dp),
                         label = {
                             Text(
-                                if (selectedTab == 0) stringResource(R.string.email) else stringResource(
+                                if (selectedTab == 0) localizedString(R.string.email) else localizedString(
                                     R.string.phone
                                 ),
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -287,7 +287,7 @@ fun ContactRequestDialog(
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 24.dp)
                                 .fillMaxWidth(),
-                            text = if (selectedTab == 0) stringResource(R.string.placeholder_email) else stringResource(
+                            text = if (selectedTab == 0) localizedString(R.string.placeholder_email) else localizedString(
                                 R.string.placeholder_phone
                             ),
                             textAlign = TextAlign.Start,
@@ -314,7 +314,7 @@ fun ContactRequestDialog(
                             padding = 24,
                             isGradient = true,
                             enabled = name.isNotEmpty() && contactInfo.isNotEmpty() && !isError,
-                            text = stringResource(R.string.send),
+                            text = localizedString(R.string.send),
                             onClick = {
                                 resetSleepTimer?.invoke()
                                 val contactRequest = ContactRequest(

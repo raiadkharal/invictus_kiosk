@@ -2,9 +2,7 @@ package net.invictusmanagement.invictuskiosk.presentation
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +20,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
@@ -55,11 +52,10 @@ import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSave
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.usb.UsbPermissionReceiver
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
-import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
-import net.invictusmanagement.invictuskiosk.util.locale.AppLocale
+import net.invictusmanagement.invictuskiosk.util.locale.AppLocaleManager
+import net.invictusmanagement.invictuskiosk.util.locale.LocalAppLocale
 import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
 import net.invictusmanagement.relaymanager.RelayManager
-import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -87,15 +83,22 @@ class MainActivity : ComponentActivity() {
         usbManager = getSystemService(USB_SERVICE) as UsbManager
         relayManager = RelayManager(this@MainActivity,globalLogger)
 
+        AppLocaleManager.currentLocale.value =
+            LocaleHelper.getCurrentLocale(this)
+
         enableEdgeToEdge()
         setContent {
             val viewModel = hiltViewModel<ScreenSaverViewModel>()
             val tokenState by viewModel.accessToken.collectAsState(initial = null)
-            tokenState?.let { token ->
-                if (token.isNotEmpty()) {
-                    MyApp()
-                } else {
-                    MainContent()
+            CompositionLocalProvider(
+                LocalAppLocale provides AppLocaleManager.currentLocale.value
+            ) {
+                tokenState?.let { token ->
+                    if (token.isNotEmpty()) {
+                        MyApp()
+                    } else {
+                        MainContent()
+                    }
                 }
             }
 
@@ -214,23 +217,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(updateLocaleContext(newBase))
-    }
-
-    private fun updateLocaleContext(context: Context): Context {
-        val locale = LocaleHelper.getCurrentLocale(context)
-        AppLocale.updateLocale(locale)
-        return contextWithUpdatedLocale(context, locale)
-    }
-
-    private fun contextWithUpdatedLocale(context: Context, locale: Locale): Context {
-        val config = Configuration(context.resources.configuration)
-        config.setLocale(locale)
-        return context.createConfigurationContext(config)
-    }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onResume() {

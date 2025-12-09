@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -50,6 +49,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 @Composable
@@ -176,7 +176,7 @@ fun LeasingOfficeScreen(
                 CustomTextButton(
                     modifier = Modifier
                         .weight(1f),
-                    text = stringResource(R.string.directory),
+                    text = localizedString(R.string.directory),
                     onClick = {
                         navController.navigate(DirectoryScreen)
                     }
@@ -186,7 +186,7 @@ fun LeasingOfficeScreen(
                     modifier = Modifier
                         .weight(1f),
                     isGradient = true,
-                    text = stringResource(R.string.video_call),
+                    text = localizedString(R.string.video_call),
                     onClick = {
                         navController.navigate(
                             VideoCallScreenRoute(
