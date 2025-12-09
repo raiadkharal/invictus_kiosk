@@ -8,10 +8,8 @@ import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.dto.MissedCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.VideoCallDto
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toMissedCall
-import net.invictusmanagement.invictuskiosk.data.remote.dto.toVideoCall
 import net.invictusmanagement.invictuskiosk.data.remote.dto.toVideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.model.MissedCall
-import net.invictusmanagement.invictuskiosk.domain.model.VideoCall
 import net.invictusmanagement.invictuskiosk.domain.model.VideoCallToken
 import net.invictusmanagement.invictuskiosk.domain.repository.VideoCallRepository
 import javax.inject.Inject

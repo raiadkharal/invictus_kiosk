@@ -1,8 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.navigation
 
 import android.Manifest
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -17,13 +15,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.json.Json
 import net.invictusmanagement.invictuskiosk.domain.model.BusinessPromotion
-import net.invictusmanagement.invictuskiosk.domain.model.Promotion
 import net.invictusmanagement.invictuskiosk.presentation.coupon_detail.CouponsDetailsScreen
 import net.invictusmanagement.invictuskiosk.presentation.coupon_list.CouponListScreen
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsScreen
 import net.invictusmanagement.invictuskiosk.presentation.coupons_business_list.CouponsBusinessListScreen
 import net.invictusmanagement.invictuskiosk.presentation.directory.DirectoryScreen
-import net.invictusmanagement.invictuskiosk.presentation.error.ErrorScreen
+import net.invictusmanagement.invictuskiosk.presentation.response_message.ResponseMessageScreen
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.leasing_office.LeasingOfficeScreen
 import net.invictusmanagement.invictuskiosk.presentation.login.LoginScreen
@@ -170,11 +167,11 @@ fun NavGraph(
                 navController = navController
             )
         }
-        composable<ErrorScreenRoute> {
-            val args = it.toRoute<ErrorScreenRoute>()
-            ErrorScreen(
+        composable<ResponseMessageScreenRoute> {
+            val args = it.toRoute<ResponseMessageScreenRoute>()
+            ResponseMessageScreen(
                 modifier = Modifier.padding(innerPadding),
-                errorMessage = args.errorMessage,
+                message = args.errorMessage,
                 navController = navController
             )
         }

@@ -1,6 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.home
 
-import android.app.Activity
+import android.Manifest
+import androidx.annotation.RequiresPermission
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -35,21 +36,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAudioPermission
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
@@ -68,7 +64,6 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.ServiceKeySc
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VacancyScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
-import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.IntroButtons
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.invictuskiosk.util.locale.AppLocaleManager
@@ -77,6 +72,7 @@ import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @Composable
+@RequiresPermission(Manifest.permission.RECORD_AUDIO)
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
@@ -84,6 +80,8 @@ fun HomeScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+    var hasAllPermissions by remember { mutableStateOf(false) }
 
     val isConnected by mainViewModel.isConnected.collectAsStateWithLifecycle()
     val keyValidationState by viewModel.digitalKeyValidationState.collectAsStateWithLifecycle()
@@ -99,6 +97,12 @@ fun HomeScreen(
     val kioskId by mainViewModel.kioskId.collectAsStateWithLifecycle()
     var selectedResident by remember { mutableStateOf<Resident?>(null) }
     var isError by remember { mutableStateOf(false) }
+
+    CameraAndAudioPermission(
+        onGranted = {
+            hasAllPermissions = true
+        }
+    )
 
     LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
@@ -124,6 +128,12 @@ fun HomeScreen(
 
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey?.recipient,
+                isValid = true,
+                accessLogId = digitalKey?.accessLogId
+            )
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
@@ -400,15 +410,5 @@ fun HomeScreen(
                 }
             )
         }
-    }
-}
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun HomeScreenPreview() {
-    InvictusKioskTheme {
-        val navController = rememberNavController()
-        HomeScreen(navController = navController)
     }
 }

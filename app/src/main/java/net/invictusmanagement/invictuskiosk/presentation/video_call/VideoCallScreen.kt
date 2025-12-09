@@ -135,13 +135,7 @@ fun VideoCallScreen(
         }
     }
 
-    LaunchedEffect(kioskId) {
-        videoCallViewModel.initializeMobileChatHub(kioskId)
-    }
-
     LaunchedEffect(Unit) {
-        videoCallViewModel.initializeChatHub(residentId)
-
         permissionLauncher.launch(
             arrayOf(
                 Manifest.permission.RECORD_AUDIO,
@@ -149,6 +143,14 @@ fun VideoCallScreen(
             )
         )
     }
+
+    LaunchedEffect(currentAccessPoint) {
+        currentAccessPoint?.let { accessPoint ->
+            videoCallViewModel.initializeMobileChatHub(kioskId)
+            videoCallViewModel.initializeChatHub(residentId)
+        }
+    }
+
 
     LaunchedEffect(hasAllPermissions) {
         if (hasAllPermissions) {

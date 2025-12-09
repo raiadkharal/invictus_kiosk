@@ -144,7 +144,7 @@ class MobileChatHubManager(
     /**
      * Cleanly disconnects from SignalR
      */
-   private fun disconnect() {
+    private fun disconnect() {
         coroutineScope.launch {
             try {
                 Log.d(TAG, "disconnect: Stopping SignalR connection...")

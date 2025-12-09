@@ -1,4 +1,4 @@
-package net.invictusmanagement.invictuskiosk.presentation.error
+package net.invictusmanagement.invictuskiosk.presentation.response_message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,9 +24,9 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
-fun ErrorScreen(
+fun ResponseMessageScreen(
     modifier: Modifier = Modifier,
-    errorMessage: String,
+    message: String,
     navController: NavController
 ) {
    Box(
@@ -52,7 +52,7 @@ fun ErrorScreen(
            Text(
                modifier = Modifier
                    .fillMaxWidth(),
-               text = errorMessage,
+               text = message,
                textAlign = TextAlign.Center,
                style = MaterialTheme.typography.displaySmall.copy(color = colorResource(R.color.btn_text))
            )

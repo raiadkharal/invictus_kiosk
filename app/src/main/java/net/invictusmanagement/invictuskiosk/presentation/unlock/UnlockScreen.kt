@@ -31,12 +31,14 @@ import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
+import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun UnlockScreen(
     modifier: Modifier = Modifier,
-    unitId: Int,
-    mapId: Int,
+    unitId: Long,
+    mapId: Long,
     toPackageCenter: Boolean,
     navController: NavController,
     mainViewModel: MainViewModel = hiltViewModel()
@@ -47,10 +49,10 @@ fun UnlockScreen(
     val kioskName by mainViewModel.kioskName.collectAsStateWithLifecycle()
 
     LaunchedEffect(true) {
-        if (unitId != 0 && mapId != 0) {
+        if (unitId != 0L && mapId != 0L) {
             mainViewModel.fetchMapImage(
-                unitId = unitId.toLong(),
-                unitMapId = mapId.toLong(),
+                unitId = unitId,
+                unitMapId = mapId,
                 toPackageCenter = toPackageCenter
             )
         }

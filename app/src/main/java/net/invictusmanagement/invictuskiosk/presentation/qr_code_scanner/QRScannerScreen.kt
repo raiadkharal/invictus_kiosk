@@ -23,14 +23,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
+import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
+import net.invictusmanagement.invictuskiosk.presentation.components.CameraAndAudioPermission
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
@@ -40,6 +41,7 @@ import net.invictusmanagement.invictuskiosk.util.UiEvent
 import java.util.concurrent.Executors
 
 @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
+@androidx.annotation.RequiresPermission(Manifest.permission.RECORD_AUDIO)
 @Composable
 fun QRScannerScreen(
     modifier: Modifier = Modifier,
@@ -59,9 +61,9 @@ fun QRScannerScreen(
 
     var previewVisible by remember { mutableStateOf(true) }
 
-    CameraPermission(
+    CameraAndAudioPermission(
         onGranted = { viewModel.onPermissionResult(true) },
-        onDenied = { viewModel.onPermissionResult(false) }
+//        onDenied = { viewModel.onPermissionResult(false) }
     )
 
     LaunchedEffect(Unit) {
@@ -82,6 +84,12 @@ fun QRScannerScreen(
 
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            viewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey?.recipient,
+                isValid = true,
+                accessLogId = digitalKey?.accessLogId
+            )
             viewModel.stopScanning()
             viewModel.resetError()
             navController.navigate(
@@ -108,8 +116,24 @@ fun QRScannerScreen(
                 lifecycleOwner = lifecycleOwner,
                 previewView = previewView,
                 executor = executor,
-                currentAccessPointId = currentAccessPoint?.id ?: 0
+                onScanSuccess = { result ->
+                    viewModel.stopScanning()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //wait for screenshot
+                        while (!viewModel.snapshotManager.isScreenShotTaken)
+                            delay(500)
+                        viewModel.validateDigitalKey(
+                            DigitalKeyDto(
+                                accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                key = result
+                            )
+                        )
+                    }
+                }
             )
+
+            delay(2000)  // wait for the camera to initialize
+            viewModel.snapshotManager.recordStampVideoAndUpload(0L)
         }
     }
 
@@ -118,7 +142,7 @@ fun QRScannerScreen(
         onDispose {
             previewVisible = false
             viewModel.scanner.close()
-            executor.shutdown()
+            viewModel.snapshotManager.cleanupCameraSession()
             viewModel.releaseCamera()
         }
     }
@@ -132,12 +156,7 @@ fun QRScannerScreen(
         CustomToolbar(
             title = "$locationName - $kioskName",
             showBackArrow = true,
-            navController = navController,
-            onBack = {
-                previewVisible = false
-                viewModel.stopScanning()
-                viewModel.releaseCamera()
-            }
+            navController = navController
         )
         Spacer(Modifier.height(8.dp))
         QRScannerUI(
@@ -149,31 +168,5 @@ fun QRScannerScreen(
             errorMessage = uiState.errorMessage,
             previewVisible = previewVisible
         )
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun CameraPermission(
-    onGranted: () -> Unit,
-    onDenied: () -> Unit
-) {
-    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-
-    // Ask permission when first launched
-    LaunchedEffect(Unit) {
-        when {
-            cameraPermissionState.status.isGranted -> onGranted()
-            cameraPermissionState.status.shouldShowRationale -> onDenied()
-            else -> cameraPermissionState.launchPermissionRequest()
-        }
-    }
-
-    // React to permission state changes
-    LaunchedEffect(cameraPermissionState.status) {
-        when {
-            cameraPermissionState.status.isGranted -> onGranted()
-            cameraPermissionState.status.shouldShowRationale -> onDenied()
-        }
     }
 }

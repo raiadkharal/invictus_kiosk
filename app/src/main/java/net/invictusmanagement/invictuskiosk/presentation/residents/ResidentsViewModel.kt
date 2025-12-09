@@ -22,6 +22,7 @@ import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
 import net.invictusmanagement.invictuskiosk.domain.repository.RelayManagerRepository
 import net.invictusmanagement.invictuskiosk.domain.repository.ResidentsRepository
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
+import net.invictusmanagement.invictuskiosk.presentation.service_key.ServiceKeyState
 import net.invictusmanagement.invictuskiosk.util.DataStoreManager
 import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.UiEvent
@@ -155,5 +156,9 @@ class ResidentsViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    fun resetDigitalKeyState(){
+        _keyValidationState.value = DigitalKeyState()
     }
 }

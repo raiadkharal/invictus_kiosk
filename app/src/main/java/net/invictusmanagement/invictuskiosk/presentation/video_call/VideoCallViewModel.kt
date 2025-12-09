@@ -114,7 +114,7 @@ class VideoCallViewModel @Inject constructor(
         mobileChatHubManager = MobileChatHubManager(
             kioskId = kioskId,
             listener = this,
-            networkMonitor =  networkMonitor,
+            networkMonitor = networkMonitor,
             connectionListener = object : SignalRConnectionListener {
                 override fun onConnected() {
                     if (connectionState == ConnectionState.CONNECTING) {

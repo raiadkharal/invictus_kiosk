@@ -5,8 +5,13 @@ import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -28,6 +33,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.commons.Resource
+import net.invictusmanagement.invictuskiosk.commons.SnapshotManager
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.DigitalKeyState
@@ -48,6 +54,8 @@ class QRScannerViewModel @Inject constructor(
     private val relayRepository: RelayManagerRepository,
     private val logger: GlobalLogger
 ) : ViewModel() {
+
+    @Inject lateinit var snapshotManager: SnapshotManager
 
     private val _uiState = MutableStateFlow(QRScannerUiState())
     val uiState: StateFlow<QRScannerUiState> = _uiState
@@ -118,7 +126,7 @@ class QRScannerViewModel @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
         executor: Executor,
-        currentAccessPointId: Int,
+        onScanSuccess: (String) -> Unit
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -132,15 +140,7 @@ class QRScannerViewModel @Inject constructor(
                 val analyzer = BarcodeAnalyzer(
                     scanner = scanner,
                     isScanning = { uiState.value.isScanning },
-                    onSuccess = { result ->
-                        stopScanning()
-                        validateDigitalKey(
-                            DigitalKeyDto(
-                                accessPointId = currentAccessPointId,
-                                key = result
-                            )
-                        )
-                    },
+                    onSuccess = onScanSuccess,
                     onFailure = { reportError("Scan failed: ${it.localizedMessage}") }
                 )
 
@@ -148,6 +148,19 @@ class QRScannerViewModel @Inject constructor(
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also { it.setAnalyzer(executor, analyzer) }
+
+                // Video Capture
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(QualitySelector.from(Quality.HD))
+                    .build()
+                val videoCapture = VideoCapture.withOutput(recorder)
+
+                // Image Capture for snapshots
+                val imageCapture = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .build()
+
+                snapshotManager.attachUseCases(imageCapture, videoCapture)
 
                 cameraProvider?.unbindAll()
 
@@ -164,7 +177,9 @@ class QRScannerViewModel @Inject constructor(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
-                    imageAnalysis
+                    imageAnalysis,
+                    videoCapture,
+                    imageCapture
                 )
             } catch (e: Exception) {
                 logger.logError(

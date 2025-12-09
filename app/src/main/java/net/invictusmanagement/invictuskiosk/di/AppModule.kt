@@ -14,6 +14,7 @@ import net.invictusmanagement.invictuskiosk.data.local.dao.HomeDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.ResidentsDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.SystemLogDao
 import net.invictusmanagement.invictuskiosk.data.local.dao.VacanciesDao
+import net.invictusmanagement.invictuskiosk.commons.SnapshotManager
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileApiInterface
 import net.invictusmanagement.invictuskiosk.data.remote.MobileRestClient
@@ -87,6 +88,14 @@ object AppModule {
         )
     }
 
+    @Provides
+    @Singleton
+    fun provideSnapshotManager(
+        @ApplicationContext context: Context,
+        api: ApiInterface
+    ): SnapshotManager{
+        return SnapshotManager(context, api)
+    }
     @Provides
     @Singleton
     fun provideMobileApiInterface(
