@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +40,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenR
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun ServiceKeyScreen(
@@ -122,7 +121,7 @@ fun ServiceKeyScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.service_key),
+                text = localizedString(R.string.service_key),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -135,7 +134,7 @@ fun ServiceKeyScreen(
                     .width(720.dp),
                 buttons = otpButtons,
                 isError = isError,
-                message = if (isError) stringResource(R.string.invalid_service_key) else stringResource(
+                message = if (isError) localizedString(R.string.invalid_service_key) else localizedString(
                     R.string.service_key_message_text
                 ),
                 onMessageClick = {

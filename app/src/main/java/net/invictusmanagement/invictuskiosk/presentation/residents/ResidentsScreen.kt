@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,7 +44,6 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.commons.Constants
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
@@ -62,6 +59,7 @@ import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScr
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun ResidentsScreen(
@@ -175,7 +173,7 @@ fun ResidentsScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
-                        placeholder = if (isLeasingOffice) "Search Leasing Officer" else "Search Resident",
+                        placeholder = if (isLeasingOffice) localizedString(R.string.search_leasing_officer) else localizedString(R.string.search_resident),
                         onValueChange = { searchQuery = it }
                     )
                 }
@@ -193,7 +191,7 @@ fun ResidentsScreen(
                             CircularProgressIndicator()
                         } else {
                             Text(
-                                if (isLeasingOffice) stringResource(R.string.no_leasing_officers_found) else stringResource(
+                                if (isLeasingOffice) localizedString(R.string.no_leasing_officers_found) else localizedString(
                                     R.string.no_residents_found
                                 ),
                                 textAlign = TextAlign.Center,
@@ -253,9 +251,9 @@ fun ResidentsScreen(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = if (isError) {
-                        stringResource(R.string.invalid_key)
+                        localizedString(R.string.invalid_key)
                     } else {
-                        if (selectedResident != null) stringResource(R.string.pin_title_text) else stringResource(
+                        if (selectedResident != null) localizedString(R.string.pin_title_text) else localizedString(
                             R.string.qr_code_title_text
                         )
                     },

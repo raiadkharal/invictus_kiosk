@@ -55,6 +55,9 @@
     <string name="yes" translatable="true">Yes</string>
     <string name="no" translatable="true">No</string>
     <string name="finish_recording" translatable="true">Finish Recording</string>
+    <string name="search_resident" translatable="true">Search Resident</string>
+    <string name="search_unit_number" translatable="true">Search Unit Number</string>
+    <string name="search_leasing_officer" translatable="true">Search Leasing Officer</string>
     <string name="qr_code_instructions" translatable="true">1. Open QR Code on your phone\n2. Tap “Scan QR Code” below\n3. Hold your phone up to the scanner</string>
     <string name="coupon_details_description" translatable="true">Take a picture of the coupon to show the vendor and let’s keep shopping.</string>
 

@@ -25,7 +25,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,10 +48,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.invictusmanagement.invictuskiosk.R
-import net.invictusmanagement.invictuskiosk.commons.Constants
-import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
+import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomIconButton
+import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.home.components.CustomBottomSheet
 import net.invictusmanagement.invictuskiosk.presentation.home.components.HomeBottomSheet
@@ -61,21 +59,21 @@ import net.invictusmanagement.invictuskiosk.presentation.home.components.PinCode
 import net.invictusmanagement.invictuskiosk.presentation.home.components.UrlVideoPlayer
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.SelfGuidedTourScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ServiceKeyScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VacancyScreen
-import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
-import net.invictusmanagement.invictuskiosk.util.UiEvent
-import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
-import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
-import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
-import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
+import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.IntroButtons
+import net.invictusmanagement.invictuskiosk.util.UiEvent
+import net.invictusmanagement.invictuskiosk.util.locale.AppLocaleManager
+import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @Composable
@@ -189,7 +187,7 @@ fun HomeScreen(
                         CustomIconButton(
                             modifier = Modifier.weight(1f),
                             icon = R.drawable.ic_directory,
-                            text = stringResource(R.string.directory),
+                            text = localizedString(R.string.directory),
                             onClick = {
                                 navController.navigate(DirectoryScreen)
                             })
@@ -198,7 +196,7 @@ fun HomeScreen(
                         CustomIconButton(
                             modifier = Modifier.weight(1f),
                             icon = R.drawable.ic_service_key,
-                            text = stringResource(R.string.service_key_all_caps),
+                            text = localizedString(R.string.service_key_all_caps),
                             onClick = {
                                 navController.navigate(ServiceKeyScreen)
                             })
@@ -214,7 +212,7 @@ fun HomeScreen(
                                 .weight(1f)
                                 .height(150.dp),
                             icon = R.drawable.ic_check_in,
-                            text = stringResource(R.string.check_in),
+                            text = localizedString(R.string.check_in),
                             onClick = { navController.navigate(SelfGuidedTourScreen) })
                     }
 
@@ -224,7 +222,7 @@ fun HomeScreen(
                                 .weight(1f)
                                 .height(150.dp),
                             icon = R.drawable.ic_leasing_office,
-                            text = stringResource(R.string.leasing_office),
+                            text = localizedString(R.string.leasing_office),
                             onClick = {
                                 if (leasingOfficeDetails?.leasingOfficer != null && leasingOfficeDetails?.allowSinglePushCallToLeasingOffice == true) {
                                     navController.navigate(
@@ -258,7 +256,7 @@ fun HomeScreen(
                                 .weight(1f)
                                 .height(150.dp),
                             icon = R.drawable.ic_coupons,
-                            text = stringResource(R.string.local_coupons),
+                            text = localizedString(R.string.local_coupons),
                             onClick = { navController.navigate(CouponsScreen) })
                     }
 
@@ -268,7 +266,7 @@ fun HomeScreen(
                                 .weight(1f)
                                 .height(150.dp),
                             icon = R.drawable.ic_vacancy,
-                            text = stringResource(R.string.vacancies),
+                            text = localizedString(R.string.vacancies),
                             onClick = { navController.navigate(VacancyScreen) })
                     }
                 }
@@ -291,7 +289,7 @@ fun HomeScreen(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.qr_code_title_text),
+                    text = localizedString(R.string.qr_code_title_text),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
                 )
@@ -319,15 +317,8 @@ fun HomeScreen(
                             .width(60.dp)
                             .height(60.dp)
                             .clickable(onClick = {
-                                // Update to Spanish (Mexico)
-                                CoroutineScope(Dispatchers.IO).launch {
+                                AppLocaleManager.currentLocale.value =
                                     LocaleHelper.toggleLocale(context)
-                                    currentLocale = LocaleHelper.getCurrentLocale(context)
-
-                                    withContext(Dispatchers.Main) {
-                                        (context as Activity).recreate()
-                                    }
-                                }
                             }),
                         painter = painterResource(R.drawable.ic_language),
                         contentDescription = "Language icon"

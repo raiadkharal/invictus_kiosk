@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +41,7 @@ import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.coupons.CouponsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponDetailsScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -167,7 +167,7 @@ fun CouponsDetailsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = stringResource(id = R.string.coupon_details_description),
+                    text = localizedString(id = R.string.coupon_details_description),
                     style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)

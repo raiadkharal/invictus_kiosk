@@ -1,6 +1,5 @@
 package net.invictusmanagement.invictuskiosk.presentation.login
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +39,7 @@ import net.invictusmanagement.invictuskiosk.data.remote.dto.LoginDto
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.home.components.UrlVideoPlayer
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun LoginScreen(
@@ -98,7 +96,7 @@ fun LoginScreen(
             //Title
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.invictus_lifestyle),
+                text = localizedString(R.string.invictus_lifestyle),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.displayLarge.copy(
                     color = colorResource(R.color.btn_text),
@@ -109,14 +107,14 @@ fun LoginScreen(
             // Subtitle
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.welcome_text),
+                text = localizedString(R.string.welcome_text),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.kisok_version),
+                text = localizedString(R.string.kisok_version),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge.copy(color = colorResource(R.color.btn_text))
             )
@@ -126,7 +124,7 @@ fun LoginScreen(
             // Activation Code Field
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.activation_code),
+                text = localizedString(R.string.activation_code),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
@@ -164,7 +162,7 @@ fun LoginScreen(
 
             CustomTextButton(
                 modifier = Modifier.fillMaxWidth(0.2f),
-                text = stringResource(R.string.activate),
+                text = localizedString(R.string.activate),
                 isGradient = true,
                 padding = 24,
                 onClick = {

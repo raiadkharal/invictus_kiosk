@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun VoiceMailConfirmationDialog(
@@ -70,7 +70,7 @@ fun VoiceMailConfirmationDialog(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    text = stringResource(R.string.video_voice_mail_message),
+                    text = localizedString(R.string.video_voice_mail_message),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.displayLarge.copy(color = colorResource(R.color.btn_text))
                 )
@@ -84,7 +84,7 @@ fun VoiceMailConfirmationDialog(
                         modifier = Modifier.weight(1f),
                         padding = 24,
                         isGradient = true,
-                        text = stringResource(R.string.yes).uppercase(),
+                        text = localizedString(R.string.yes).uppercase(),
                         onClick = {
                             resetSleepTimer?.invoke()
                             onYesClick()
@@ -96,7 +96,7 @@ fun VoiceMailConfirmationDialog(
                         padding = 24,
                         isGradient = false,
                         isDarkBackground = true,
-                        text = stringResource(R.string.no).uppercase(),
+                        text = localizedString(R.string.no).uppercase(),
                         onClick = {
                             resetSleepTimer?.invoke()
                             onNoClick()

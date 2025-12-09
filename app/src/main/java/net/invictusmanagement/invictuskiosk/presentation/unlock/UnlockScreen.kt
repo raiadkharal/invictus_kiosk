@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +30,7 @@ import coil.compose.AsyncImage
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
+import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
 @Composable
 fun UnlockScreen(
@@ -93,7 +93,7 @@ fun UnlockScreen(
                     Text(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        text = stringResource(R.string.unlocked),
+                        text = localizedString(R.string.unlocked),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.displayLarge.copy(
                             color = colorResource(R.color.btn_text),
@@ -105,7 +105,7 @@ fun UnlockScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
-                        text = stringResource(R.string.unlocked_message),
+                        text = localizedString(R.string.unlocked_message),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.displayMedium.copy(
                             color = colorResource(R.color.btn_text),
