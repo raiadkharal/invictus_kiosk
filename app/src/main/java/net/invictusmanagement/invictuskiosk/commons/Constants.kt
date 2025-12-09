@@ -1,5 +1,9 @@
 package net.invictusmanagement.invictuskiosk.commons
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -77,5 +81,32 @@ object Constants {
         is SecurityException -> "Camera permission is missing. Please enable it in settings."
         else -> "Unable to initialize the camera. Please try again."
     }
+
+    fun isAnyMicAvailable(context: Context): Boolean {
+        return try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+                ?: return false  // Fail safely if AudioManager is null
+
+            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+                ?: return false  // Just in case OEM returns null
+
+            devices.any { device ->
+                when (device.type) {
+                    AudioDeviceInfo.TYPE_BUILTIN_MIC,
+                    AudioDeviceInfo.TYPE_USB_DEVICE,
+                    AudioDeviceInfo.TYPE_USB_HEADSET,
+                    AudioDeviceInfo.TYPE_USB_ACCESSORY,
+                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> true
+                    else -> false
+                }
+            }
+        } catch (e: Exception) {
+            Log.d("isAnyMicAvailable", "Error checking microphone availability: ${e.message}")
+            false
+        }
+    }
+
 
 }
