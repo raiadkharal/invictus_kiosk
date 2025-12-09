@@ -139,11 +139,6 @@ class HomeViewModel @Inject constructor(
                     _introButtons.value = result.data?: emptyList()
                 }
                 is Resource.Error->{
-//                    _eventFlow.emit(
-//                        UiEvent.ShowError(
-//                            result.message?:Constants.CONNECTION_ERROR
-//                        )
-//                    )
                     Log.d("TAG", "getIntroButtons: ${result.message?: "An unexpected error occurred"}")
                 }
                 is Resource.Loading->{}

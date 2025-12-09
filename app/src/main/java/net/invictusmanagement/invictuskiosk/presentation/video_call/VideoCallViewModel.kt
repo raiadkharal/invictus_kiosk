@@ -163,7 +163,6 @@ class VideoCallViewModel @Inject constructor(
                 tokenFetchAttemptCount = attempt + 1
 
                 try {
-                    // Get token
                     var newToken: VideoCallToken? = null
                     repository.getVideoCallToken(kioskActivationCode).collect { result ->
                         when (result) {

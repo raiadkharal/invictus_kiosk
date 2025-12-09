@@ -93,7 +93,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            //Title
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = localizedString(R.string.invictus_lifestyle),
@@ -104,7 +103,6 @@ fun LoginScreen(
                 )
             )
 
-            // Subtitle
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = localizedString(R.string.welcome_text),
@@ -121,7 +119,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Activation Code Field
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = localizedString(R.string.activation_code),

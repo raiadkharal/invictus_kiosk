@@ -82,8 +82,8 @@ fun LeasingOfficeScreen(
     AndroidView(
         factory = { previewView },
         modifier = Modifier
-            .size(1.dp) // make it 1 pixel
-            .alpha(0f)  // fully invisible
+            .size(1.dp)
+            .alpha(0f)
     )
 
     LaunchedEffect(Unit) {

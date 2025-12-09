@@ -27,7 +27,6 @@ fun SearchTextField(
     placeholder:String = localizedString(R.string.search_resident),
     onValueChange: (String) -> Unit
 ) {
-        // Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange =  onValueChange,

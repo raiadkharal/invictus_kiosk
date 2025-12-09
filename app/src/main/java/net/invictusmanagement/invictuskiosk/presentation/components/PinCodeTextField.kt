@@ -70,7 +70,6 @@ fun PinCodeTextField(
                 }
             }
         },
-        // Hide the text field
         modifier = Modifier
             .size(0.dp)
             .focusRequester(focusRequester),

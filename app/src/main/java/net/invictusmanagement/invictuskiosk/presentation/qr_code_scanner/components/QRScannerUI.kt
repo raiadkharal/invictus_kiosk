@@ -140,7 +140,7 @@ fun QRScannerUI(
                     }
             )
 
-            // Optional: Add scan box border for better visibility
+            //Add scan box border for better visibility
             Canvas(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -158,7 +158,7 @@ fun QRScannerUI(
                 )
             }
 
-            // Bottom UI Section (if needed)
+            // Bottom UI Section
             // You can add additional UI elements here like buttons, instructions, etc.
 //            Box(
 //                modifier = Modifier
