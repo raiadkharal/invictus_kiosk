@@ -55,10 +55,10 @@ import net.invictusmanagement.invictuskiosk.presentation.home.components.PinCode
 import net.invictusmanagement.invictuskiosk.presentation.home.components.UrlVideoPlayer
 import net.invictusmanagement.invictuskiosk.presentation.navigation.CouponsScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ErrorScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.SelfGuidedTourScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ServiceKeyScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
@@ -111,7 +111,7 @@ fun HomeScreen(
             when (event) {
                 is UiEvent.ShowError -> {
                     navController.navigate(
-                        ErrorScreenRoute(
+                        ResponseMessageScreenRoute(
                             errorMessage = event.errorMessage
                         )
                     ) { popUpTo(HomeScreen) }
