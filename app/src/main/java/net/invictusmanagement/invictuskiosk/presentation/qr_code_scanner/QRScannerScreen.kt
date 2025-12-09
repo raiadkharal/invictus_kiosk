@@ -156,7 +156,12 @@ fun QRScannerScreen(
         CustomToolbar(
             title = "$locationName - $kioskName",
             showBackArrow = true,
-            navController = navController
+            navController = navController,
+            onBack = {
+                previewVisible = false
+                viewModel.stopScanning()
+                viewModel.releaseCamera()
+            }
         )
         Spacer(Modifier.height(8.dp))
         QRScannerUI(
