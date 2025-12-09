@@ -31,7 +31,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
-class SnapshotManager @Inject constructor (
+class SnapshotManager @Inject constructor(
     private val context: Context,
     private val api: ApiInterface
 ) {
@@ -154,43 +154,50 @@ class SnapshotManager @Inject constructor (
 
             // wrap callback in suspendCancellableCoroutine
             val result = suspendCancellableCoroutine<Long> { cont ->
-                ic.takePicture(outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        try {
-                            // read file into bytes and compress / reduce quality if needed
-                            val bytes = tmp.readBytes()
-                            // re-encode with lower quality to match JS .toDataURL('image/jpeg', 0.2) (approx)
-                            val compressed = compressJpegToQuality(bytes, 20) // 20% quality
-                            val b64 = Base64.encodeToString(compressed, Base64.NO_WRAP)
-                            // build request payload
-                            val takenUtc = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
-                                timeZone = TimeZone.getTimeZone("UTC")
-                            }.format(Date())
-                            // using API: expect server returns numeric id
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    val req = ImageUploadRequest(takenUtc, "data:image/jpeg;base64,$b64")
-                                    val resp = api.uploadImage(req) // suspend call
-                                    // signal result to caller
-                                    cont.resumeWith(Result.success(resp.body() ?: -1L))
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "Image upload failed", e)
-                                    cont.resumeWith(Result.failure(e))
-                                } finally {
-                                    tmp.delete()
+                ic.takePicture(
+                    outputOptions,
+                    cameraExecutor,
+                    object : ImageCapture.OnImageSavedCallback {
+                        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                            try {
+                                // read file into bytes and compress / reduce quality if needed
+                                val bytes = tmp.readBytes()
+                                // re-encode with lower quality to match JS .toDataURL('image/jpeg', 0.2) (approx)
+                                val compressed = compressJpegToQuality(bytes, 20) // 20% quality
+                                val b64 = Base64.encodeToString(compressed, Base64.NO_WRAP)
+                                // build request payload
+                                val takenUtc =
+                                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                                        timeZone = TimeZone.getTimeZone("UTC")
+                                    }.format(Date())
+                                // using API: expect server returns numeric id
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val req = ImageUploadRequest(
+                                            takenUtc,
+                                            "data:image/jpeg;base64,$b64"
+                                        )
+                                        val resp = api.uploadImage(req) // suspend call
+                                        // signal result to caller
+                                        cont.resumeWith(Result.success(resp.body() ?: -1L))
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Image upload failed", e)
+                                        cont.resumeWith(Result.failure(e))
+                                    } finally {
+                                        tmp.delete()
+                                    }
                                 }
+                            } catch (e: Exception) {
+                                tmp.delete()
+                                cont.resumeWith(Result.failure(e))
                             }
-                        } catch (e: Exception) {
-                            tmp.delete()
-                            cont.resumeWith(Result.failure(e))
                         }
-                    }
 
-                    override fun onError(exception: ImageCaptureException) {
-                        tmp.delete()
-                        cont.resumeWith(Result.failure(exception))
-                    }
-                })
+                        override fun onError(exception: ImageCaptureException) {
+                            tmp.delete()
+                            cont.resumeWith(Result.failure(exception))
+                        }
+                    })
             }
 
             result
@@ -239,8 +246,10 @@ class SnapshotManager @Inject constructor (
         val mediaStoreOutput = FileOutputOptions.Builder(file).build()
         val recording = vc.output
             .prepareRecording(context, mediaStoreOutput)
-            .apply  {
-                withAudioEnabled()
+            .apply {
+                if (Constants.isAnyMicAvailable(context)) {
+                    withAudioEnabled()
+                }
             }
             .start(ContextCompat.getMainExecutor(context)) { recordEvent ->
                 when (recordEvent) {
@@ -249,6 +258,7 @@ class SnapshotManager @Inject constructor (
                         // capture image from imageCapture quickly (best-effort)
                         capturePreviewForStampImage()
                     }
+
                     is VideoRecordEvent.Finalize -> {
                         if (!recordEvent.hasError()) {
                             Log.d(TAG, "Recording finalized: ${file.absolutePath}")
@@ -271,6 +281,7 @@ class SnapshotManager @Inject constructor (
                         }
                         isBusy = false
                     }
+
                     else -> {
                         // ignore other events
                     }
@@ -297,7 +308,12 @@ class SnapshotManager @Inject constructor (
      * Stops current recording and sends the video + metadata to server.
      * If isValid is provided, include in form-data similar to JS.
      */
-    fun stopStampRecordingAndSend(serviceKeyUsageId: Long? = null,isValid: Boolean? = null,accessLogId: Long?,recipient: String? = null) {
+    fun stopStampRecordingAndSend(
+        serviceKeyUsageId: Long? = null,
+        isValid: Boolean? = null,
+        accessLogId: Long?,
+        recipient: String? = null
+    ) {
         this.accessLogId = accessLogId ?: 0
         this.isValid = isValid ?: true
         this.serviceKeyUsageId = serviceKeyUsageId ?: 0
@@ -374,7 +390,8 @@ class SnapshotManager @Inject constructor (
             Log.d("StampVideo", "Video file size = ${formFile.length()} bytes")
             // create multipart body
             val videoReqBody = formFile.asRequestBody("video/mp4".toMediaTypeOrNull())
-            val videoPart = MultipartBody.Part.createFormData("VideoFile", formFile.name, videoReqBody)
+            val videoPart =
+                MultipartBody.Part.createFormData("VideoFile", formFile.name, videoReqBody)
 
             // Text form fields must use RequestBody!
             fun String.toRequestBody() =
@@ -419,7 +436,8 @@ class SnapshotManager @Inject constructor (
     fun release() {
         try {
             cameraExecutor.shutdown()
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
     }
 
     fun cleanupCameraSession() {
@@ -428,16 +446,17 @@ class SnapshotManager @Inject constructor (
         isScreenShotTaken = false
     }
 
-    fun stopAll(){
+    fun stopAll() {
         cleanupCameraSession()
         cancelRecording()
     }
 
 
-   private fun cancelRecording() {
+    private fun cancelRecording() {
         try {
             activeRecording?.close()
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
         activeRecording = null
 
         // Also delete the partially created file (if any)
