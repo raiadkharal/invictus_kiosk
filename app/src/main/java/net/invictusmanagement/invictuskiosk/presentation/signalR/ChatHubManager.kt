@@ -170,7 +170,6 @@ class ChatHubManager(
             if (conn.connectionState.name == "CONNECTED") {
                 conn.stop()
             } else {
-                // connection never fully started → don't call stop()
                 Log.w(TAG, "safeStop: Ignored stop() because connection never completed init")
             }
 

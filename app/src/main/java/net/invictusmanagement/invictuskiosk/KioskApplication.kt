@@ -31,7 +31,7 @@ class KioskApplication:Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-//        WorkManager.initialize(this, workManagerConfiguration)
+//        WorkManager.initialize(this, workManagerConfiguration) // Not needed, Hilt does this automatically
         networkMonitor.startMonitoring()
 
         CoroutineScope(Dispatchers.Default).launch {

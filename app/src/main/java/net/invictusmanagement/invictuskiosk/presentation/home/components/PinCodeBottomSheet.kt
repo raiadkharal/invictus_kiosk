@@ -81,8 +81,8 @@ fun PinCodeBottomSheet(
     AndroidView(
         factory = { previewView },
         modifier = Modifier
-            .size(1.dp) // make it 1 pixel
-            .alpha(0f)  // fully invisible
+            .size(1.dp)
+            .alpha(0f)
     )
 
     DisposableEffect(Unit) {
@@ -103,8 +103,6 @@ fun PinCodeBottomSheet(
                 .weight(10f)
                 .fillMaxSize()
         ) {
-            // Pin Input section
-
             val buttons: List<List<String>> = listOf(
                 listOf("1", "2", "3", "4", "5", "6"),
                 listOf("7", "8", "9", "0", "X", "clear")

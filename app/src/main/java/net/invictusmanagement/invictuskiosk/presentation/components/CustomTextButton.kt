@@ -33,7 +33,7 @@ fun CustomTextButton(
     onClick: () -> Unit = {}
 ) {
     val backgroundBrush = when {
-        !enabled -> Brush.linearGradient( // ✅ Greyed-out background
+        !enabled -> Brush.linearGradient( // Greyed-out background
             0.0f to Color.Gray.copy(alpha = 0.5f),
             10.0f to Color.Gray.copy(alpha = 0.3f),
             start = Offset(0f, Float.POSITIVE_INFINITY),
@@ -71,7 +71,7 @@ fun CustomTextButton(
                 if (!isSelected) colorResource(R.color.btn_text) else colorResource(R.color.btn_pin_code),
                 RoundedCornerShape(10.dp)
             )
-            .clickable(enabled = enabled, onClick = onClick) // ✅ disabled click when false
+            .clickable(enabled = enabled, onClick = onClick) //disabled click when false
             .padding(padding.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -83,7 +83,7 @@ fun CustomTextButton(
                 color = if (enabled)
                     colorResource(R.color.btn_text)
                 else
-                    Color.LightGray // ✅ text also greyed out
+                    Color.LightGray //text also greyed out
             )
         )
     }

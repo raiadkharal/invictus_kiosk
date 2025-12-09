@@ -149,13 +149,11 @@ class QRScannerViewModel @Inject constructor(
                     .build()
                     .also { it.setAnalyzer(executor, analyzer) }
 
-                // Video Capture
                 val recorder = Recorder.Builder()
                     .setQualitySelector(QualitySelector.from(Quality.HD))
                     .build()
                 val videoCapture = VideoCapture.withOutput(recorder)
 
-                // Image Capture for snapshots
                 val imageCapture = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()

@@ -14,12 +14,10 @@ import kotlinx.serialization.json.Json
 import net.invictusmanagement.invictuskiosk.domain.model.AccessPoint
 import net.invictusmanagement.invictuskiosk.domain.model.home.Main
 
-// Create DataStore instance
 private val Context.dataStore by preferencesDataStore(name = "app_preferences")
 
 class DataStoreManager(private val context: Context) {
 
-    // Keys
     companion object {
         private val ACCESS_POINT_KEY = stringPreferencesKey("access_point")
         private val KIOSK_DATA_KEY = stringPreferencesKey("kiosk_data")
@@ -30,7 +28,6 @@ class DataStoreManager(private val context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    // Save custom object
     suspend fun saveAccessPoint(accessPoint: AccessPoint?) {
         val jsonString = json.encodeToString(accessPoint)
         context.dataStore.edit { prefs ->
@@ -38,7 +35,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // Read custom object
     val accessPointFlow: Flow<AccessPoint?> = context.dataStore.data.map { prefs ->
         prefs[ACCESS_POINT_KEY]?.let { jsonString ->
             try {
@@ -49,7 +45,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // Save custom object
     suspend fun saveKioskData(kioskData: Main?) {
         val jsonString = json.encodeToString(kioskData)
         context.dataStore.edit { prefs ->
@@ -57,7 +52,6 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // Read custom object
     val kioskDataFlow: Flow<Main?> = context.dataStore.data.map { prefs ->
         prefs[KIOSK_DATA_KEY]?.let { jsonString ->
             try {
@@ -68,25 +62,21 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    // Save access token
     suspend fun saveAccessToken(token: String) {
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN_KEY] = token
         }
     }
 
-    // Read String
     val accessTokenFlow: Flow<String?> = context.dataStore.data
         .map { prefs -> prefs[ACCESS_TOKEN_KEY] ?: "" }
 
-    // Save access token
     suspend fun saveActivationCode(activationCode: String) {
         context.dataStore.edit { prefs ->
             prefs[ACTIVATION_CODE_KEY] = activationCode
         }
     }
 
-    // Read String
     val activationCodeFlow: Flow<String?> = context.dataStore.data
         .map { prefs -> prefs[ACTIVATION_CODE_KEY] }
 
@@ -101,7 +91,6 @@ class DataStoreManager(private val context: Context) {
     }
 
 
-    // Clear all preferences
     suspend fun clearAll() {
         context.dataStore.edit { it.clear() }
     }

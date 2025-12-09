@@ -38,13 +38,11 @@ fun CustomBottomSheet(
     if (!isVisible) return
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Full-screen backdrop
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .clickable(onClick = onDismiss)
         )
-        // Bottom-aligned sheet
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.BottomCenter),
             visible = isVisible,

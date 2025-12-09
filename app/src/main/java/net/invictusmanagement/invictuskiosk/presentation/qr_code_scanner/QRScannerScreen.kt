@@ -152,7 +152,6 @@ fun QRScannerScreen(
             .fillMaxSize()
             .background(colorResource(R.color.background))
     ) {
-        // Top UI Section
         CustomToolbar(
             title = "$locationName - $kioskName",
             showBackArrow = true,

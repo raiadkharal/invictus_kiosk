@@ -146,11 +146,6 @@ class HomeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-//                    _eventFlow.emit(
-//                        UiEvent.ShowError(
-//                            result.message?:Constants.CONNECTION_ERROR
-//                        )
-//                    )
                     _introButtons.value = result.data ?: emptyList()
                 }
 

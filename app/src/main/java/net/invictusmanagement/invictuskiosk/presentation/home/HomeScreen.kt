@@ -246,7 +246,6 @@ fun HomeScreen(
                                         )
                                     )
                                 } else {
-                                    //navigate to residents screen
                                     navController.navigate(
                                         ResidentsScreen(
                                             isLeasingOffice = true,
@@ -353,7 +352,6 @@ fun HomeScreen(
         isVisible = showHomeBottomSheet,
         onDismiss = { showHomeBottomSheet = false }
     ) {
-        // Place the bottom sheet content here
         HomeBottomSheet(
             onResidentClick = { resident ->
                 selectedResident = resident
@@ -361,7 +359,6 @@ fun HomeScreen(
                 showPinCodeBottomSheet = true
             },
             onQrCodeClick = {
-                //navigate to qr code
                 navController.navigate(QRScannerScreen)
             },
             onBackClick = {
@@ -386,7 +383,6 @@ fun HomeScreen(
         isVisible = showPinCodeBottomSheet,
         onDismiss = { showPinCodeBottomSheet = false }
     ) {
-        // Place the bottom sheet content here
         selectedResident?.let {
             PinCodeBottomSheet(
                 selectedResident = it,

@@ -124,11 +124,6 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                                         color = colorResource(R.color.btn_text)
                                     )
                                 )
-                                //                            Icon(
-                                //                                painter = painterResource(id = R.drawable.ic_clear),
-                                //                                contentDescription = "Clear Text",
-                                //                                tint = colorResource(R.color.btn_text)
-                                //                            )
                             }
                         }
 

@@ -195,7 +195,6 @@ fun ContactRequestDialog(
                         )
                     )
 
-                    // Contact field (dynamic based on selection)
                     OutlinedTextField(
                         value = contactInfo,
                         onValueChange = { newValue ->
@@ -249,8 +248,8 @@ fun ContactRequestDialog(
                         ),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colorResource(R.color.btn_text),  // Active state border
-                            unfocusedBorderColor = colorResource(R.color.btn_text) // Inactive state border
+                            focusedBorderColor = colorResource(R.color.btn_text),
+                            unfocusedBorderColor = colorResource(R.color.btn_text)
                         )
                     )
                     if (isError && selectedTab == 0) {

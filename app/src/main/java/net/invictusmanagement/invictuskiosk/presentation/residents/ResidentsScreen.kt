@@ -106,8 +106,8 @@ fun ResidentsScreen(
     AndroidView(
         factory = { previewView },
         modifier = Modifier
-            .size(1.dp) // make it 1 pixel
-            .alpha(0f)  // fully invisible
+            .size(1.dp)
+            .alpha(0f)
     )
 
     LaunchedEffect(selectedResident) {
@@ -214,7 +214,6 @@ fun ResidentsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    //search bar
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
@@ -285,7 +284,6 @@ fun ResidentsScreen(
             )
             Spacer(Modifier.width(16.dp))
 
-            // Pin or QR Code Section
             Column(
                 modifier = Modifier
                     .weight(4f)

@@ -37,7 +37,6 @@ fun UrlVideoPlayer(
     // Shared 100 MB LRU cache
     val cache = remember { VideoCache.getInstance(context) }
 
-    // DataSource.Factory with Cache
     val dataSourceFactory = remember(url) {
         if (url.startsWith("http")) {
             val upstreamFactory = DefaultHttpDataSource.Factory()
@@ -52,12 +51,10 @@ fun UrlVideoPlayer(
     }
 
 
-    // MediaSourceFactory for this URL
     val mediaSourceFactory = remember(url) {
         ProgressiveMediaSource.Factory(dataSourceFactory)
     }
 
-    // Player — recreated only when url changes
     val player = remember(url) {
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory)
@@ -90,7 +87,6 @@ fun UrlVideoPlayer(
                 }
             },
             update = { view ->
-                // Ensures View reuses existing Player instance
                 view.player = player
             }
         )

@@ -209,7 +209,6 @@ fun DirectoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    //search bar
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
@@ -276,7 +275,6 @@ fun DirectoryScreen(
                         }
                     }
                 } else {
-
                     if (filteredList.isEmpty()) {
                         if (unitList == null) {
                             Box(
