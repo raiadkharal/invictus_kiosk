@@ -8,11 +8,8 @@ import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 @HiltAndroidApp
 class KioskApplication:Application() {
 
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     override fun onCreate() {
         super.onCreate()
-        networkMonitor.startMonitoring()
     }
 }

@@ -24,7 +24,7 @@ class NetworkMonitor(
         .readTimeout(5, TimeUnit.SECONDS)
         .build()
 
-    private val scope = CoroutineScope(Dispatchers.IO + Job())
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var periodicJob: Job? = null
     private var isMonitoring = false
@@ -35,7 +35,10 @@ class NetworkMonitor(
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             logger.logError("NetworkMonitor", "Network available", null)
-            scope.launch { checkRealInternetConnection() }
+            scope.launch {
+                delay(300)
+                checkRealInternetConnection()
+            }
         }
 
         override fun onLost(network: Network) {
@@ -50,7 +53,7 @@ class NetworkMonitor(
 
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
         scope.launch {
-            delay(500)
+            delay(1000)
             checkRealInternetConnection()
         }
         startPeriodicChecks()
@@ -58,6 +61,7 @@ class NetworkMonitor(
 
     fun stopMonitoring() {
         isMonitoring = false
+        _isConnected.value = true
 
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback)
@@ -82,9 +86,8 @@ class NetworkMonitor(
     }
 
     private suspend fun checkRealInternetConnection() {
-        val capabilities =
-            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        if (capabilities == null || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+        val hasActiveNetwork = safeCheckNetworkCapabilities()
+        if (!hasActiveNetwork) {
             _isConnected.value = false
             return
         }
@@ -92,6 +95,19 @@ class NetworkMonitor(
 
         val result = pingGoogle204WithRetry()
         _isConnected.value = result
+    }
+
+    private suspend fun safeCheckNetworkCapabilities(): Boolean {
+        val caps1 = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (caps1 != null && caps1.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+            return true
+        }
+
+        // 🔥 Debounce: wait a little before declaring "no network"
+        delay(350)
+
+        val caps2 = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        return caps2 != null && caps2.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     private suspend fun pingGoogle204WithRetry(
