@@ -4,12 +4,15 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.Constants
@@ -40,7 +43,15 @@ class HomeViewModel @Inject constructor(
     private val logger: GlobalLogger
 ) : ViewModel(), MobileChatHubEventListener {
 
+    @OptIn(FlowPreview::class)
     val isConnected = networkMonitor.isConnected
+        .debounce(1000)
+        .onStart { emit(true) }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            true
+        )
     private val _digitalKeyValidationState = MutableStateFlow(DigitalKeyState())
     val digitalKeyValidationState: StateFlow<DigitalKeyState> = _digitalKeyValidationState
 

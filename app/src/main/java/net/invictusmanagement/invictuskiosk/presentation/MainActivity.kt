@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.components.NetworkStatusBar
@@ -52,6 +53,7 @@ import net.invictusmanagement.invictuskiosk.presentation.screen_saver.ScreenSave
 import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.usb.UsbPermissionReceiver
 import net.invictusmanagement.invictuskiosk.util.GlobalLogger
+import net.invictusmanagement.invictuskiosk.util.NetworkMonitor
 import net.invictusmanagement.invictuskiosk.util.locale.AppLocaleManager
 import net.invictusmanagement.invictuskiosk.util.locale.LocalAppLocale
 import net.invictusmanagement.invictuskiosk.util.locale.LocaleHelper
@@ -62,6 +64,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var usbManager: UsbManager
     @Inject
     lateinit var globalLogger: GlobalLogger
+    @Inject
+    lateinit var networkMonitor: NetworkMonitor
     private lateinit var relayManager : RelayManager
     private val TAG = "detectRelayOnStartup"
 
@@ -185,7 +189,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = hiltViewModel<ScreenSaverViewModel>()
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val tokenState by viewModel.accessToken.collectAsState(initial = null)
-        val isConnected by homeViewModel.isConnected.collectAsState(initial = true)
+        val isConnected by homeViewModel.isConnected.filterNotNull().collectAsState(initial = true)
         var startDestination by remember { mutableStateOf<Any?>(null) }
 
         LaunchedEffect(tokenState) {
@@ -220,6 +224,8 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onResume() {
+        networkMonitor.startMonitoring()
+
         super.onResume()
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -241,6 +247,10 @@ class MainActivity : ComponentActivity() {
 
     }
 
+    override fun onStop() {
+        networkMonitor.stopMonitoring()
+        super.onStop()
+    }
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(usbPermissionReceiver)
