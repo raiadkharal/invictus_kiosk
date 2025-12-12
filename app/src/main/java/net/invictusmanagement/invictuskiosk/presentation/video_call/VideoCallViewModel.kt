@@ -65,7 +65,7 @@ class VideoCallViewModel @Inject constructor(
 
     private var room: Room? = null
     private var cameraCapturer: VideoCapturer? = null
-    private val timeOutSeconds: Int = 45
+    private var timeOutSeconds: Int = 45
     private val reconnectionTimeoutSeconds: Int = 15
     var errorMessage by mutableStateOf<String?>(null)
         private set
@@ -121,8 +121,13 @@ class VideoCallViewModel @Inject constructor(
                         signalRConnectionState = SignalRConnectionState.CONNECTED
                     }
                 }
+
                 override fun onConnectionError(method: String, e: Exception) {
-                    logger.logError("SignalRConnectionError/VideoCallViewModel/${method}", "Error connecting to SignalR: ${e.localizedMessage}", e)
+                    logger.logError(
+                        "SignalRConnectionError/VideoCallViewModel/${method}",
+                        "Error connecting to SignalR: ${e.localizedMessage}",
+                        e
+                    )
                 }
             }
         )
@@ -137,7 +142,7 @@ class VideoCallViewModel @Inject constructor(
 
         chatHubManager = ChatHubManager(
             groupName = id.toString(),
-            networkMonitor =  networkMonitor,
+            networkMonitor = networkMonitor,
         )
 
         viewModelScope.launch {
@@ -169,6 +174,9 @@ class VideoCallViewModel @Inject constructor(
                             is Resource.Success -> {
                                 val token = result.data?.token
                                 if (!token.isNullOrEmpty()) {
+                                    timeOutSeconds = result.data.videoCallTimeout
+                                    remainingSeconds = timeOutSeconds
+                                    missedCallSecondsLeft = timeOutSeconds
                                     newToken = VideoCallToken(token = token)
                                 }
                             }
@@ -225,7 +233,11 @@ class VideoCallViewModel @Inject constructor(
                     }
 
                 } catch (e: Exception) {
-                    logger.logError("connectToVideoCall", "Error connecting to video call ${e.localizedMessage}", e)
+                    logger.logError(
+                        "connectToVideoCall",
+                        "Error connecting to video call ${e.localizedMessage}",
+                        e
+                    )
                     Log.e(
                         "VideoCall",
                         "Attempt $tokenFetchAttemptCount failed with exception: ${e.message}"
@@ -247,20 +259,20 @@ class VideoCallViewModel @Inject constructor(
 
 
     private fun initializeTracks(context: Context) {
-            cameraCapturer = Camera2Capturer(
-                context,
-                getAvailableCameraId(context),
-                object : Camera2Capturer.Listener {
-                    override fun onFirstFrameAvailable() {}
-                    override fun onCameraSwitched(newCameraId: String) {}
-                    override fun onError(error: Camera2Capturer.Exception) {
-                        Log.e("CameraCapturer", "Camera error: ${error.message}")
-                    }
+        cameraCapturer = Camera2Capturer(
+            context,
+            getAvailableCameraId(context),
+            object : Camera2Capturer.Listener {
+                override fun onFirstFrameAvailable() {}
+                override fun onCameraSwitched(newCameraId: String) {}
+                override fun onError(error: Camera2Capturer.Exception) {
+                    Log.e("CameraCapturer", "Camera error: ${error.message}")
                 }
-            )
+            }
+        )
 
-            videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
-            audioTrack = LocalAudioTrack.create(context, true)
+        videoTrack = LocalVideoTrack.create(context, true, cameraCapturer!!)
+        audioTrack = LocalAudioTrack.create(context, true)
     }
 
     fun connectToRoom(
@@ -273,8 +285,12 @@ class VideoCallViewModel @Inject constructor(
     ) {
         try {
             initializeTracks(context)
-        }catch (e: Exception) {
-            logger.logError("initializeTracks", "Failed to initialize tracks ${e.localizedMessage}", e)
+        } catch (e: Exception) {
+            logger.logError(
+                "initializeTracks",
+                "Failed to initialize tracks ${e.localizedMessage}",
+                e
+            )
             errorMessage = Constants.getFriendlyCameraError(e)
             viewModelScope.launch {
                 delay(2000)
@@ -311,16 +327,20 @@ class VideoCallViewModel @Inject constructor(
             }
 
             override fun onDisconnected(room: Room, e: TwilioException?) {
-                connectionState = ConnectionState.DISCONNECTED
                 resumeScreenSaver()
                 if (!callEndedDueToMissedCall && !sendToVoiceMail) {
+//                    connectionState = ConnectionState.DISCONNECTED
                     onDisconnected()
                 }
                 callEndedDueToMissedCall = false // Reset here AFTER decision
             }
 
             override fun onConnectFailure(room: Room, e: TwilioException) {
-                logger.logError("twilio/onConnectFailure", "Failed to connect to Twilio room ${e.localizedMessage}", e)
+                logger.logError(
+                    "twilio/onConnectFailure",
+                    "Failed to connect to Twilio room ${e.localizedMessage}",
+                    e
+                )
                 connectionState = ConnectionState.FAILED
                 resumeScreenSaver()
                 onDisconnected()
@@ -328,9 +348,13 @@ class VideoCallViewModel @Inject constructor(
 
             override fun onParticipantDisconnected(room: Room, participant: RemoteParticipant) {
                 resumeScreenSaver()
-                if (sendToVoiceMail) {
-                    disconnect()
+                viewModelScope.launch {
+                    delay(3000) //wait for sendToVoiceMail signal
+                    if (!sendToVoiceMail) {
+                        disconnect()
+                    }
                 }
+
             }
 
             override fun onReconnecting(room: Room, e: TwilioException) {
