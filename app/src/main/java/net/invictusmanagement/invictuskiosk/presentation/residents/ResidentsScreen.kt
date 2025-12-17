@@ -72,8 +72,8 @@ import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
-@Composable
 @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
+@Composable
 fun ResidentsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
@@ -185,6 +185,7 @@ fun ResidentsScreen(
         onDispose {
             isError = false
             viewModel.resetDigitalKeyState()
+            mainViewModel.snapshotManager.cleanupCameraSession()
         }
     }
 

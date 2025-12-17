@@ -137,4 +137,7 @@ class DirectoryViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    fun resetDigitalKeyState(){
+        _keyValidationState.value = DigitalKeyState()
+    }
 }

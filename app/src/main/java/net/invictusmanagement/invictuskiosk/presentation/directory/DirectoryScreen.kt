@@ -1,5 +1,7 @@
 package net.invictusmanagement.invictuskiosk.presentation.directory
 
+import androidx.annotation.RequiresPermission
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,17 +35,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.DigitalKeyDto
 import net.invictusmanagement.invictuskiosk.domain.model.Resident
@@ -64,6 +75,7 @@ import net.invictusmanagement.invictuskiosk.util.FilterOption
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
+@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 @Composable
 fun DirectoryScreen(
     modifier: Modifier = Modifier,
@@ -71,6 +83,8 @@ fun DirectoryScreen(
     viewModel: DirectoryViewModel = hiltViewModel(),
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val alphabets = listOf("Leasing Office / agents") + ('A'..'Z').map { it.toString() }
 
@@ -96,6 +110,26 @@ fun DirectoryScreen(
     val filteredResidents =
         residentList.filter { it.displayName.contains(searchQuery.trim(), ignoreCase = true) }
 
+    val previewView = remember { PreviewView(context) }
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier
+            .size(1.dp)
+            .alpha(0f)
+    )
+
+    LaunchedEffect(selectedResident) {
+        if (selectedResident != null) {
+            mainViewModel.snapshotManager.startCamera(
+                previewView,
+                context,
+                lifecycleOwner
+            )
+            delay(2000) // wait for the camera to initialize
+            mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident!!.id.toLong())
+        }
+    }
+
     LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
         viewModel.getUnitList()
@@ -112,6 +146,12 @@ fun DirectoryScreen(
 
     LaunchedEffect(keyValidationState) {
         if (keyValidationState.digitalKey?.isValid == true) {
+            val digitalKey = keyValidationState.digitalKey
+            mainViewModel.snapshotManager.stopStampRecordingAndSend(
+                recipient = digitalKey?.recipient,
+                isValid = true,
+                accessLogId = digitalKey?.accessLogId
+            )
             isError = false
             navController.navigate(
                 UnlockedScreenRoute(
@@ -179,6 +219,14 @@ fun DirectoryScreen(
                 isUnitNumberSelected = true
                 list = unitList?.map { it.unitNbr } ?: emptyList()
             }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            isError = false
+            viewModel.resetDigitalKeyState()
+            mainViewModel.snapshotManager.cleanupCameraSession()
         }
     }
 
@@ -374,13 +422,19 @@ fun DirectoryScreen(
                             .fillMaxSize(),
                         isError = isError,
                         onCompleted = { pinCode ->
-                            viewModel.validateDigitalKey(
-                                DigitalKeyDto(
-                                    accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
-                                    key = pinCode,
-                                    activationCode = selectedResident?.activationCode ?: ""
+                            CoroutineScope(Dispatchers.IO).launch {
+                                //wait for screenshot
+                                while (!mainViewModel.snapshotManager.isScreenShotTaken)
+                                    delay(500)
+
+                                viewModel.validateDigitalKey(
+                                    DigitalKeyDto(
+                                        accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,
+                                        key = pinCode,
+                                        activationCode = selectedResident?.activationCode ?: ""
+                                    )
                                 )
-                            )
+                            }
                         }
                     )
                 }
@@ -404,6 +458,7 @@ fun DirectoryScreen(
     }
 }
 
+@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
 @Preview(widthDp = 1400, heightDp = 800)
 @Composable
 private fun DirectoryScreenPreview() {

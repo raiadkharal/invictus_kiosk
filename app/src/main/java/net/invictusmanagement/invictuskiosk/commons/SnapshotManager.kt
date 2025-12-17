@@ -240,6 +240,10 @@ class SnapshotManager @Inject constructor(
         currentVideoFile = file
 
         val mediaStoreOutput = FileOutputOptions.Builder(file).build()
+
+        // capture image from imageCapture quickly
+        capturePreviewForStampImage()
+
         val recording = vc.output
             .prepareRecording(context, mediaStoreOutput)
             .apply {
@@ -251,8 +255,6 @@ class SnapshotManager @Inject constructor(
                 when (recordEvent) {
                     is VideoRecordEvent.Start -> {
                         Log.d(TAG, "Recording started")
-                        // capture image from imageCapture quickly
-                        capturePreviewForStampImage()
                     }
 
                     is VideoRecordEvent.Finalize -> {
