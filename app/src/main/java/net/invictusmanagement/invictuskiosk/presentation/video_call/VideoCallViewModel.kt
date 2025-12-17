@@ -453,7 +453,6 @@ class VideoCallViewModel @Inject constructor(
                 videoTrack: RemoteVideoTrack
             ) {
                 remoteVideoTrack = null
-                disconnect()
             }
 
             override fun onDataTrackPublished(
