@@ -271,6 +271,7 @@ fun DirectoryScreen(
                     FilterDropdownButton(
                         modifier = Modifier.weight(4f),
                         selectedOption = selectedFilterOption,
+                        isUnitFilterEnabled = isUnitFilterEnabled,
                         onOptionSelected = {
                             selectedFilterOption = it
                         }
