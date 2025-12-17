@@ -342,6 +342,7 @@ class SnapshotManager @Inject constructor(
         ic.takePicture(outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 try {
+                    isScreenShotTaken = true
                     val bytes = tmp.readBytes()
                     val compressed = compressJpegToQuality(bytes, 20)
                     val b64 = Base64.encodeToString(compressed, Base64.NO_WRAP)
@@ -355,9 +356,7 @@ class SnapshotManager @Inject constructor(
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             api.uploadImage(req)
-                            isScreenShotTaken = true
                         } catch (e: Exception) {
-                            isScreenShotTaken = true
                             Log.e(TAG, "Stamp image upload failed", e)
                         }
                     }

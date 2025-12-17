@@ -31,6 +31,7 @@ import net.invictusmanagement.invictuskiosk.util.FilterOption
 fun FilterDropdownButton(
     modifier: Modifier = Modifier,
     selectedOption: FilterOption,
+    isUnitFilterEnabled: Boolean = false,
     onOptionSelected: (FilterOption) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -70,6 +71,7 @@ fun FilterDropdownButton(
                 .background(colorResource(R.color.background))
         ) {
             FilterOption.entries.forEach { option ->
+                if(!isUnitFilterEnabled && option == FilterOption.UNIT_NUMBER) return@forEach
                 DropdownMenuItem(
                     text = { Text(option.displayName, style = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text))) },
                     onClick = {
