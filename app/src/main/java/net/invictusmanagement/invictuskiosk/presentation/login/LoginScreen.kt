@@ -9,11 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,16 +25,16 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.data.remote.dto.LoginDto
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextButton
 import net.invictusmanagement.invictuskiosk.presentation.home.components.UrlVideoPlayer
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardInputField
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 
@@ -45,7 +42,8 @@ import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
+    keyboardVM: KeyboardViewModel
 ) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,7 +62,7 @@ fun LoginScreen(
         if (state.login?.success == true) {
             navController.navigate(HomeScreen)
             viewModel.saveActivationCode(activationCode)
-        } else if(state.error.isNotEmpty()) {
+        } else if (state.error.isNotEmpty()) {
             validationError = state.error
         }
     }
@@ -126,20 +124,23 @@ fun LoginScreen(
                 style = MaterialTheme.typography.headlineMedium.copy(color = colorResource(R.color.btn_text))
             )
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = activationCode,
-                onValueChange = {
-                    activationCode = it
-                    if (validationError.isNotEmpty()) validationError = ""
-                },
-                textStyle = MaterialTheme.typography.headlineSmall.copy(color = colorResource(R.color.btn_text)),
-                shape = RoundedCornerShape(8.dp),
+
+            KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(0.5f),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorResource(R.color.btn_text),
-                    unfocusedBorderColor = colorResource(R.color.btn_text)
-                )
+                value = activationCode,
+                onFocusChanged = {
+                    if (it.isFocused) {
+                        keyboardVM.show(
+                            initialText = activationCode,
+                            onTextChange = { text ->
+                                activationCode = text
+                                if (validationError.isNotEmpty()) validationError = ""
+                            }
+                        )
+                    }else{
+                        keyboardVM.hide()
+                    }
+                }
             )
 
             if (validationError.isNotEmpty()) {
@@ -173,11 +174,4 @@ fun LoginScreen(
             )
         }
     }
-}
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun LoginScreenPreview() {
-    val navController = rememberNavController()
-    LoginScreen(navController = navController)
 }

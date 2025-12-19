@@ -22,6 +22,7 @@ import net.invictusmanagement.invictuskiosk.presentation.coupons_business_list.C
 import net.invictusmanagement.invictuskiosk.presentation.directory.DirectoryScreen
 import net.invictusmanagement.invictuskiosk.presentation.response_message.ResponseMessageScreen
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeScreen
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.leasing_office.LeasingOfficeScreen
 import net.invictusmanagement.invictuskiosk.presentation.login.LoginScreen
 import net.invictusmanagement.invictuskiosk.presentation.qr_code_scanner.QRScannerScreen
@@ -41,6 +42,7 @@ import java.nio.charset.StandardCharsets
 fun NavGraph(
     startDestination: Any,
     innerPadding: PaddingValues,
+    keyboardVM: KeyboardViewModel
 ) {
 
     val navController = rememberNavController()
@@ -50,7 +52,7 @@ fun NavGraph(
         startDestination = startDestination
     ) {
         composable<LoginScreen> {
-            LoginScreen(modifier = Modifier.padding(innerPadding), navController = navController)
+            LoginScreen(modifier = Modifier.padding(innerPadding), navController = navController,keyboardVM = keyboardVM)
         }
         composable<HomeScreen>(
             enterTransition = { fadeIn(animationSpec = tween(500)) },
@@ -67,13 +69,15 @@ fun NavGraph(
                 isLeasingOffice = args.isLeasingOffice,
                 unitNumber = args.unitNumber,
                 filter = args.filter,
-                byName = args.byName
+                byName = args.byName,
+                keyboardVM = keyboardVM
             )
         }
         composable<DirectoryScreen> {
             DirectoryScreen(
                 modifier = Modifier.padding(innerPadding),
-                navController = navController
+                navController = navController,
+                keyboardVM = keyboardVM
             )
         }
         composable<ServiceKeyScreen> {
@@ -139,7 +143,7 @@ fun NavGraph(
             )
         }
         composable<VacancyScreen> {
-            VacancyScreen(modifier = Modifier.padding(innerPadding), navController = navController)
+            VacancyScreen(modifier = Modifier.padding(innerPadding), navController = navController, keyboardVM = keyboardVM)
         }
         composable<QRScannerScreen> {
             QRScannerScreen(

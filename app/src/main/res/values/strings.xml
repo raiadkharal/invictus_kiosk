@@ -2,7 +2,7 @@
     <string name="app_name" translatable="false">Invictus Kiosk</string>
     <string name="invictus_lifestyle" translatable="false">Invictus Lifestyle</string>
     <string name="welcome_text" translatable="false">Access Control Systems | Welcome to the Revolution</string>
-    <string name="kisok_version" translatable="false">Kiosk Version: 2.0.0.0</string>
+    <string name="kisok_version" translatable="false">Kiosk Version: 1.0.0.0</string>
     <string name="activation_code" translatable="false">Activation Code</string>
     <string name="activate" translatable="false">ACTIVATE</string>
 

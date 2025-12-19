@@ -24,15 +24,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import net.invictusmanagement.invictuskiosk.R
 import net.invictusmanagement.invictuskiosk.presentation.MainViewModel
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.ApartmentInfoDialog
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.ContactRequestDialog
 import net.invictusmanagement.invictuskiosk.presentation.vacancy.components.ResponseDialog
@@ -45,7 +44,8 @@ fun VacancyScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     viewModel: VacancyViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel = hiltViewModel()
+    mainViewModel: MainViewModel = hiltViewModel(),
+    keyboardVM: KeyboardViewModel
 ) {
 
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -163,7 +163,8 @@ fun VacancyScreen(
                 vacancy = it,
                 onSend = { contactRequest ->
                     viewModel.sendContactRequest(contactRequest)
-                }
+                },
+                keyboardVM = keyboardVM
             )
         }
     }
@@ -179,13 +180,4 @@ fun VacancyScreen(
             )
         }
     }
-}
-
-
-
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun VacancyScreenPreview() {
-    val navController = rememberNavController()
-    VacancyScreen(navController = navController)
 }
