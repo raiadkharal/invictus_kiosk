@@ -2,6 +2,7 @@ package net.invictusmanagement.invictuskiosk.presentation.keyboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +30,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.R
 
 @Composable
@@ -55,7 +61,7 @@ fun QwertyKeyboard(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
 
-        KeyboardRow("qwertyuiop", isUpperCase,onKeyPress)
+        KeyboardRow("qwertyuiop", isUpperCase, onKeyPress)
 
         KeyboardRow(
             "asdfghjkl",
@@ -72,11 +78,13 @@ fun QwertyKeyboard(
         )
 
         BottomActionRow(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             onKeyPress = onKeyPress,
             onSpace = { onKeyPress(" ") },
             onBackspace = onBackspace,
-            onKeyboardSwitch =onKeyboardSwitch,
+            onKeyboardSwitch = onKeyboardSwitch,
             onDone = onDone,
             isUpperCase = isUpperCase,
             onToggleCase = { isUpperCase = !isUpperCase }
@@ -120,13 +128,22 @@ private fun BottomActionRow(
     isUpperCase: Boolean,
     onToggleCase: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    var backspaceJob by remember { mutableStateOf<Job?>(null) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            backspaceJob?.cancel()
+        }
+    }
+
     Row(
         modifier = modifier.fillMaxHeight(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
         KeyboardIconKey(
-            icon = "⇧" ,
+            icon = "⇧",
             modifier = Modifier.weight(0.5f),
             background = if (isUpperCase) Color(0xFF555555) else Color(0xFF333333),
             onClick = onToggleCase
@@ -143,7 +160,7 @@ private fun BottomActionRow(
             text = ".",
             modifier = Modifier.weight(0.5f),
             background = Color(0xFF3A3A3A),
-            onClick = {onKeyPress(".")}
+            onClick = { onKeyPress(".") }
         )
 
         KeyboardKey(
@@ -157,14 +174,29 @@ private fun BottomActionRow(
             text = "@",
             modifier = Modifier.weight(0.5f),
             background = Color(0xFF3A3A3A),
-            onClick = {onKeyPress("@")}
+            onClick = { onKeyPress("@") }
         )
 
         KeyboardIconKey(
             icon = "⌫",
             modifier = Modifier.weight(0.5f),
             background = Color(0xFF444444),
-            onClick = onBackspace
+            onClick = {
+                backspaceJob?.cancel()
+                onBackspace()
+            },
+            onLongPress = {
+                backspaceJob?.cancel()
+                backspaceJob = scope.launch {
+                    while (true) {
+                        onBackspace()
+                        delay(80) // repeat speed
+                    }
+                }
+            },
+            onRelease = {
+                backspaceJob?.cancel() // STOP IMMEDIATELY
+            }
         )
 
         KeyboardIconKey(
@@ -183,10 +215,15 @@ private fun KeyboardKey(
     background: Color = Color(0xFF2F2F2F),
     onClick: () -> Unit
 ) {
+    val haptic = keyboardHaptic()
+
     Surface(
         modifier = modifier
             .height(56.dp)
-            .clickable { onClick() },
+            .clickable {
+                haptic()
+                onClick()
+            },
         shape = RoundedCornerShape(10.dp),
         tonalElevation = 4.dp,
         color = background
@@ -210,12 +247,35 @@ fun KeyboardIconKey(
     icon: String,
     modifier: Modifier = Modifier,
     background: Color = Color(0xFF2F2F2F),
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongPress: (() -> Unit)? = null,
+    onRelease: (() -> Unit)? = null
 ) {
+    val haptic = keyboardHaptic()
+
     Surface(
         modifier = modifier
             .height(56.dp)
-            .clickable { onClick() },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        haptic()
+                        onRelease?.invoke()
+                        onClick()
+                    },
+                    onLongPress = {
+                        haptic()
+                        onLongPress?.invoke()
+                    },
+                    onPress = {
+                        try {
+                            awaitRelease()
+                        } finally {
+                            onRelease?.invoke() //STOP on finger up / cancel
+                        }
+                    }
+                )
+            },
         shape = RoundedCornerShape(10.dp),
         tonalElevation = 4.dp,
         color = background
