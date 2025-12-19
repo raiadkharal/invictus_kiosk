@@ -137,6 +137,8 @@ private fun KeyboardKey(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val haptic = keyboardHaptic()
+
     Box(
         modifier = modifier
             .height(64.dp)
@@ -144,7 +146,10 @@ private fun KeyboardKey(
                 color = Color(0xFF2A2A2A),
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { onClick() },
+            .clickable {
+                haptic()
+                onClick()
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -162,6 +167,8 @@ private fun KeyboardActionKey(
     background: Color,
     onClick: () -> Unit
 ) {
+    val haptic = keyboardHaptic()
+
     Box(
         modifier = modifier
             .height(64.dp)
@@ -169,7 +176,10 @@ private fun KeyboardActionKey(
                 color = background,
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { onClick() },
+            .clickable {
+                haptic()
+                onClick()
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
