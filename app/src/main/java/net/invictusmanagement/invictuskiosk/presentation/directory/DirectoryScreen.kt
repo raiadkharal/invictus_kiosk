@@ -41,14 +41,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,14 +61,14 @@ import net.invictusmanagement.invictuskiosk.presentation.components.QRCodePanel
 import net.invictusmanagement.invictuskiosk.presentation.components.SearchTextField
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterDropdownButton
 import net.invictusmanagement.invictuskiosk.presentation.directory.components.FilterListItem
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.QRScannerScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.ResidentsScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.residents.components.ResidentListItem
-import net.invictusmanagement.invictuskiosk.ui.theme.InvictusKioskTheme
 import net.invictusmanagement.invictuskiosk.util.FilterOption
 import net.invictusmanagement.invictuskiosk.util.UiEvent
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
@@ -81,7 +79,8 @@ fun DirectoryScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     viewModel: DirectoryViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel = hiltViewModel()
+    mainViewModel: MainViewModel = hiltViewModel(),
+    keyboardVM: KeyboardViewModel
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -264,7 +263,8 @@ fun DirectoryScreen(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
                         placeholder = if (isUnitNumberSelected) localizedString(R.string.search_unit_number) else localizedString(R.string.search_resident),
-                        onValueChange = { searchQuery = it }
+                        onValueChange = { searchQuery = it },
+                        keyboardVM = keyboardVM
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     // Filter Button
@@ -459,15 +459,5 @@ fun DirectoryScreen(
                 }
             }
         }
-    }
-}
-
-@RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
-@Preview(widthDp = 1400, heightDp = 800)
-@Composable
-private fun DirectoryScreenPreview() {
-    InvictusKioskTheme {
-        val navController = rememberNavController()
-        DirectoryScreen(navController = navController)
     }
 }

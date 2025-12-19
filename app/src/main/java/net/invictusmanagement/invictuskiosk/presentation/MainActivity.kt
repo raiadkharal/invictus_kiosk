@@ -45,6 +45,8 @@ import kotlinx.coroutines.launch
 import net.invictusmanagement.invictuskiosk.commons.LocalUserInteractionReset
 import net.invictusmanagement.invictuskiosk.presentation.components.NetworkStatusBar
 import net.invictusmanagement.invictuskiosk.presentation.home.HomeViewModel
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardHost
+import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.LoginScreen
 import net.invictusmanagement.invictuskiosk.presentation.navigation.NavGraph
@@ -93,16 +95,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewModel = hiltViewModel<ScreenSaverViewModel>()
+            val keyboardVM = hiltViewModel<KeyboardViewModel>()
             val tokenState by viewModel.accessToken.collectAsState(initial = null)
             CompositionLocalProvider(
                 LocalAppLocale provides AppLocaleManager.currentLocale.value
             ) {
-                tokenState?.let { token ->
-                    if (token.isNotEmpty()) {
-                        MyApp()
-                    } else {
-                        MainContent()
+                KeyboardHost(keyboardVM) {
+
+                    tokenState?.let { token ->
+                        if (token.isNotEmpty()) {
+                            MyApp(keyboardVM)
+                        } else {
+                            MainContent(keyboardVM)
+                        }
                     }
+
                 }
             }
 
@@ -111,7 +118,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
-    fun MyApp() {
+    fun MyApp(keyboardVM: KeyboardViewModel) {
         val screenSaverViewModel = hiltViewModel<ScreenSaverViewModel>()
         val isPaused by screenSaverViewModel.isPaused.collectAsState()
 
@@ -153,7 +160,7 @@ class MainActivity : ComponentActivity() {
                     enter = fadeIn(animationSpec = tween(durationMillis = 300)),
                     exit = fadeOut(animationSpec = tween(durationMillis = 300))
                 ) {
-                    MainContent()
+                    MainContent(keyboardVM)
                 }
 
                 // Screen Saver
@@ -185,7 +192,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
-    fun MainContent() {
+    fun MainContent(keyboardVM: KeyboardViewModel) {
         val viewModel = hiltViewModel<ScreenSaverViewModel>()
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val tokenState by viewModel.accessToken.collectAsState(initial = null)
@@ -206,6 +213,7 @@ class MainActivity : ComponentActivity() {
                             NavGraph(
                                 innerPadding = innerPadding,
                                 startDestination = it,
+                                keyboardVM = keyboardVM
                             )
                         }
                     }
