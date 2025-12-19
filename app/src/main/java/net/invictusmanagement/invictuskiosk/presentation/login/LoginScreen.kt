@@ -37,6 +37,10 @@ import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardInputF
 import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.getValue
+
 
 @Composable
 fun LoginScreen(
@@ -45,6 +49,12 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     keyboardVM: KeyboardViewModel
 ) {
+
+    val keyboardOffset by animateDpAsState(
+        targetValue = if (keyboardVM.state.isVisible) (-180).dp else 0.dp,
+        label = "keyboardOffset"
+    )
+
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -81,6 +91,7 @@ fun LoginScreen(
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth()
+                .offset(y = keyboardOffset)// move content up when keyboard is visible
         ) {
 
             UrlVideoPlayer(

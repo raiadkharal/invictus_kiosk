@@ -38,7 +38,7 @@ fun NumericKeyboard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.32f)
+            .fillMaxHeight(0.4f)
             .background(colorResource(R.color.background))
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .pointerInput(Unit) {
@@ -141,7 +141,7 @@ private fun KeyboardKey(
 
     Box(
         modifier = modifier
-            .height(64.dp)
+            .height(88.dp)
             .background(
                 color = Color(0xFF2A2A2A),
                 shape = RoundedCornerShape(12.dp)
@@ -154,7 +154,7 @@ private fun KeyboardKey(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.displayMedium,
             color = Color.White
         )
     }
@@ -171,7 +171,7 @@ private fun KeyboardActionKey(
 
     Box(
         modifier = modifier
-            .height(64.dp)
+            .height(88.dp)
             .background(
                 color = background,
                 shape = RoundedCornerShape(12.dp)
@@ -184,7 +184,7 @@ private fun KeyboardActionKey(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.displayMedium,
             color = Color.White
         )
     }

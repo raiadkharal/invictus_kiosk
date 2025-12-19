@@ -48,7 +48,7 @@ fun QwertyKeyboard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.3f)
+            .fillMaxHeight(0.4f)
             .background(colorResource(R.color.background))
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .pointerInput(Unit) {
@@ -219,7 +219,7 @@ private fun KeyboardKey(
 
     Surface(
         modifier = modifier
-            .height(56.dp)
+            .height(88.dp)
             .clickable {
                 haptic()
                 onClick()
@@ -233,7 +233,7 @@ private fun KeyboardKey(
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.displayMedium.copy(
                     color = colorResource(R.color.btn_text),
                     fontWeight = FontWeight.Medium
                 )
@@ -255,7 +255,7 @@ fun KeyboardIconKey(
 
     Surface(
         modifier = modifier
-            .height(56.dp)
+            .height(88.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -283,7 +283,7 @@ fun KeyboardIconKey(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = icon,
-                style = MaterialTheme.typography.headlineMedium.copy(
+                style = MaterialTheme.typography.displayMedium.copy(
                     color = colorResource(R.color.btn_text),
                     fontWeight = FontWeight.Bold
                 )
