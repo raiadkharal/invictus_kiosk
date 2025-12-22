@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.di
 
+import android.content.ClipboardManager
 import android.content.Context
 import dagger.Module
 import dagger.Provides
@@ -201,4 +202,9 @@ object AppModule {
         return NetworkMonitor(context,globalLogger)
     }
 
+    @Provides
+    fun provideClipboardManager(
+        @ApplicationContext context: Context
+    ): ClipboardManager =
+        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 }

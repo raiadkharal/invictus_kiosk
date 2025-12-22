@@ -40,7 +40,8 @@ fun QwertyKeyboard(
     onKeyPress: (String) -> Unit,
     onBackspace: () -> Unit,
     onKeyboardSwitch: () -> Unit,
-    onDone: () -> Unit
+    onDone: () -> Unit,
+    onPasteRequest: () -> Unit
 ) {
 
     var isUpperCase by remember { mutableStateOf(false) }
@@ -62,20 +63,8 @@ fun QwertyKeyboard(
     ) {
 
         KeyboardRow("qwertyuiop", isUpperCase, onKeyPress)
-
-        KeyboardRow(
-            "asdfghjkl",
-            isUpperCase,
-            onKeyPress,
-            horizontalPadding = 20.dp
-        )
-
-        KeyboardRow(
-            "zxcvbnm",
-            isUpperCase,
-            onKeyPress,
-            horizontalPadding = 40.dp
-        )
+        KeyboardRow("asdfghjkl", isUpperCase, onKeyPress, horizontalPadding = 20.dp)
+        KeyboardRow("zxcvbnm", isUpperCase, onKeyPress, horizontalPadding = 40.dp)
 
         BottomActionRow(
             modifier = Modifier
@@ -86,6 +75,7 @@ fun QwertyKeyboard(
             onBackspace = onBackspace,
             onKeyboardSwitch = onKeyboardSwitch,
             onDone = onDone,
+            onPasteRequest = onPasteRequest,
             isUpperCase = isUpperCase,
             onToggleCase = { isUpperCase = !isUpperCase }
         )
@@ -125,6 +115,7 @@ private fun BottomActionRow(
     onBackspace: () -> Unit,
     onKeyboardSwitch: () -> Unit,
     onDone: () -> Unit,
+    onPasteRequest: () -> Unit,
     isUpperCase: Boolean,
     onToggleCase: () -> Unit
 ) {
@@ -156,18 +147,22 @@ private fun BottomActionRow(
             onClick = onKeyboardSwitch
         )
 
-        KeyboardKey(
-            text = ".",
-            modifier = Modifier.weight(0.5f),
-            background = Color(0xFF3A3A3A),
-            onClick = { onKeyPress(".") }
-        )
+        KeyboardKey("Paste", Modifier.weight(1f)) {
+            onPasteRequest()
+        }
 
         KeyboardKey(
             text = "Space",
             modifier = Modifier.weight(3f),
             background = Color(0xFF3A3A3A),
             onClick = onSpace
+        )
+
+        KeyboardKey(
+            text = ".",
+            modifier = Modifier.weight(0.5f),
+            background = Color(0xFF3A3A3A),
+            onClick = { onKeyPress(".") }
         )
 
         KeyboardKey(
@@ -190,19 +185,19 @@ private fun BottomActionRow(
                 backspaceJob = scope.launch {
                     while (true) {
                         onBackspace()
-                        delay(80) // repeat speed
+                        delay(80)
                     }
                 }
             },
             onRelease = {
-                backspaceJob?.cancel() // STOP IMMEDIATELY
+                backspaceJob?.cancel()
             }
         )
 
         KeyboardIconKey(
             icon = "✓",
             modifier = Modifier.weight(0.5f),
-            background = colorResource(R.color.btn_pin_code), // green confirm
+            background = colorResource(R.color.btn_pin_code),
             onClick = onDone
         )
     }

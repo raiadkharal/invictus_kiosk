@@ -1,12 +1,17 @@
 package net.invictusmanagement.invictuskiosk.presentation.keyboard
 
-import androidx.compose.runtime.*
+import android.content.ClipboardManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 
 @HiltViewModel
-class KeyboardViewModel @Inject constructor() : ViewModel() {
+class KeyboardViewModel @Inject constructor(
+    private val clipboardManager: ClipboardManager
+) : ViewModel() {
 
     var state by mutableStateOf(KeyboardState())
         private set
@@ -42,6 +47,20 @@ class KeyboardViewModel @Inject constructor() : ViewModel() {
             state = state.copy(text = state.text.dropLast(1))
             onTextChange(state.text)
         }
+    }
+
+    fun paste() {
+        val pastedText = clipboardManager
+            .primaryClip
+            ?.getItemAt(0)
+            ?.coerceToText(null)
+            ?.toString()
+            ?: return
+
+        if (pastedText.isEmpty()) return
+
+        state = state.copy(text = state.text + pastedText)
+        onTextChange(state.text)
     }
 
     fun switchLayout() {

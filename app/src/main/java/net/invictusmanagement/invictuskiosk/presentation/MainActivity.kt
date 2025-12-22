@@ -64,11 +64,13 @@ import net.invictusmanagement.relaymanager.RelayManager
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var usbManager: UsbManager
+
     @Inject
     lateinit var globalLogger: GlobalLogger
+
     @Inject
     lateinit var networkMonitor: NetworkMonitor
-    private lateinit var relayManager : RelayManager
+    private lateinit var relayManager: RelayManager
     private val TAG = "detectRelayOnStartup"
 
     private val usbPermissionReceiver = UsbPermissionReceiver { device ->
@@ -87,7 +89,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         usbManager = getSystemService(USB_SERVICE) as UsbManager
-        relayManager = RelayManager(this@MainActivity,globalLogger)
+        relayManager = RelayManager(this@MainActivity, globalLogger)
 
         AppLocaleManager.currentLocale.value =
             LocaleHelper.getCurrentLocale(this)
@@ -95,22 +97,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewModel = hiltViewModel<ScreenSaverViewModel>()
-            val keyboardVM = hiltViewModel<KeyboardViewModel>()
             val tokenState by viewModel.accessToken.collectAsState(initial = null)
             CompositionLocalProvider(
                 LocalAppLocale provides AppLocaleManager.currentLocale.value
             ) {
-                KeyboardHost(keyboardVM) {
-
-                    tokenState?.let { token ->
-                        if (token.isNotEmpty()) {
-                            MyApp(keyboardVM)
-                        } else {
-                            MainContent(keyboardVM)
-                        }
+                tokenState?.let { token ->
+                    if (token.isNotEmpty()) {
+                        MyApp()
+                    } else {
+                        MainContent()
                     }
-
                 }
+
             }
 
         }
@@ -118,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
-    fun MyApp(keyboardVM: KeyboardViewModel) {
+    fun MyApp() {
         val screenSaverViewModel = hiltViewModel<ScreenSaverViewModel>()
         val isPaused by screenSaverViewModel.isPaused.collectAsState()
 
@@ -129,7 +127,7 @@ class MainActivity : ComponentActivity() {
         // Runnable to trigger screen saver after inactivity
         val showSaverRunnable = remember {
             Runnable {
-                if(!isPaused) showScreenSaver = true
+                if (!isPaused) showScreenSaver = true
             }
         }
 
@@ -160,7 +158,7 @@ class MainActivity : ComponentActivity() {
                     enter = fadeIn(animationSpec = tween(durationMillis = 300)),
                     exit = fadeOut(animationSpec = tween(durationMillis = 300))
                 ) {
-                    MainContent(keyboardVM)
+                    MainContent()
                 }
 
                 // Screen Saver
@@ -192,9 +190,10 @@ class MainActivity : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     @Composable
-    fun MainContent(keyboardVM: KeyboardViewModel) {
+    fun MainContent() {
         val viewModel = hiltViewModel<ScreenSaverViewModel>()
         val homeViewModel = hiltViewModel<HomeViewModel>()
+        val keyboardVM = hiltViewModel<KeyboardViewModel>()
         val tokenState by viewModel.accessToken.collectAsState(initial = null)
         val isConnected by homeViewModel.isConnected.filterNotNull().collectAsState(initial = true)
         var startDestination by remember { mutableStateOf<Any?>(null) }
@@ -207,23 +206,25 @@ class MainActivity : ComponentActivity() {
 
         InvictusKioskTheme {
             CompositionLocalProvider(LocalContext provides this@MainActivity) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Scaffold { innerPadding ->
-                        startDestination?.let {
-                            NavGraph(
-                                innerPadding = innerPadding,
-                                startDestination = it,
-                                keyboardVM = keyboardVM
-                            )
+                KeyboardHost(keyboardVM) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Scaffold { innerPadding ->
+                            startDestination?.let {
+                                NavGraph(
+                                    innerPadding = innerPadding,
+                                    startDestination = it,
+                                    keyboardVM = keyboardVM
+                                )
+                            }
                         }
+                        // Overlay the status bar at the very top (above toolbar)
+                        NetworkStatusBar(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .statusBarsPadding(),
+                            isConnected = isConnected
+                        )
                     }
-                    // Overlay the status bar at the very top (above toolbar)
-                    NetworkStatusBar(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .statusBarsPadding(),
-                        isConnected = isConnected
-                    )
                 }
             }
         }
@@ -259,6 +260,7 @@ class MainActivity : ComponentActivity() {
         networkMonitor.stopMonitoring()
         super.onStop()
     }
+
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(usbPermissionReceiver)

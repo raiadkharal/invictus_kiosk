@@ -34,7 +34,8 @@ fun KeyboardHost(
                             onDone = {
                                 keyboardVM.hide()
                                 focusManager.clearFocus(force = true)
-                            }
+                            },
+                            onPasteRequest = { keyboardVM.paste() }
                         )
 
                     KeyboardType.NUMERIC ->
