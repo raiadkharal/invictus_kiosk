@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import net.invictusmanagement.invictuskiosk.R
@@ -16,26 +17,50 @@ import net.invictusmanagement.invictuskiosk.util.locale.localizedString
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
-    searchQuery:String,
-    placeholder:String = localizedString(R.string.search_resident),
+    searchQuery: String,
+    placeholder: String = localizedString(R.string.search_resident),
     onValueChange: (String) -> Unit,
     keyboardVM: KeyboardViewModel
 ) {
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardVM.reset()
+        }
+    }
+
     KeyboardInputField(
         modifier = modifier.fillMaxWidth(),
-        value = searchQuery,
+
+        // Value comes from KeyboardViewModel (cursor-safe)
+        value = keyboardVM.state.value,
+
         label = placeholder,
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = colorResource(R.color.btn_text)) },
-        onFocusChanged = {
-            if (it.isFocused) {
+        leadingIcon = {
+            Icon(
+                Icons.Filled.Search,
+                contentDescription = null,
+                tint = colorResource(R.color.btn_text)
+            )
+        },
+
+        //Let VM receive cursor updates
+        onValueChange = keyboardVM::updateFromTextField,
+
+        onFocusChanged = { focusState ->
+            if (focusState.isFocused) {
+
                 keyboardVM.show(
-                    initialText = searchQuery,
-                    onTextChange = onValueChange
-                )
-            }else{
+                    initialText = searchQuery
+                ) { tf ->
+
+                    // only expose String to caller
+                    onValueChange(tf.text)
+                }
+
+            } else {
                 keyboardVM.hide()
             }
         }
     )
-
 }

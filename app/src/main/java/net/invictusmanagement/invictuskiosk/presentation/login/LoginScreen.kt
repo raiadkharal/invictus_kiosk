@@ -138,21 +138,33 @@ fun LoginScreen(
 
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(0.5f),
-                value = activationCode,
-                onFocusChanged = {
-                    if (it.isFocused) {
+
+                // ✅ Always bind to keyboard VM state
+                value = keyboardVM.state.value,
+
+                // ✅ Feed cursor + selection changes back to VM
+                onValueChange = keyboardVM::updateFromTextField,
+
+                onFocusChanged = { focusState ->
+                    if (focusState.isFocused) {
+
                         keyboardVM.show(
-                            initialText = activationCode,
-                            onTextChange = { text ->
-                                activationCode = text
-                                if (validationError.isNotEmpty()) validationError = ""
+                            initialText = activationCode
+                        ) { tf ->
+
+                            activationCode = tf.text
+
+                            if (validationError.isNotEmpty()) {
+                                validationError = ""
                             }
-                        )
-                    }else{
+                        }
+
+                    } else {
                         keyboardVM.hide()
                     }
                 }
             )
+
 
             if (validationError.isNotEmpty()) {
                 Text(

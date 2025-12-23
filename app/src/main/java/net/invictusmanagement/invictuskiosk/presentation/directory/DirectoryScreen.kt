@@ -232,6 +232,12 @@ fun DirectoryScreen(
         }
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardVM.reset()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()

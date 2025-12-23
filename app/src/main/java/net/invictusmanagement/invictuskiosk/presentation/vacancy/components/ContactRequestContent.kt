@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.invictusmanagement.invictuskiosk.R
@@ -57,14 +60,33 @@ fun ContactRequestContent(
     var selectedTab by remember { mutableIntStateOf(0) }
     var name by remember { mutableStateOf("") }
     var contactInfo by remember { mutableStateOf("") }
+
+    var nameTf by remember {
+        mutableStateOf(TextFieldValue(name))
+    }
+
+    var contactTf by remember {
+        mutableStateOf(TextFieldValue(contactInfo))
+    }
+
     var isError by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedTab) {
         resetSleepTimer?.invoke()
         name = ""
         contactInfo = ""
+        nameTf = TextFieldValue("")
+        contactTf = TextFieldValue("")
+        keyboardVM.hide()
         isError = false
     }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardVM.reset()
+        }
+    }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -137,60 +159,115 @@ fun ContactRequestContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Name
+            //Name
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(),
-                value = name,
+
+                // ✅ Each field has its OWN value
+                value = nameTf,
+
                 label = localizedString(R.string.name),
-                onFocusChanged = {
-                    if (it.isFocused) {
-                        keyboardVM.show(name) { text ->
+
+                onValueChange = {
+                    nameTf = it
+                    keyboardVM.updateFromTextField(it)
+                },
+
+                onFocusChanged = { focusState ->
+                    if (focusState.isFocused) {
+
+                        keyboardVM.show(
+                            initialText = nameTf.text
+                        ) { tf ->
                             resetSleepTimer?.invoke()
-                            name = text
+                            nameTf = tf
+                            name = tf.text
                         }
-                    }else{
+
+                    } else {
                         keyboardVM.hide()
                     }
                 }
             )
+
             Spacer(Modifier.height(8.dp))
 
             // Email / Phone
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(),
-                value = contactInfo,
+
+                value = contactTf,
+
                 label = if (selectedTab == 0)
                     localizedString(R.string.email)
-                else localizedString(R.string.phone),
+                else
+                    localizedString(R.string.phone),
+
+                // 🔒 HARD BLOCK HERE (this is the missing piece)
+                onValueChange = { tf ->
+
+                    if (selectedTab == 1) {
+                        // 📞 PHONE MODE
+                        val digitsOnly = tf.text.filter { it.isDigit() }
+
+                        // 🚫 BLOCK input immediately
+                        if (digitsOnly.length > 10) {
+                            return@KeyboardInputField
+                        }
+                    }
+
+                    contactTf = tf
+                    keyboardVM.updateFromTextField(tf)
+                },
+
                 onFocusChanged = { focusState ->
                     if (focusState.isFocused) {
-                        keyboardVM.show(
-                            initialText = contactInfo,
-                            keyboardType = if (selectedTab ==0) KeyboardType.QWERTY else KeyboardType.NUMERIC
-                        ) { newValue ->
-                            resetSleepTimer?.invoke()
-                            if (selectedTab == 1) {
-                                // Extract only digits from input
-                                val digitsOnly = newValue.filter { it.isDigit() }
 
-                                // Limit to 10 digits max
-                                if (digitsOnly.length <= 10) {
-                                    contactInfo = if (digitsOnly.length == 10) {
-                                        // Format when exactly 10 digits are entered
+                        keyboardVM.show(
+                            initialText = contactTf.text,
+                            keyboardType = if (selectedTab == 0)
+                                KeyboardType.QWERTY
+                            else
+                                KeyboardType.NUMERIC
+                        ) { tf ->
+
+                            resetSleepTimer?.invoke()
+
+                            if (selectedTab == 1) {
+                                // 📞 PHONE MODE (same logic as before)
+                                val digitsOnly = tf.text.filter { it.isDigit() }
+
+                                // 🚫 EXTRA SAFETY (paste / programmatic)
+                                if (digitsOnly.length > 10) {
+                                    return@show
+                                }
+
+                                contactInfo =
+                                    if (digitsOnly.length == 10) {
                                         Constants.formatPhoneNumber(digitsOnly)
                                     } else {
                                         digitsOnly
                                     }
-                                }
-                            } else {
-                                contactInfo = newValue
-                            }
-                            isError =
-                                if (selectedTab == 0) !Constants.isValidEmail(newValue) else !Constants.isValidPhoneNumber(
-                                    contactInfo
+
+                                contactTf = TextFieldValue(
+                                    text = contactInfo,
+                                    selection = TextRange(contactInfo.length)
                                 )
+
+                            } else {
+                                // 📧 EMAIL MODE
+                                contactInfo = tf.text
+                                contactTf = tf
+                            }
+
+                            isError =
+                                if (selectedTab == 0)
+                                    !Constants.isValidEmail(contactInfo)
+                                else
+                                    !Constants.isValidPhoneNumber(contactInfo)
                         }
-                    }else{
+
+                    } else {
                         keyboardVM.hide()
                     }
                 }
