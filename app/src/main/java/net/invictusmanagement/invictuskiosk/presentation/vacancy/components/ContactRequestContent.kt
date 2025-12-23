@@ -162,12 +162,8 @@ fun ContactRequestContent(
             //Name
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(),
-
-                // ✅ Each field has its OWN value
                 value = nameTf,
-
                 label = localizedString(R.string.name),
-
                 onValueChange = {
                     nameTf = it
                     keyboardVM.updateFromTextField(it)
@@ -195,27 +191,22 @@ fun ContactRequestContent(
             // Email / Phone
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(),
-
                 value = contactTf,
-
                 label = if (selectedTab == 0)
                     localizedString(R.string.email)
                 else
                     localizedString(R.string.phone),
-
-                // 🔒 HARD BLOCK HERE (this is the missing piece)
+                placeholder = if (selectedTab == 0) "eg: jsmith@invictus.com" else "",
                 onValueChange = { tf ->
 
                     if (selectedTab == 1) {
-                        // 📞 PHONE MODE
+                        //PHONE MODE
                         val digitsOnly = tf.text.filter { it.isDigit() }
 
-                        // 🚫 BLOCK input immediately
                         if (digitsOnly.length > 10) {
                             return@KeyboardInputField
                         }
                     }
-
                     contactTf = tf
                     keyboardVM.updateFromTextField(tf)
                 },
@@ -234,10 +225,9 @@ fun ContactRequestContent(
                             resetSleepTimer?.invoke()
 
                             if (selectedTab == 1) {
-                                // 📞 PHONE MODE (same logic as before)
+                                // PHONE MODE
                                 val digitsOnly = tf.text.filter { it.isDigit() }
 
-                                // 🚫 EXTRA SAFETY (paste / programmatic)
                                 if (digitsOnly.length > 10) {
                                     return@show
                                 }
@@ -255,7 +245,7 @@ fun ContactRequestContent(
                                 )
 
                             } else {
-                                // 📧 EMAIL MODE
+                                //EMAIL MODE
                                 contactInfo = tf.text
                                 contactTf = tf
                             }
@@ -276,11 +266,34 @@ fun ContactRequestContent(
 
             if (isError) {
                 Text(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .fillMaxWidth(),
                     text = if (selectedTab == 0)
                         "Please enter a valid email"
                     else "Please enter a valid phone number",
+                    textAlign = TextAlign.Start,
                     color = Color.Red,
-                    modifier = Modifier.padding(top = 4.dp)
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = colorResource(
+                            R.color.btn_text
+                        )
+                    )
+                )
+            }else{
+                Text(
+                    modifier = Modifier
+                        .padding(top = 4.dp, start = 24.dp)
+                        .fillMaxWidth(),
+                    text = if (selectedTab == 0) localizedString(R.string.placeholder_email) else localizedString(
+                        R.string.placeholder_phone
+                    ),
+                    textAlign = TextAlign.Start,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = colorResource(
+                            R.color.btn_text
+                        )
+                    )
                 )
             }
 

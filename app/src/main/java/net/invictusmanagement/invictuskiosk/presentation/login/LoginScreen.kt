@@ -1,5 +1,6 @@
 package net.invictusmanagement.invictuskiosk.presentation.login
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,9 +39,6 @@ import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardInputF
 import net.invictusmanagement.invictuskiosk.presentation.keyboard.KeyboardViewModel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
 import net.invictusmanagement.invictuskiosk.util.locale.localizedString
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.getValue
 
 
 @Composable
@@ -138,13 +137,8 @@ fun LoginScreen(
 
             KeyboardInputField(
                 modifier = Modifier.fillMaxWidth(0.5f),
-
-                // ✅ Always bind to keyboard VM state
                 value = keyboardVM.state.value,
-
-                // ✅ Feed cursor + selection changes back to VM
                 onValueChange = keyboardVM::updateFromTextField,
-
                 onFocusChanged = { focusState ->
                     if (focusState.isFocused) {
 

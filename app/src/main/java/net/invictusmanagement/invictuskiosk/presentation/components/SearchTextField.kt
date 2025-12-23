@@ -31,10 +31,7 @@ fun SearchTextField(
 
     KeyboardInputField(
         modifier = modifier.fillMaxWidth(),
-
-        // Value comes from KeyboardViewModel (cursor-safe)
         value = keyboardVM.state.value,
-
         label = placeholder,
         leadingIcon = {
             Icon(
@@ -44,17 +41,13 @@ fun SearchTextField(
             )
         },
 
-        //Let VM receive cursor updates
         onValueChange = keyboardVM::updateFromTextField,
-
         onFocusChanged = { focusState ->
             if (focusState.isFocused) {
 
                 keyboardVM.show(
                     initialText = searchQuery
                 ) { tf ->
-
-                    // only expose String to caller
                     onValueChange(tf.text)
                 }
 
