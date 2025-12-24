@@ -433,9 +433,9 @@ fun DirectoryScreen(
                         isError = isError,
                         onCompleted = { pinCode ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                //wait for screenshot
-                                while (!mainViewModel.snapshotManager.isScreenShotTaken)
-                                    delay(500)
+
+                                //wait for screenshot attempt
+                                mainViewModel.snapshotManager.awaitScreenshot()
 
                                 viewModel.validateDigitalKey(
                                     DigitalKeyDto(

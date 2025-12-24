@@ -44,8 +44,8 @@ import net.invictusmanagement.invictuskiosk.presentation.components.CustomTextBu
 import net.invictusmanagement.invictuskiosk.presentation.components.CustomToolbar
 import net.invictusmanagement.invictuskiosk.presentation.components.PinInputPanel
 import net.invictusmanagement.invictuskiosk.presentation.navigation.DirectoryScreen
-import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.HomeScreen
+import net.invictusmanagement.invictuskiosk.presentation.navigation.ResponseMessageScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.UnlockedScreenRoute
 import net.invictusmanagement.invictuskiosk.presentation.navigation.VideoCallScreenRoute
 import net.invictusmanagement.invictuskiosk.util.UiEvent
@@ -75,7 +75,7 @@ fun LeasingOfficeScreen(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
-        listOf("0", "X", "clear")
+        listOf("0", "⌫", "clear")
     )
 
     val previewView = remember { PreviewView(context) }
@@ -209,9 +209,10 @@ fun LeasingOfficeScreen(
                 isError = isError,
                 onCompleted = { pinCode ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        //wait for screenshot
-                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
-                            delay(500)
+
+                        //wait for screenshot attempt
+                        mainViewModel.snapshotManager.awaitScreenshot()
+
                         viewModel.validateDigitalKey(
                             DigitalKeyDto(
                                 accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,

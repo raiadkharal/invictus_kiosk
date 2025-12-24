@@ -73,7 +73,7 @@ fun ServiceKeyScreen(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
-        listOf("0", "X", "clear")
+        listOf("0", "⌫", "clear")
     )
 
     CameraAndAudioPermission(
@@ -186,9 +186,9 @@ fun ServiceKeyScreen(
                 },
                 onCompleted = { pinCode ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        //wait for screenshot
-                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
-                            delay(500)
+
+                        //wait for screenshot attempt
+                        mainViewModel.snapshotManager.awaitScreenshot()
 
                         viewModel.validateServiceKey(
                             ServiceKeyDto(

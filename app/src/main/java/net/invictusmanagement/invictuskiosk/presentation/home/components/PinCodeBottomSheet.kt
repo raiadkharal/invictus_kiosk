@@ -105,7 +105,7 @@ fun PinCodeBottomSheet(
         ) {
             val buttons: List<List<String>> = listOf(
                 listOf("1", "2", "3", "4", "5", "6"),
-                listOf("7", "8", "9", "0", "X", "clear")
+                listOf("7", "8", "9", "0", "⌫", "clear")
             )
             PinInputPanel(
                 modifier = Modifier.fillMaxSize(),
@@ -113,9 +113,9 @@ fun PinCodeBottomSheet(
                 isError = isError,
                 onCompleted = { pinCode ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        //wait for screenshot
-                        while (!mainViewModel.snapshotManager.isScreenShotTaken)
-                            delay(500)
+
+                        //wait for screenshot attempt
+                        mainViewModel.snapshotManager.awaitScreenshot()
 
                         viewModel.validateDigitalKey(
                             DigitalKeyDto(

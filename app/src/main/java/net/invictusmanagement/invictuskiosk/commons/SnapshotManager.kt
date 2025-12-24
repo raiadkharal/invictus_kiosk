@@ -18,6 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import net.invictusmanagement.invictuskiosk.data.remote.ApiInterface
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -54,7 +59,8 @@ class SnapshotManager @Inject constructor(
     private var recipient: String = ""
     private var isValid: Boolean = false
 
-    var isScreenShotTaken = false
+    private val _screenshotState = MutableStateFlow(ScreenshotState.Idle)
+    val screenshotState: StateFlow<ScreenshotState> = _screenshotState.asStateFlow()
 
     // simple busy flag
     @Volatile
@@ -221,7 +227,7 @@ class SnapshotManager @Inject constructor(
     fun recordStampVideoAndUpload(userId: Long, durationSec: Int = 300) {
         if (isBusy) {
             lastError = "SnapshotManager busy"
-            isScreenShotTaken = true
+            _screenshotState.value = ScreenshotState.Success
             return
         }
         isBusy = true
@@ -336,13 +342,18 @@ class SnapshotManager @Inject constructor(
      * Capture a preview image using ImageCapture quickly for the stampImage - saved to stampImageBase64
      */
     private fun capturePreviewForStampImage() {
-        val ic = imageCapture ?: return
+        _screenshotState.value = ScreenshotState.Capturing
+        val ic = imageCapture ?: run {
+            lastError = "ImageCapture not initialized"
+            _screenshotState.value = ScreenshotState.Success
+            return
+        }
         val tmp = createTempFile("stamp_img_", ".jpg", context.getExternalFilesDir(null))
         val outputOptions = ImageCapture.OutputFileOptions.Builder(tmp).build()
         ic.takePicture(outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 try {
-                    isScreenShotTaken = true
+                    _screenshotState.value = ScreenshotState.Success
                     val bytes = tmp.readBytes()
                     val compressed = compressJpegToQuality(bytes, 20)
                     val b64 = Base64.encodeToString(compressed, Base64.NO_WRAP)
@@ -362,15 +373,15 @@ class SnapshotManager @Inject constructor(
                     }
 
                 } catch (e: Exception) {
+                    _screenshotState.value = ScreenshotState.Failed
                     Log.e(TAG, "Stamp image capture failed", e)
                 } finally {
-                    isScreenShotTaken = true
                     tmp.delete()
                 }
             }
 
             override fun onError(exception: ImageCaptureException) {
-                isScreenShotTaken = true
+                _screenshotState.value = ScreenshotState.Failed
                 Log.e(TAG, "Error capturing stamp image: ${exception.message}")
             }
         })
@@ -418,13 +429,22 @@ class SnapshotManager @Inject constructor(
             throw e
         } finally {
             // reset state
-            isScreenShotTaken = false
+            _screenshotState.value = ScreenshotState.Idle
             residentUserId = 0
             stampImageBase64 = null
             currentVideoFile?.delete()
             currentVideoFile = null
         }
     }
+
+    suspend fun awaitScreenshot(timeoutMs: Long = 10_000): Boolean {
+        return withTimeoutOrNull(timeoutMs) {
+            screenshotState
+                .filter { it == ScreenshotState.Success || it == ScreenshotState.Failed }
+                .first() == ScreenshotState.Success
+        } ?: false
+    }
+
 
     fun release() {
         try {
@@ -436,7 +456,7 @@ class SnapshotManager @Inject constructor(
     fun cleanupCameraSession() {
         cameraProvider?.unbindAll()
         isBusy = false
-        isScreenShotTaken = false
+        _screenshotState.value = ScreenshotState.Idle
     }
 
     fun stopAll() {
@@ -457,6 +477,13 @@ class SnapshotManager @Inject constructor(
         currentVideoFile = null
     }
 
+}
+
+enum class ScreenshotState {
+    Idle,
+    Capturing,
+    Success,
+    Failed
 }
 
 

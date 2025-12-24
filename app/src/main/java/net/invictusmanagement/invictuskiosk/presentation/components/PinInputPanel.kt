@@ -45,7 +45,7 @@ fun PinInputPanel(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
         listOf("7", "8", "9"),
-        listOf("0", "X", "clear")
+        listOf("0", "⌫", "clear")
     )
 ) {
     var otp by remember { mutableStateOf("") }
@@ -127,28 +127,16 @@ fun OTPButtonGrid(buttons: List<List<String>>, otp: String, onOtpChange: (String
                             }
                         }
 
-                        "X" -> {
-                            IconButton(
+                        "⌫" -> {
+                            OTPButton(
+                                modifier = Modifier.weight(1f),
+                                text = buttonText,
                                 onClick = {
                                     if (otp.isNotEmpty()) {
                                         onOtpChange(otp.dropLast(1))
                                     }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(72.dp)
-                                    .background(
-                                        color = colorResource(R.color.btn_pin_code),
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(30.dp),
-                                    imageVector = Icons.Filled.Clear,
-                                    contentDescription = "Clear Text",
-                                    tint = colorResource(R.color.btn_text)
-                                )
-                            }
+                                }
+                            )
                         }
 
                         else -> {

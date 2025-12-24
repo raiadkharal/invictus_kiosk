@@ -98,9 +98,10 @@ fun QRScannerScreen(
                 onScanSuccess = { result ->
                     viewModel.stopScanning()
                     CoroutineScope(Dispatchers.IO).launch {
-                        //wait for screenshot
-                        while (!viewModel.snapshotManager.isScreenShotTaken)
-                            delay(500)
+
+                        //wait for screenshot attempt
+                        mainViewModel.snapshotManager.awaitScreenshot()
+
                         viewModel.validateDigitalKey(
                             DigitalKeyDto(
                                 accessPointId = currentAccessPoint?.id?.toLong() ?: 0L,

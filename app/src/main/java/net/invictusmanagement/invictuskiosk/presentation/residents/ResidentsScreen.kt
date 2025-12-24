@@ -120,7 +120,7 @@ fun ResidentsScreen(
             mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident!!.id.toLong())
         }
     }
-    LaunchedEffect(Unit,isConnected) {
+    LaunchedEffect(Unit, isConnected) {
         viewModel.loadInitialData()
 
         if (isConnected) {
@@ -168,7 +168,7 @@ fun ResidentsScreen(
                     mapId = keyValidationState.digitalKey.mapId,
                     toPackageCenter = keyValidationState.digitalKey.toPackageCenter
                 )
-            ){
+            ) {
                 popUpTo(HomeScreen)
             }
         } else if (keyValidationState.digitalKey?.isValid == false) {
@@ -218,7 +218,9 @@ fun ResidentsScreen(
                     SearchTextField(
                         modifier = Modifier.weight(7f),
                         searchQuery = searchQuery,
-                        placeholder = if (isLeasingOffice) localizedString(R.string.search_leasing_officer) else localizedString(R.string.search_resident),
+                        placeholder = if (isLeasingOffice) localizedString(R.string.search_leasing_officer) else localizedString(
+                            R.string.search_resident
+                        ),
                         onValueChange = { searchQuery = it },
                         keyboardVM = keyboardVM
                     )
@@ -322,9 +324,9 @@ fun ResidentsScreen(
                         isError = isError,
                         onCompleted = { pinCode ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                //wait for screenshot
-                                while (!mainViewModel.snapshotManager.isScreenShotTaken)
-                                    delay(500)
+
+                                //wait for screenshot attempt
+                                mainViewModel.snapshotManager.awaitScreenshot()
 
                                 viewModel.validateDigitalKey(
                                     DigitalKeyDto(
