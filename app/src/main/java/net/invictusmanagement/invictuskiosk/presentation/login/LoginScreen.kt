@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +74,12 @@ fun LoginScreen(
             viewModel.saveActivationCode(activationCode)
         } else if (state.error.isNotEmpty()) {
             validationError = state.error
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardVM.reset()
         }
     }
 
