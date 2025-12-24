@@ -95,6 +95,9 @@ fun QRScannerScreen(
                 lifecycleOwner = lifecycleOwner,
                 previewView = previewView,
                 executor = executor,
+                onInitialize = {
+                    viewModel.snapshotManager.recordStampVideoAndUpload(0L)
+                },
                 onScanSuccess = { result ->
                     viewModel.stopScanning()
                     CoroutineScope(Dispatchers.IO).launch {
@@ -111,9 +114,6 @@ fun QRScannerScreen(
                     }
                 }
             )
-
-            delay(2000)  // wait for the camera to initialize
-            viewModel.snapshotManager.recordStampVideoAndUpload(0L)
         }
     }
 

@@ -69,6 +69,9 @@ class SnapshotManager @Inject constructor(
 
     var lastError by mutableStateOf<String?>(null)
 
+    // track current owner of the camera to enforce single-owner semantics
+    private var ownerId: String? = null
+
     /**
      * Attach (or re-attach) the active ImageCapture and VideoCapture instances from the unified camera session.
      * owner should call this after binding usecases.
@@ -79,6 +82,32 @@ class SnapshotManager @Inject constructor(
     }
 
     /**
+     * Try to acquire ownership for the camera. If force is true and another owner exists, the previous session will be cleaned up.
+     * Returns true if ownership was granted.
+     */
+    @Synchronized
+    fun tryAcquireOwner(newOwnerId: String, force: Boolean = true): Boolean {
+        if (ownerId == null) {
+            ownerId = newOwnerId
+            Log.d(TAG, "Camera owner acquired: $ownerId")
+            return true
+        }
+        if (ownerId == newOwnerId) return true
+
+        // different owner exists
+        return if (force) {
+            Log.w(TAG, "Forcing camera owner transfer: $ownerId -> $newOwnerId")
+            cleanupCameraSession()
+            ownerId = newOwnerId
+            Log.d(TAG, "Camera owner acquired after force: $ownerId")
+            true
+        } else {
+            Log.w(TAG, "Camera is already owned by $ownerId; refusing acquire by $newOwnerId")
+            false
+        }
+    }
+
+    /**
      * Initialize CameraX preview + capture usecases.
      * previewViewProvider must supply your PreviewView (from Compose host).
      * This function must be called when you have a LifecycleOwner (e.g. in Activity/Fragment's onCreate/onResume)
@@ -86,8 +115,17 @@ class SnapshotManager @Inject constructor(
     suspend fun startCamera(
         previewView: PreviewView,
         context: Context,
-        lifecycleOwner: LifecycleOwner
+        lifecycleOwner: LifecycleOwner,
+        owner: String,
+        forceAcquire: Boolean = true,
+        onInitialize: () -> Unit = {},
     ) = withContext(Dispatchers.Main) {
+        // Ensure owner
+        if (!tryAcquireOwner(owner, forceAcquire)) {
+            Log.w(TAG, "startCamera: couldn't acquire owner=$owner")
+            return@withContext
+        }
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
@@ -136,6 +174,8 @@ class SnapshotManager @Inject constructor(
                     videoCap,
                     imageCap
                 )
+
+                onInitialize()
 
                 Log.d("ServiceKeyVM", "Camera initialized successfully.")
             } catch (e: Exception) {
@@ -454,9 +494,20 @@ class SnapshotManager @Inject constructor(
     }
 
     fun cleanupCameraSession() {
-        cameraProvider?.unbindAll()
+        try {
+            cameraProvider?.unbindAll()
+        } catch (_: Exception) {
+        }
         isBusy = false
         _screenshotState.value = ScreenshotState.Idle
+
+        // clear stored usecases and provider so next owner gets a clean slate
+        imageCapture = null
+        videoCapture = null
+        cameraProvider = null
+
+        ownerId = null
+        Log.d(TAG, "Camera session cleaned up, owner cleared")
     }
 
     fun stopAll() {

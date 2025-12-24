@@ -119,8 +119,23 @@ class QRScannerViewModel @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
         executor: Executor,
-        onScanSuccess: (String) -> Unit
+        onInitialize: () -> Unit = {},
+        onScanSuccess: (String) -> Unit,
+        ownerId: String = lifecycleOwner.toString()
     ) {
+        // Attempt to acquire ownership via SnapshotManager. If it fails, abort start to avoid conflicts.
+        val acquired = try {
+            snapshotManager.tryAcquireOwner(ownerId, true)
+        } catch (e: Exception) {
+            logger.logError("QrCodeScanner/StartCamera", "Owner acquire failed: ${e.localizedMessage}", e)
+            false
+        }
+
+        if (!acquired) {
+            reportError("Camera is in use by another component")
+            return
+        }
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
@@ -172,6 +187,7 @@ class QRScannerViewModel @Inject constructor(
                     videoCapture,
                     imageCapture
                 )
+                onInitialize()
             } catch (e: Exception) {
                 logger.logError(
                     "QrCodeScanner/StartCamera",

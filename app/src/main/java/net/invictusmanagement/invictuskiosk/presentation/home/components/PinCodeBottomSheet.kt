@@ -70,13 +70,14 @@ fun PinCodeBottomSheet(
     val previewView = remember { PreviewView(context) }
     LaunchedEffect(previewView) {
         mainViewModel.snapshotManager.startCamera(
-            previewView,
-            context,
-            lifecycleOwner
+            previewView = previewView,
+            context = context,
+            lifecycleOwner = lifecycleOwner,
+            owner = lifecycleOwner.toString(),
+            onInitialize = {
+                mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
+            }
         )
-
-        delay(2000)  // wait for the camera to initialize
-        mainViewModel.snapshotManager.recordStampVideoAndUpload(selectedResident.id.toLong())
     }
     AndroidView(
         factory = { previewView },

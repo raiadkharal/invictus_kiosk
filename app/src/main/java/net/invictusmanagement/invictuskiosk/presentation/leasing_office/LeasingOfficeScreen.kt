@@ -88,12 +88,14 @@ fun LeasingOfficeScreen(
 
     LaunchedEffect(Unit) {
         mainViewModel.snapshotManager.startCamera(
-            previewView,
-            context,
-            lifecycleOwner
+            previewView = previewView,
+            context = context,
+            lifecycleOwner = lifecycleOwner,
+            owner = lifecycleOwner.toString(),
+            onInitialize = {
+                mainViewModel.snapshotManager.recordStampVideoAndUpload(residentId.toLong())
+            }
         )
-        delay(2000) // wait for the camera to initialize
-        mainViewModel.snapshotManager.recordStampVideoAndUpload(residentId.toLong())
     }
 
     LaunchedEffect(Unit) {

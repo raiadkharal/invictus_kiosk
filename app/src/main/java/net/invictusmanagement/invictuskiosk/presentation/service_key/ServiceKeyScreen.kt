@@ -84,13 +84,14 @@ fun ServiceKeyScreen(
     LaunchedEffect(hasAllPermissions) {
         if (hasAllPermissions) {
             mainViewModel.snapshotManager.startCamera(
-                previewView,
-                context,
-                lifecycleOwner
+                previewView = previewView,
+                context = context,
+                lifecycleOwner = lifecycleOwner,
+                owner = lifecycleOwner.toString(),
+                onInitialize = {
+                    mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
+                }
             )
-
-            delay(2000)  // wait for the camera to initialize
-            mainViewModel.snapshotManager.recordStampVideoAndUpload(0L)
         }
     }
     AndroidView(
