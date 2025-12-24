@@ -477,7 +477,7 @@ class SnapshotManager @Inject constructor(
         }
     }
 
-    suspend fun awaitScreenshot(timeoutMs: Long = 10_000): Boolean {
+    suspend fun awaitScreenshot(timeoutMs: Long = 5_000): Boolean {
         return withTimeoutOrNull(timeoutMs) {
             screenshotState
                 .filter { it == ScreenshotState.Success || it == ScreenshotState.Failed }

@@ -51,6 +51,9 @@ class VoicemailViewModel @Inject constructor(
     private var onFinishCallback: ((File) -> Unit)? = null
     private var videoFile: File? = null
 
+    private val voiceMailRecordingTimeout = 15_000L
+
+
     private val _countdown = mutableIntStateOf(6)
     val countdown: State<Int> = _countdown
 
@@ -175,7 +178,7 @@ class VoicemailViewModel @Inject constructor(
 
             Handler(Looper.getMainLooper()).postDelayed({
                 recording?.stop()
-            }, 30_000)
+            }, voiceMailRecordingTimeout)
         } catch (e: Exception) {
             logger.logError("Voicemail/Recording", "Recording error: ${e.message}", e)
             Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
